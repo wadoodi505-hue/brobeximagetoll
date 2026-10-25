@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # BROBEX Image Tools
 
 A Next.js App Router starter for a privacy-conscious image utilities platform. The browser-based workspace includes real canvas operations for supported raster images; advanced AI and specialist format tools clearly report when an integration is not configured.
@@ -38,3 +39,6 @@ The `lint` script is intended for ESLint integration; install/configure ESLint s
 - No upload API or arbitrary URL fetch endpoint is included.
 - The browser cannot guarantee that every metadata field is available. Metadata shown is limited to what the browser can read.
 - Advanced providers must be implemented server-side with validation, rate limits, file-size limits, timeouts, and a documented retention policy before deployment.
+=======
+# brobeximagetoll
+>>>>>>> origin/main
