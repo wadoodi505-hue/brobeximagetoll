@@ -68,11 +68,11 @@
 | 64 | PSD to SVG | image | Integration required |
 | 65 | PSD to AI | image | Integration required |
 | 66 | PDF to JPG | pdf | Integration required |
-| 67 | Merge PDF | pdf | Integration required |
-| 68 | Split PDF | pdf | Integration required |
+| 67 | Merge PDF | pdf | Browser implementation |
+| 68 | Split PDF | pdf | Browser implementation |
 | 69 | Compress PDF | pdf | Integration required |
 | 70 | Edit PDF | pdf | Integration required |
-| 71 | JPG to PDF | pdf | Integration required |
+| 71 | JPG to PDF | pdf | Browser implementation |
 | 72 | PDF to Word | pdf | Integration required |
 | 73 | GIF to MP4 | video | Integration required |
 | 74 | VSD to PDF | file | Integration required |
@@ -84,7 +84,7 @@
 | 80 | VSDX to PPTX | file | Integration required |
 | 81 | VSDX to JPG | file | Integration required |
 | 82 | General File Converter | file | Integration required |
-| 83 | Content Improver | write | Integration required |
-| 84 | Essay Writer | write | Integration required |
-| 85 | Paragraph Writer | write | Integration required |
-| 86 | Paragraph Completer | write | Integration required |
+| 83 | Content Improver | write | Browser implementation |
+| 84 | Essay Writer | write | Browser implementation |
+| 85 | Paragraph Writer | write | Browser implementation |
+| 86 | Paragraph Completer | write | Browser implementation |

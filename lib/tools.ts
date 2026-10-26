@@ -893,11 +893,10 @@ export const tools: ToolDefinition[] = [
     "category": "pdf",
     "icon": "WandSparkles",
     "acceptedTypes": [
-      "application/pdf",
-      "image/jpeg"
+      "application/pdf"
     ],
-    "method": "PDF library / document conversion integration",
-    "status": "integration"
+    "method": "pdf-lib (browser)",
+    "status": "browser"
   },
   {
     "slug": "split-pdf",
@@ -906,11 +905,10 @@ export const tools: ToolDefinition[] = [
     "category": "pdf",
     "icon": "WandSparkles",
     "acceptedTypes": [
-      "application/pdf",
-      "image/jpeg"
+      "application/pdf"
     ],
-    "method": "PDF library / document conversion integration",
-    "status": "integration"
+    "method": "pdf-lib (browser)",
+    "status": "browser"
   },
   {
     "slug": "compress-pdf",
@@ -945,11 +943,11 @@ export const tools: ToolDefinition[] = [
     "category": "pdf",
     "icon": "WandSparkles",
     "acceptedTypes": [
-      "application/pdf",
-      "image/jpeg"
+      "image/jpeg",
+      "image/png"
     ],
-    "method": "PDF library / document conversion integration",
-    "status": "integration"
+    "method": "pdf-lib (browser)",
+    "status": "browser"
   },
   {
     "slug": "pdf-to-word",
@@ -1088,50 +1086,50 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "content-improver",
     "name": "Content Improver",
-    "description": "Improve clarity, tone, and readability using a configured language model provider.",
+    "description": "Clean up spacing, punctuation, and common readability issues with an offline text helper. This is template-based, not AI.",
     "category": "write",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "text/plain"
     ],
-    "method": "Language-model provider integration",
-    "status": "integration"
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
   },
   {
     "slug": "essay-writer",
     "name": "Essay Writer",
-    "description": "Draft essays using a configured language model provider.",
+    "description": "Create a structured essay draft from a topic using an offline template. Review and expand the generated outline.",
     "category": "write",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "text/plain"
     ],
-    "method": "Language-model provider integration",
-    "status": "integration"
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
   },
   {
     "slug": "paragraph-writer",
     "name": "Paragraph Writer",
-    "description": "Generate a paragraph from a prompt using a configured language model provider.",
+    "description": "Create a starter paragraph from a topic using an offline template.",
     "category": "write",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "text/plain"
     ],
-    "method": "Language-model provider integration",
-    "status": "integration"
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
   },
   {
     "slug": "paragraph-completer",
     "name": "Paragraph Completer",
-    "description": "Continue text using a configured language model provider.",
+    "description": "Create a simple continuation suggestion for a paragraph using an offline template.",
     "category": "write",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "text/plain"
     ],
-    "method": "Language-model provider integration",
-    "status": "integration"
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
   }
 ] as ToolDefinition[];
 

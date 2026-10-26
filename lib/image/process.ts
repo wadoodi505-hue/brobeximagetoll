@@ -19,7 +19,7 @@ export function loadImage(file: File): Promise<HTMLImageElement> {
 }
 function canvasBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error(`This browser cannot export ${type}. Try PNG or JPEG.`)), type, quality);
+    canvas.toBlob((blob) => { if (!blob) { reject(new Error(`This browser cannot export ${type}. Try PNG or JPEG.`)); return; } if (blob.type && blob.type !== type) { reject(new Error(`This browser cannot export ${type}. It returned ${blob.type} instead. Choose a different output format.`)); return; } resolve(blob); }, type, quality);
   });
 }
 export async function processImage(file: File, settings: ProcessSettings): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
@@ -49,7 +49,7 @@ export async function processImage(file: File, settings: ProcessSettings): Promi
   if (settings.operation === "blur") ctx.filter = `blur(${Math.max(0, Math.min(30, settings.blurAmount || 4))}px)`;
   if (settings.operation === "grayscale") ctx.filter = "grayscale(1)";
   if (settings.operation === "flip") { ctx.translate(settings.flipX ? width : 0, settings.flipY ? height : 0); ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1); }
-  if (settings.operation === "rotate") { const angle = ((settings.rotation || 90) * Math.PI) / 180; ctx.translate(canvas.width/2,canvas.height/2); ctx.rotate(angle); }
+  if (settings.operation === "rotate") { const angle = ((settings.rotation ?? 90) * Math.PI) / 180; ctx.translate(canvas.width/2,canvas.height/2); ctx.rotate(angle); }
   if (settings.operation === "pixelate") {
     const small = document.createElement("canvas"); const size = Math.max(2, Math.min(80, settings.pixelSize || 12));
     small.width = Math.max(1, Math.ceil(width/size)); small.height = Math.max(1, Math.ceil(height/size));
@@ -58,7 +58,7 @@ export async function processImage(file: File, settings: ProcessSettings): Promi
     ctx.imageSmoothingEnabled = false; ctx.drawImage(small,0,0,canvas.width,canvas.height);
   } else {
     const offset = settings.operation === "border" ? Math.max(0, settings.borderWidth || 0) : 0;
-    if (settings.operation === "rotate") ctx.drawImage(image,-width/2,-height/2,width,height);
+    if (settings.operation === "rotate") ctx.drawImage(image,-srcW/2,-srcH/2,srcW,srcH);
     else ctx.drawImage(image,sx,sy,sw,sh,offset,offset,width,height);
   }
   if (settings.operation === "text" && settings.text) {
@@ -75,4 +75,23 @@ export function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
   return `${(bytes/(1024*1024)).toFixed(2)} MB`;
+}
+
+/** Compose multiple images into a single PNG without uploading them anywhere. */
+export async function processImages(files: File[], layout: "horizontal" | "vertical" = "horizontal"): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
+  if (files.length < 2) throw new Error("Choose at least two images to combine.");
+  const images = await Promise.all(files.map(loadImage));
+  const maxDimension = 12000;
+  const scale = Math.min(1, maxDimension / Math.max(...images.map(i => layout === "horizontal" ? i.naturalWidth : i.naturalHeight)));
+  const dims = images.map(i => ({ w: Math.max(1, Math.round(i.naturalWidth * scale)), h: Math.max(1, Math.round(i.naturalHeight * scale)) }));
+  const width = layout === "horizontal" ? dims.reduce((s,d) => s + d.w, 0) : Math.max(...dims.map(d => d.w));
+  const height = layout === "vertical" ? dims.reduce((s,d) => s + d.h, 0) : Math.max(...dims.map(d => d.h));
+  if (width > maxDimension || height > maxDimension || width * height > 80_000_000) throw new Error("The combined image would be too large. Choose smaller images.");
+  const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, width, height);
+  let x = 0, y = 0;
+  images.forEach((image, index) => { const d = dims[index]; ctx.drawImage(image, x, y, d.w, d.h); if (layout === "horizontal") x += d.w; else y += d.h; });
+  const blob = await canvasBlob(canvas, "image/png", 1);
+  return { blob, width, height, mime: blob.type || "image/png" };
 }
