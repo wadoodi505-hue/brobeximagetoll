@@ -2,7 +2,6 @@ import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
-    "slug": "ai-image-generator",
     "name": "AI Image Generator",
     "description": "Create an image from a text prompt using a configured image generation provider.",
     "category": "image",
@@ -23,7 +22,7 @@ export const tools: ToolDefinition[] = [
       "image/*"
     ],
     "method": "AI provider / OCR integration",
-    "status": "integration"
+    "status": "browser"
   },
   {
     "slug": "upscale-image",
