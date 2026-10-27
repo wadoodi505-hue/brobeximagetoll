@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-import { UpscaleWorkspace } from "@/components/upscale-workspace";
-=======
 
->>>>>>> origin/main
+import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -175,13 +172,9 @@ export default async function ToolPage({
 
       <div className="page-content">
         {/* Select the correct workspace for this tool */}
-<<<<<<< HEAD
         {tool.slug === "upscale-image" ? (
           <UpscaleWorkspace />
         ) : tool.category === "pdf" ? (
-=======
-        {tool.category === "pdf" ? (
->>>>>>> origin/main
           <PdfWorkspace tool={tool} />
         ) : tool.category === "image" ? (
           <ImageWorkspace tool={tool} />
@@ -190,10 +183,6 @@ export default async function ToolPage({
         ) : (
           <div className="integration-notice">
             <span className="integration-icon">✳</span>
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
             <div>
               <h3>Processing engine not configured</h3>
               <p>

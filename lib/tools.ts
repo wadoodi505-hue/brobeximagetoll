@@ -14,7 +14,6 @@ export const tools: ToolDefinition[] = [
     "status": "browser"
   },
   {
-<<<<<<< HEAD
     slug: "upscale-image",
     name: "Upscale Image",
     description:
@@ -24,18 +23,6 @@ export const tools: ToolDefinition[] = [
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
     method: "Local browser canvas resampling",
     status: "browser"
-=======
-    "slug": "upscale-image",
-    "name": "Upscale Image",
-    "description": "Increase image resolution using an AI upscaling provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
->>>>>>> origin/main
   },
   {
     "slug": "remove-watermark",
