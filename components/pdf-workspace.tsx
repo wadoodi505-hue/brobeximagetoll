@@ -69,7 +69,11 @@ export function PdfWorkspace({ tool }: { tool: ToolDefinition }) {
     finally { setBusy(false); }
   }
   return <div className="workspace">
+<<<<<<< HEAD
     <div className="workspace-top"><div><span className="eyebrow">FREE BROWSER WORKSPACE</span><h2>{tool.name}</h2><p>Files are processed locally in your browser. No API key is needed.</p></div><span className="privacy-chip"><ShieldCheck size={15} /> </span></div>
+=======
+    <div className="workspace-top"><div><span className="eyebrow">FREE BROWSER WORKSPACE</span><h2>{tool.name}</h2><p>Files are processed locally in your browser. No API key is needed.</p></div><span className="privacy-chip"><ShieldCheck size={15} /> Local processing</span></div>
+>>>>>>> origin/main
     {implemented.has(tool.slug) ? <>
       <label className={`dropzone ${files.length ? "has-file" : ""}`}><input type="file" multiple={tool.slug !== "split-pdf"} accept={tool.slug === "jpg-to-pdf" ? "image/jpeg,image/png" : "application/pdf,.pdf"} onChange={e => selectFiles(e.target.files)} /><FileText size={30} /><strong>{files.length ? `${files.length} file(s) selected` : tool.slug === "jpg-to-pdf" ? "Choose JPG/PNG images" : tool.slug === "merge-pdf" ? "Choose two or more PDF files" : "Choose one PDF file"}</strong><span>{files.map(f => f.name).join(" · ") || "Maximum 25 MB per file"}</span></label>
       {tool.slug === "split-pdf" && <label>Pages to extract<input value={pageRange} onChange={e => setPageRange(e.target.value)} placeholder="Example: 1,3-5" /><small>Use page numbers separated by commas and ranges.</small></label>}
