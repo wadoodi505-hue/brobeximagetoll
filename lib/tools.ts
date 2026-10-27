@@ -2,17 +2,6 @@ import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
-    "name": "AI Image Generator",
-    "description": "Create an image from a text prompt using a configured image generation provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
-  {
     "slug": "remove-background-from-image",
     "name": "Remove Background from Image",
     "description": "Remove an image background with a configured segmentation provider.",
