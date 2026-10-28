@@ -14,7 +14,7 @@ import {
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_PIXELS = 8_000_000;
 const MAX_ENGINE_WAIT_MS = 45_000;
-const OPENCV_SCRIPT_PATH = "/opencv/opencv.js";
+const OPENCV_SCRIPT_PATH = "https://docs.opencv.org/4.x/opencv.js";
 const OPENCV_SCRIPT_ATTRIBUTE = "data-brobex-opencv";
 
 type OpenCVMat = {
@@ -56,11 +56,14 @@ type OpenCV = {
   INPAINT_TELEA: number;
 };
 
+type OpenCVRuntime = OpenCV & {
+  onRuntimeInitialized?: () => void;
+  onAbort?: (reason?: unknown) => void;
+};
+
 declare global {
   interface Window {
-    cv?: OpenCV & {
-      onRuntimeInitialized?: () => void;
-    };
+    cv?: OpenCVRuntime | Promise<OpenCVRuntime>;
   }
 }
 
@@ -146,13 +149,15 @@ export function RemoveObjectsWorkspace() {
 
   // Load OpenCV through its browser runtime, avoiding a Node.js import
   // in the Next.js server/client bundling pipeline.
+
+  // Load OpenCV from its official hosted runtime.
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let startedAt = Date.now();
     let script: HTMLScriptElement | null = null;
-    let ownsScript = false;
     let scriptFailed = false;
+    let promiseObserved = false;
 
     const stopTimer = () => {
       if (timer !== undefined) {
@@ -171,32 +176,64 @@ export function RemoveObjectsWorkspace() {
       setMessage("");
     };
 
+    const acceptEngine = (candidate: unknown) => {
+      if (cancelled || !isOpenCVReady(candidate)) return false;
+
+      stopTimer();
+      cvRef.current = candidate;
+      setReady(true);
+      setError("");
+      setMessage(
+        "Processing engine ready. Your images stay on this device."
+      );
+
+      return true;
+    };
+
     const checkEngine = () => {
       if (cancelled) return;
 
-      const engine = window.cv;
+      const candidate = window.cv;
 
-      if (isOpenCVReady(engine)) {
-        stopTimer();
-        cvRef.current = engine;
-        setReady(true);
-        setError("");
-        setMessage(
-          "Processing engine ready. Your images stay on this device."
-        );
-        return;
+      if (acceptEngine(candidate)) return;
+
+      if (
+        candidate &&
+        typeof candidate === "object" &&
+        "then" in candidate &&
+        typeof candidate.then === "function"
+      ) {
+        if (!promiseObserved) {
+          promiseObserved = true;
+
+          Promise.resolve(candidate)
+            .then((engine: unknown) => {
+              if (cancelled) return;
+
+              if (!acceptEngine(engine)) {
+                fail(
+                  "OpenCV loaded, but its required image-processing functions are missing."
+                );
+              }
+            })
+            .catch((reason: unknown) => {
+              fail(
+                `OpenCV runtime initialization failed: ${getErrorMessage(reason)}`
+              );
+            });
+        }
       }
 
       if (scriptFailed) {
         fail(
-          `Unable to load ${OPENCV_SCRIPT_PATH}. Check that the OpenCV JavaScript and its WASM runtime files are deployed correctly.`
+          "OpenCV could not be loaded. Check your internet connection, browser console, and the OpenCV CDN."
         );
         return;
       }
 
       if (Date.now() - startedAt >= MAX_ENGINE_WAIT_MS) {
         fail(
-          "OpenCV did not initialize in time. Check the browser console and verify that the OpenCV WASM files are accessible."
+          "OpenCV timed out while initializing. Refresh the page and check whether the OpenCV script or WebAssembly runtime is blocked."
         );
         return;
       }
@@ -205,34 +242,18 @@ export function RemoveObjectsWorkspace() {
     };
 
     const handleScriptLoad = () => {
-      if (script) {
-        script.dataset.loaded = "true";
-        delete script.dataset.failed;
-      }
-
+      if (script) script.dataset.loaded = "true";
       checkEngine();
     };
 
     const handleScriptError = () => {
       scriptFailed = true;
-
-      if (script) {
-        script.dataset.failed = "true";
-      }
-
       fail(
-        `The browser could not load ${OPENCV_SCRIPT_PATH}. Verify the file path and redeploy the public/opencv directory.`
+        "Could not download OpenCV. Check your internet connection or try again later."
       );
     };
 
-    if (isOpenCVReady(window.cv)) {
-      cvRef.current = window.cv;
-      setReady(true);
-      setError("");
-      setMessage(
-        "Processing engine ready. Your images stay on this device."
-      );
-
+    if (acceptEngine(window.cv)) {
       return () => {
         cancelled = true;
       };
@@ -242,40 +263,35 @@ export function RemoveObjectsWorkspace() {
       `script[${OPENCV_SCRIPT_ATTRIBUTE}="true"]`
     );
 
+    // Remove a previous failed script so retry can load it again.
+    if (script?.dataset.failed === "true") {
+      script.remove();
+      script = null;
+    }
+
     if (!script) {
       script = document.createElement("script");
       script.src = OPENCV_SCRIPT_PATH;
       script.async = true;
       script.setAttribute(OPENCV_SCRIPT_ATTRIBUTE, "true");
-      ownsScript = true;
-    } else if (script.dataset.failed === "true") {
-      // A previous script element may have failed before this component
-      // attached its event listeners. Remove it so the retry can work.
-      script.remove();
-      script = document.createElement("script");
-      script.src = OPENCV_SCRIPT_PATH;
-      script.async = true;
-      script.setAttribute(OPENCV_SCRIPT_ATTRIBUTE, "true");
-      ownsScript = true;
-    }
-
-    script.addEventListener("load", handleScriptLoad);
-    script.addEventListener("error", handleScriptError);
-
-    if (ownsScript) {
+      script.addEventListener("load", handleScriptLoad);
+      script.addEventListener("error", handleScriptError);
       document.head.appendChild(script);
+    } else {
+      script.addEventListener("load", handleScriptLoad);
+      script.addEventListener("error", handleScriptError);
     }
 
     startedAt = Date.now();
+    setReady(false);
+    setError("");
+    setMessage("Loading the local processing engine…");
 
-    // Polling is intentional: OpenCV's load event can fire before the
-    // WebAssembly runtime finishes initializing.
     checkEngine();
 
     return () => {
       cancelled = true;
       stopTimer();
-
       script?.removeEventListener("load", handleScriptLoad);
       script?.removeEventListener("error", handleScriptError);
     };
@@ -951,6 +967,7 @@ export function RemoveObjectsWorkspace() {
 
             {resultUrl ? (
               <>
+
                 <div
                   style={{
                     width: "100%",
@@ -963,7 +980,7 @@ export function RemoveObjectsWorkspace() {
                     ref={resultRef}
                     aria-label="Processed image result"
                     style={{
-                      display: "block",
+                      display: resultUrl ? "block" : "none",
                       width: "100%",
                       maxWidth: "100%",
                       height: "auto",
