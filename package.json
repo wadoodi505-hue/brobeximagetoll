@@ -12,6 +12,7 @@
   "dependencies": {
     "@huggingface/inference": "^4.13.32",
     "@imgly/background-removal": "^1.7.0",
+    "@techstark/opencv-js": "^5.0.0-release.1",
     "@vercel/analytics": "^2.0.1",
     "lucide-react": "^0.468.0",
     "next": "^15.5.18",

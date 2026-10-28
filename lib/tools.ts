@@ -1,4 +1,4 @@
-import type { ToolDefinition, Category } from "@/types/tools";
+﻿import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,36 +17,23 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase image resolution by 2×, 3×, or 4× with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
+      "Increase image resolution by 2Ã—, 3Ã—, or 4Ã— with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
     method: "Local browser canvas resampling",
     status: "browser"
   },
-  {
-    "slug": "remove-watermark",
-    "name": "Remove Watermark",
-    "description": "Requires a specialized image restoration provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
+  
   {
     "slug": "remove-objects-from-photo",
     "name": "Remove Objects from Photo",
-    "description": "Remove selected objects using an image inpainting provider.",
+    "description": "Remove selected objects using free, local OpenCV inpainting.",
     "category": "image",
     "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    "acceptedTypes": ["image/png", "image/jpeg", "image/webp", "image/avif"],
+    "method": "Local OpenCV.js inpainting",
+    "status": "browser"
   },
   {
     "slug": "unblur-image",
@@ -1128,3 +1115,5 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
+

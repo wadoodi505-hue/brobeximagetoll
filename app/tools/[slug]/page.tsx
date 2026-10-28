@@ -1,10 +1,11 @@
-
+﻿
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ImageWorkspace } from "@/components/image-workspace";
+import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
 import { PdfWorkspace } from "@/components/pdf-workspace";
 import { WritingWorkspace } from "@/components/writing-workspace";
 import { ToolCard } from "@/components/tool-card";
@@ -155,7 +156,7 @@ export default async function ToolPage({
         </div>
 
         <div className="tool-detail-title">
-          <span className="tool-icon">✳</span>
+          <span className="tool-icon">âœ³</span>
 
           <div>
             <h1>{tool.name}</h1>
@@ -172,7 +173,9 @@ export default async function ToolPage({
 
       <div className="page-content">
         {/* Select the correct workspace for this tool */}
-        {tool.slug === "upscale-image" ? (
+        {tool.slug === "remove-objects-from-photo" ? (
+          <RemoveObjectsWorkspace />
+        ) : tool.slug === "upscale-image" ? (
           <UpscaleWorkspace />
         ) : tool.category === "pdf" ? (
           <PdfWorkspace tool={tool} />
@@ -182,7 +185,7 @@ export default async function ToolPage({
           <WritingWorkspace tool={tool} />
         ) : (
           <div className="integration-notice">
-            <span className="integration-icon">✳</span>
+            <span className="integration-icon">âœ³</span>
             <div>
               <h3>Processing engine not configured</h3>
               <p>
@@ -238,3 +241,4 @@ export default async function ToolPage({
     </div>
   );
 }
+

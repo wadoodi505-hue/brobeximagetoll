@@ -1,0 +1,473 @@
+﻿"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
+import { Download, Eraser, ImagePlus, RotateCcw, Sparkles } from "lucide-react";
+
+const MAX_BYTES = 20 * 1024 * 1024;
+const MAX_PIXELS = 8_000_000;
+
+type OpenCV = any;
+
+export function RemoveObjectsWorkspace() {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const maskRef = useRef<HTMLCanvasElement>(null);
+  const resultRef = useRef<HTMLCanvasElement>(null);
+  const cvRef = useRef<OpenCV>(null);
+  const drawingRef = useRef(false);
+
+  const [fileName, setFileName] = useState("");
+  const [preview, setPreview] = useState("");
+  const [resultUrl, setResultUrl] = useState("");
+  const [brush, setBrush] = useState(32);
+  const [radius, setRadius] = useState(5);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("Loading the local processing engine…");
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function initialize() {
+      try {
+        const module: any = await import("@techstark/opencv-js");
+        const cv: OpenCV = module.default ?? module;
+
+        // OpenCV.js can finish initializing asynchronously after import.
+        const started = Date.now();
+
+        await new Promise<void>((resolve, reject) => {
+          const check = () => {
+            if (cancelled) {
+              reject(new Error("Initialization cancelled."));
+              return;
+            }
+
+            if (cv.Mat && cv.imread && cv.cvtColor && cv.inpaint) {
+              resolve();
+              return;
+            }
+
+            if (Date.now() - started > 30000) {
+              reject(new Error("OpenCV did not initialize within 30 seconds. Reload the page and try again."));
+              return;
+            }
+
+            timer = setTimeout(check, 100);
+          };
+
+          check();
+        });
+
+        if (!cancelled) {
+          cvRef.current = cv;
+          setReady(true);
+          setMessage("Ready. Image processing stays on your device.");
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Could not load OpenCV.js.");
+          setMessage("");
+        }
+      }
+    }
+
+    void initialize();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl.startsWith("blob:")) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
+
+  function clearResult() {
+    setResultUrl("");
+    setError("");
+  }
+
+  function chooseFile(file?: File) {
+    if (!file) return;
+
+    setError("");
+    setMessage("");
+
+    if (!file.type.startsWith("image/")) {
+      setError("Select a valid image file.");
+      return;
+    }
+
+    if (file.size > MAX_BYTES) {
+      setError("The file exceeds the 20 MB limit.");
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const probe = new Image();
+
+    probe.onload = () => {
+      if (probe.naturalWidth * probe.naturalHeight > MAX_PIXELS) {
+        URL.revokeObjectURL(url);
+        setError("This image exceeds 8 megapixels. Resize it before processing to protect browser memory.");
+        return;
+      }
+
+      if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+      if (resultUrl.startsWith("blob:")) URL.revokeObjectURL(resultUrl);
+
+      setPreview(url);
+      setFileName(file.name);
+      setResultUrl("");
+      setMessage("Paint over the object you want to reconstruct.");
+
+      requestAnimationFrame(() => {
+        const mask = maskRef.current;
+        const result = resultRef.current;
+
+        if (mask) {
+          mask.width = probe.naturalWidth;
+          mask.height = probe.naturalHeight;
+          mask.getContext("2d")?.clearRect(0, 0, mask.width, mask.height);
+        }
+
+        if (result) {
+          result.width = probe.naturalWidth;
+          result.height = probe.naturalHeight;
+        }
+      });
+    };
+
+    probe.onerror = () => {
+      URL.revokeObjectURL(url);
+      setError("This image format could not be decoded by your browser.");
+    };
+
+    probe.src = url;
+  }
+
+  function getPoint(event: ReactPointerEvent<HTMLCanvasElement>) {
+    const canvas = event.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+      x: (event.clientX - rect.left) * canvas.width / rect.width,
+      y: (event.clientY - rect.top) * canvas.height / rect.height,
+    };
+  }
+
+  function startDrawing(event: ReactPointerEvent<HTMLCanvasElement>) {
+    const canvas = maskRef.current;
+    const ctx = canvas?.getContext("2d");
+
+    if (!canvas || !ctx || !preview) return;
+
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    drawingRef.current = true;
+
+    const p = getPoint(event);
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ffffff";
+    ctx.lineWidth = brush * canvas.width /
+      Math.max(1, canvas.getBoundingClientRect().width);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
+
+  function draw(event: ReactPointerEvent<HTMLCanvasElement>) {
+    if (!drawingRef.current) return;
+
+    event.preventDefault();
+
+    const ctx = event.currentTarget.getContext("2d");
+    if (!ctx) return;
+
+    const p = getPoint(event);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+
+  function stopDrawing() {
+    drawingRef.current = false;
+    maskRef.current?.getContext("2d")?.closePath();
+  }
+
+  async function processImage() {
+    const cv = cvRef.current;
+    const image = imageRef.current;
+    const maskCanvas = maskRef.current;
+    const resultCanvas = resultRef.current;
+
+    if (!ready || !cv) {
+      setError("The local processing engine is not ready.");
+      return;
+    }
+
+    if (!image || !maskCanvas || !resultCanvas || !image.naturalWidth) {
+      setError("Upload an image first.");
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    setMessage("Reconstructing selected pixels locally…");
+
+    let source: any;
+    let rgb: any;
+    let maskRgba: any;
+    let gray: any;
+    let binary: any;
+    let destination: any;
+    let rgba: any;
+
+    try {
+      const maskContext = maskCanvas.getContext("2d");
+      if (!maskContext) throw new Error("Unable to read the selection.");
+
+      const pixels = maskContext.getImageData(
+        0, 0, maskCanvas.width, maskCanvas.height
+      ).data;
+
+      let hasSelection = false;
+
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] > 0) {
+          hasSelection = true;
+          break;
+        }
+      }
+
+      if (!hasSelection) {
+        throw new Error("Paint over the unwanted object first.");
+      }
+
+      source = cv.imread(image);
+      rgb = new cv.Mat();
+      cv.cvtColor(source, rgb, cv.COLOR_RGBA2RGB);
+
+      maskRgba = cv.imread(maskCanvas);
+      gray = new cv.Mat();
+      cv.cvtColor(maskRgba, gray, cv.COLOR_RGBA2GRAY);
+
+      binary = new cv.Mat();
+      cv.threshold(gray, binary, 1, 255, cv.THRESH_BINARY);
+
+      destination = new cv.Mat();
+      cv.inpaint(rgb, binary, destination, radius, cv.INPAINT_TELEA);
+
+      rgba = new cv.Mat();
+      cv.cvtColor(destination, rgba, cv.COLOR_RGB2RGBA);
+      cv.imshow(resultCanvas, rgba);
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        resultCanvas.toBlob(
+          value => value
+            ? resolve(value)
+            : reject(new Error("Could not export the result.")),
+          "image/png"
+        );
+      });
+
+      if (resultUrl.startsWith("blob:")) URL.revokeObjectURL(resultUrl);
+
+      setResultUrl(URL.createObjectURL(blob));
+      setMessage("Processing finished. Review the result before downloading.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Image processing failed.");
+      setMessage("");
+    } finally {
+      for (const mat of [source, rgb, maskRgba, gray, binary, destination, rgba]) {
+        try {
+          mat?.delete();
+        } catch {
+          // Continue releasing the remaining OpenCV resources.
+        }
+      }
+
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="workspace">
+      <div className="workspace-top">
+        <div>
+          <span className="eyebrow">BROBEX · LOCAL IMAGE STUDIO</span>
+          <h2>Remove Objects from Photo</h2>
+          <p>Mark an unwanted object and reconstruct its area using nearby image pixels.</p>
+        </div>
+        <span className="privacy-chip">Local processing</span>
+      </div>
+
+      <label className={`dropzone ${preview ? "has-file" : ""}`}>
+        <ImagePlus size={28} />
+        <strong>{fileName || "Choose an image"}</strong>
+        <span>PNG, JPEG or WebP · 20 MB maximum · 8 megapixels maximum</span>
+        <small>Your image is not sent to a processing server.</small>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/avif"
+          onChange={event => chooseFile(event.target.files?.[0])}
+        />
+      </label>
+
+      {preview && (
+        <>
+          <div className="settings-panel">
+            <label>
+              Brush size: {brush}px
+              <input
+                type="range"
+                min="8"
+                max="100"
+                value={brush}
+                onChange={event => setBrush(Number(event.target.value))}
+              />
+            </label>
+
+            <label>
+              Inpainting radius: {radius}px
+              <input
+                type="range"
+                min="1"
+                max="15"
+                value={radius}
+                onChange={event => setRadius(Number(event.target.value))}
+              />
+            </label>
+
+            <p className="hint">
+              Paint over the entire object, including its edges. Smaller selections usually produce better results.
+            </p>
+          </div>
+
+          <div className="preview-panel">
+            <div className="panel-heading">Paint the unwanted area</div>
+            <div style={{ position: "relative", width: "100%", maxWidth: 900, margin: "0 auto", lineHeight: 0 }}>
+              <img
+                ref={imageRef}
+                src={preview}
+                alt="Original image"
+                style={{ display: "block", width: "100%", height: "auto" }}
+              />
+              <canvas
+                ref={maskRef}
+                aria-label="Paint the area to reconstruct"
+                onPointerDown={startDrawing}
+                onPointerMove={draw}
+                onPointerUp={stopDrawing}
+                onPointerCancel={stopDrawing}
+                onLostPointerCapture={stopDrawing}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  touchAction: "none",
+                  cursor: "crosshair",
+                  opacity: 0.55,
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="workspace-actions">
+            <button
+              className="button button-dark"
+              type="button"
+              disabled={!ready || busy}
+              onClick={processImage}
+            >
+              <Sparkles size={16} />
+              {busy ? "Processing…" : "Remove selected object"}
+            </button>
+
+            <button
+              className="button button-light"
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                const canvas = maskRef.current;
+                if (canvas) {
+                  canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                clearResult();
+                setMessage("Selection cleared.");
+              }}
+            >
+              <Eraser size={15} /> Clear selection
+            </button>
+
+            <button
+              className="button button-light"
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setPreview("");
+                setFileName("");
+                clearResult();
+                setError("");
+                setMessage("Choose an image to start.");
+              }}
+            >
+              <RotateCcw size={15} /> Reset
+            </button>
+          </div>
+
+          <div className="preview-panel">
+            <div className="panel-heading">Processed result</div>
+            <canvas
+              ref={resultRef}
+              style={{
+                display: resultUrl ? "block" : "none",
+                width: "100%",
+                height: "auto",
+                maxWidth: 900,
+                margin: "0 auto",
+              }}
+            />
+            {resultUrl && (
+              <a
+                className="button button-dark download-button"
+                href={resultUrl}
+                download="brobex-object-removed.png"
+              >
+                <Download size={16} /> Download PNG
+              </a>
+            )}
+          </div>
+        </>
+      )}
+
+      {message && <p role="status" className="notice success">{message}</p>}
+      {error && <p role="alert" className="notice error">{error}</p>}
+
+      <p className="hint">
+        OpenCV inpainting is free and local, but it is not generative AI.
+        It works best for small objects against relatively simple backgrounds.
+        Complex images may show visible artifacts.
+      </p>
+    </section>
+  );
+}
