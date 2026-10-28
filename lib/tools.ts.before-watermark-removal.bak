@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase image resolution by 2Ã—, 3Ã—, or 4Ã— with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
+      "Increase image resolution by 2—, 3—, or 4— with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],

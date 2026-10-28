@@ -142,6 +142,7 @@ export function RemoveObjectsWorkspace() {
     "Loading the local processing engine…"
   );
   const [engineAttempt, setEngineAttempt] = useState(0);
+  const [engineRequested, setEngineRequested] = useState(false);
 
   const clearResult = useCallback(() => {
     setResultUrl("");
@@ -152,6 +153,10 @@ export function RemoveObjectsWorkspace() {
 
   // Load OpenCV from its official hosted runtime.
   useEffect(() => {
+    if (!engineRequested) {
+      setMessage("Ready when you are. Start the engine to process images.");
+      return;
+    }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let startedAt = Date.now();
@@ -238,7 +243,7 @@ export function RemoveObjectsWorkspace() {
         return;
       }
 
-      timer = setTimeout(checkEngine, 150);
+      timer = setTimeout(checkEngine, 500);
     };
 
     const handleScriptLoad = () => {
@@ -295,7 +300,7 @@ export function RemoveObjectsWorkspace() {
       script?.removeEventListener("load", handleScriptLoad);
       script?.removeEventListener("error", handleScriptError);
     };
-  }, [engineAttempt]);
+  }, [engineAttempt, engineRequested]);
 
   // Release image URLs whenever the displayed preview changes or unmounts.
   useEffect(() => {
@@ -938,6 +943,16 @@ export function RemoveObjectsWorkspace() {
               <Sparkles size={16} aria-hidden="true" />
               {busy ? "Processing…" : "Remove selected object"}
             </button>
+            {!ready && (
+              <button
+                className="button button-dark"
+                type="button"
+                disabled={busy}
+                onClick={() => setEngineRequested(true)}
+              >
+                Start free processing engine
+              </button>
+            )}
 
             <button
               className="button button-light"
