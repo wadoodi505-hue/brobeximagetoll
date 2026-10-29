@@ -73,6 +73,92 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [cropY, setCropY] = useState(0);
   const [cropW, setCropW] = useState(800);
   const [cropH, setCropH] = useState(600);
+  const cropStageRef = useRef<HTMLDivElement>(null);
+
+  const cropDragRef = useRef<{
+    mode: string;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  } | null>(null);
+
+  function beginCropDrag(
+    event: React.PointerEvent,
+    mode: string,
+  ) {
+    if (busy || !cropStageRef.current) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    cropDragRef.current = {
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: cropX,
+      y: cropY,
+      w: cropW,
+      h: cropH,
+    };
+
+    cropStageRef.current.setPointerCapture(event.pointerId);
+  }
+
+  function updateCropDrag(event: React.PointerEvent) {
+    const drag = cropDragRef.current;
+    const stage = cropStageRef.current;
+
+    if (!drag || !stage || width < 1 || height < 1) return;
+
+    const rect = stage.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const dx = ((event.clientX - drag.startX) / rect.width) * width;
+    const dy = ((event.clientY - drag.startY) / rect.height) * height;
+    const mode = drag.mode;
+
+    let x = drag.x;
+    let y = drag.y;
+    let w = drag.w;
+    let h = drag.h;
+
+    if (mode === "move") {
+      x = Math.max(0, Math.min(width - w, drag.x + dx));
+      y = Math.max(0, Math.min(height - h, drag.y + dy));
+    } else {
+      if (mode.includes("w")) {
+        const right = drag.x + drag.w;
+        x = Math.max(0, Math.min(right - 1, drag.x + dx));
+        w = right - x;
+      }
+
+      if (mode.includes("e")) {
+        w = Math.max(1, Math.min(width - drag.x, drag.w + dx));
+      }
+
+      if (mode.includes("n")) {
+        const bottom = drag.y + drag.h;
+        y = Math.max(0, Math.min(bottom - 1, drag.y + dy));
+        h = bottom - y;
+      }
+
+      if (mode.includes("s")) {
+        h = Math.max(1, Math.min(height - drag.y, drag.h + dy));
+      }
+    }
+
+    setCropX(Math.round(x));
+    setCropY(Math.round(y));
+    setCropW(Math.round(w));
+    setCropH(Math.round(h));
+  }
+
+  function endCropDrag() {
+    cropDragRef.current = null;
+  }
 
   const [flipX, setFlipX] = useState(true);
   const [flipY, setFlipY] = useState(false);
@@ -621,8 +707,68 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               <>
 
                   <div className="panel-heading">
-                    {op === "crop" ? "Live crop preview" : "Original preview"}
+                    {op === "crop" ? "Interactive crop editor" : "Original preview"}
                   </div>
+
+                  {op === "crop" && preview ? (
+                    <>
+                      <div className="crop-editor-viewport">
+                        <div
+                          ref={cropStageRef}
+                          className="crop-editor-stage"
+                          onPointerMove={updateCropDrag}
+                          onPointerUp={endCropDrag}
+                          onPointerCancel={endCropDrag}
+                          onLostPointerCapture={endCropDrag}
+                        >
+                          <img
+                            src={preview}
+                            alt="Drag the crop frame to select the image area"
+                            draggable={false}
+                          />
+
+                          <div
+                            className="crop-selection"
+                            style={{
+                              left: `${(cropX / Math.max(1, width)) * 100}%`,
+                              top: `${(cropY / Math.max(1, height)) * 100}%`,
+                              width: `${(cropW / Math.max(1, width)) * 100}%`,
+                              height: `${(cropH / Math.max(1, height)) * 100}%`,
+                            }}
+                            onPointerDown={(event) => beginCropDrag(event, "move")}
+                          >
+                            {["nw", "n", "ne", "e", "se", "s", "sw", "w"].map(
+                              (handle) => (
+                                <span
+                                  key={handle}
+                                  className={`crop-handle crop-handle-${handle}`}
+                                  onPointerDown={(event) => beginCropDrag(event, handle)}
+                                />
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="crop-dimensions">
+                        <span>Selected area</span>
+                        <strong>{cropW} × {cropH} px</strong>
+                        <span>
+                          Position: {cropX}, {cropY}
+                        </span>
+                      </div>
+
+                      <p className="hint">
+                        Drag inside the frame to move it. Drag its edges or corners to resize.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="preview-canvas">
+                      {preview && (
+                        <img src={preview} alt="Original selected image" />
+                      )}
+                    </div>
+                  )}
                   <div className="preview-canvas">
                     {preview && (
                       <div className="crop-preview-stage">
@@ -646,14 +792,72 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     )}
                   </div>
                   {op === "crop" && (
-                    <label className="crop-preview-toggle">
-                      <input
-                        type="checkbox"
-                        checked={cropPreviewMode}
-                        onChange={(event) => setCropPreviewMode(event.target.checked)}
-                      />
-                      Show crop preview
-                    </label>
+                    <div className="settings-grid crop-controls">
+                      <div className="crop-controls-heading">
+                        <strong>Crop dimensions</strong>
+                        <span>Fine-tune your selection in pixels.</span>
+                      </div>
+
+                      {(
+                        [
+                          ["X position", cropX, setCropX, width],
+                          ["Y position", cropY, setCropY, height],
+                          ["Width (px)", cropW, setCropW, width - cropX],
+                          ["Height (px)", cropH, setCropH, height - cropY],
+                        ] as [
+                          string,
+                          number,
+                          (value: number) => void,
+                          number,
+                        ][]
+                      ).map(([label, value, setter, max]) => (
+                        <label key={label}>
+                          {label}
+                          <input
+                            type="number"
+                            min={label.includes("position") ? 0 : 1}
+                            max={Math.max(1, max)}
+                            step="1"
+                            value={value}
+                            disabled={busy}
+                            onChange={(event) => {
+                              const next = Number(event.target.value);
+                              if (!Number.isFinite(next)) return;
+
+                              const limit = Math.max(0, max);
+
+                              setter(
+                                Math.max(
+                                  label.includes("position") ? 0 : 1,
+                                  Math.min(limit, Math.floor(next)),
+                                ),
+                              );
+                            }}
+                          />
+                        </label>
+                      ))}
+
+                      <div className="crop-actions">
+                        <button
+                          type="button"
+                          className="button button-light"
+                          disabled={busy}
+                          onClick={() => {
+                            setCropX(0);
+                            setCropY(0);
+                            setCropW(width);
+                            setCropH(height);
+                          }}
+                        >
+                          <RotateCcw size={14} />
+                          Reset selection
+                        </button>
+
+                        <span>
+                          {cropW} × {cropH} px
+                        </span>
+                      </div>
+                    </div>
                   )}
 
               </>
