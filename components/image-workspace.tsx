@@ -93,6 +93,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   // Professional before/after comparison.
   const [comparison, setComparison] = useState(50);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("compare");
+  const [cropPreviewMode, setCropPreviewMode] = useState(true);
 
   const [metadata, setMetadata] = useState<Metadata | null>(null);
 
@@ -618,19 +619,43 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               </>
             ) : (
               <>
-                <div className="panel-heading">Original preview</div>
-                <div className="preview-canvas">
-                  <img src={preview} alt="Original selected image" />
-                </div>
 
-                {result && (
-                  <>
-                    <div className="panel-heading">Processed result</div>
-                    <div className="preview-canvas">
-                      <img src={result} alt="Processed image result" />
-                    </div>
-                  </>
-                )}
+                  <div className="panel-heading">
+                    {op === "crop" ? "Live crop preview" : "Original preview"}
+                  </div>
+                  <div className="preview-canvas">
+                    {preview && (
+                      <div className="crop-preview-stage">
+                        <img
+                          src={preview}
+                          alt="Image crop preview"
+                          style={
+                            op === "crop" && cropPreviewMode
+                              ? {
+                                clipPath: `inset(
+                  ${(cropY / Math.max(1, height)) * 100}%
+                  ${100 - ((cropX + cropW) / Math.max(1, width)) * 100}%
+                  ${100 - ((cropY + cropH) / Math.max(1, height)) * 100}%
+                  ${(cropX / Math.max(1, width)) * 100}%
+                )`,
+                              }
+                              : undefined
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {op === "crop" && (
+                    <label className="crop-preview-toggle">
+                      <input
+                        type="checkbox"
+                        checked={cropPreviewMode}
+                        onChange={(event) => setCropPreviewMode(event.target.checked)}
+                      />
+                      Show crop preview
+                    </label>
+                  )}
+
               </>
             )}
           </div>
@@ -815,14 +840,20 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               </label>
             )}
 
+
             {op === "crop" && (
-              <div className="settings-grid">
+              <div className="settings-grid crop-controls">
+                <div className="crop-controls-heading">
+                  <strong>Crop settings</strong>
+                  <span>Set the exact area you want to keep.</span>
+                </div>
+
                 {(
                   [
-                    ["X", cropX, setCropX],
-                    ["Y", cropY, setCropY],
-                    ["Width", cropW, setCropW],
-                    ["Height", cropH, setCropH],
+                    ["X position", cropX, setCropX],
+                    ["Y position", cropY, setCropY],
+                    ["Width (px)", cropW, setCropW],
+                    ["Height (px)", cropH, setCropH],
                   ] as [string, number, (value: number) => void][]
                 ).map(([label, value, setter]) => (
                   <label key={label}>
@@ -830,15 +861,40 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     <input
                       type="number"
                       min="0"
+                      step="1"
                       value={value}
                       onChange={(event) =>
-                        setter(Number(event.target.value))
+                        setter(Math.max(0, Math.floor(Number(event.target.value) || 0)))
                       }
                     />
-                  </label>
+        </label>
                 ))}
+
+                <div className="crop-actions">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCropX(0);
+                      setCropY(0);
+                      if (preview) {
+                        const image = new Image();
+                        image.onload = () => {
+                          setCropW(image.naturalWidth);
+                          setCropH(image.naturalHeight);
+                        };
+                        image.src = preview;
+                      }
+                    }}
+                  >
+                    Reset crop
+                  </button>
+                  <span>
+                    Output: {cropW} × {cropH} px
+                  </span>
+                </div>
               </div>
             )}
+
 
             {op === "flip" && (
               <>
