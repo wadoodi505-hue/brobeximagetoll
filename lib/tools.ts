@@ -24,19 +24,6 @@ export const tools: ToolDefinition[] = [
     method: "Local browser canvas resampling",
     status: "browser"
   },
-  
-  {
-    "slug": "unblur-image",
-    "name": "Unblur Image",
-    "description": "Restore detail with a configured image restoration provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
   {
     "slug": "photo-cleanup",
     "name": "Photo Cleanup",
