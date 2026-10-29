@@ -24,6 +24,7 @@ export const tools: ToolDefinition[] = [
     method: "Local browser canvas resampling",
     status: "browser"
   },
+  
   {
     "slug": "unblur-image",
     "name": "Unblur Image",
