@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { ImageWorkspace } from "@/components/image-workspace";
 import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
+import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
 import { PdfWorkspace } from "@/components/pdf-workspace";
 import { WritingWorkspace } from "@/components/writing-workspace";
 import { ToolCard } from "@/components/tool-card";
@@ -173,7 +174,9 @@ export default async function ToolPage({
 
       <div className="page-content">
         {/* Select the correct workspace for this tool */}
-        {tool.slug === "remove-objects-from-photo" ? (
+        {tool.slug === "photo-cleanup" ? (
+          <PhotoCleanupWorkspace />
+        ) : tool.slug === "remove-objects-from-photo" ? (
           <RemoveObjectsWorkspace />
         ) : tool.slug === "upscale-image" ? (
           <UpscaleWorkspace />
@@ -241,4 +244,5 @@ export default async function ToolPage({
     </div>
   );
 }
+
 
