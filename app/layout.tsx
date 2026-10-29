@@ -4,7 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ThemeProvider } from "@/components/theme-provider";
-const siteUrl = process.env.PUBLIC_SITE_URL || "https://brobex-image-tools.vercel.app";
+const siteUrl = "https://brobeximagetolls.vercel.app";
 export const metadata: Metadata = {
  metadataBase: new URL(siteUrl),
  title: { default: "BROBEX Image Tools â€” Free Online Image Utilities", template: "%s | BROBEX Image Tools" },
@@ -16,3 +16,4 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: "#F7F7F5", width: "device-width", initialScale: 1 };
 export default function RootLayout({children}:{children:React.ReactNode}) { return <html lang="en" suppressHydrationWarning><body><ThemeProvider><Header/><main>{children}</main><Footer/></ThemeProvider><Analytics /></body></html> }
+
