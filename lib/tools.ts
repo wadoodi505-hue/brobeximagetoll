@@ -24,31 +24,6 @@ export const tools: ToolDefinition[] = [
     method: "Local browser canvas resampling",
     status: "browser"
   },
-  
-  {
-    "slug": "unblur-image",
-    "name": "Unblur Image",
-    "description": "Restore detail with a configured image restoration provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
-  {
-    "slug": "photo-cleanup",
-    "name": "Photo Cleanup",
-    "description": "Clean scratches, dust, and imperfections using an image restoration provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
   {
     "slug": "colorize-photo",
     "name": "Colorize Photo",
@@ -1093,5 +1068,6 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
