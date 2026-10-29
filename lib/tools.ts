@@ -26,31 +26,9 @@ export const tools: ToolDefinition[] = [
   },
   
   {
-    "slug": "remove-objects-from-photo",
-    "name": "Remove Objects from Photo",
-    "description": "Remove selected objects using free, local OpenCV inpainting.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": ["image/png", "image/jpeg", "image/webp", "image/avif"],
-    "method": "Local OpenCV.js inpainting",
-    "status": "browser"
-  },
-  {
     "slug": "unblur-image",
     "name": "Unblur Image",
     "description": "Restore detail with a configured image restoration provider.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
-  },
-  {
-    "slug": "remove-person-from-photo",
-    "name": "Remove Person from Photo",
-    "description": "Remove a selected person using an image inpainting provider.",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
