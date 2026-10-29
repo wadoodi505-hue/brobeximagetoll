@@ -38,43 +38,43 @@ export async function processImage(file: File, settings: ProcessSettings): Promi
     width = sw; height = sh;
   }
   if (settings.operation === "rotate" && Math.abs(settings.rotation || 0) % 180 === 90) [width, height] = [height, width];
-  if (settings.operation === "circle") { width = Math.min(srcW, srcH); height = width; sx = Math.floor((srcW-width)/2); sy = Math.floor((srcH-height)/2); sw=width; sh=height; }
+  if (settings.operation === "circle") { width = Math.min(srcW, srcH); height = width; sx = Math.floor((srcW - width) / 2); sy = Math.floor((srcH - height) / 2); sw = width; sh = height; }
   const canvas = document.createElement("canvas");
   canvas.width = width + (settings.operation === "border" ? Math.max(0, settings.borderWidth || 0) * 2 : 0);
   canvas.height = height + (settings.operation === "border" ? Math.max(0, settings.borderWidth || 0) * 2 : 0);
   const ctx = canvas.getContext("2d", { alpha: true });
   if (!ctx) throw new Error("Canvas is unavailable in this browser.");
-  if (settings.operation === "circle") { ctx.beginPath(); ctx.arc(width/2,height/2,width/2,0,Math.PI*2); ctx.clip(); }
-  if (settings.operation === "border") { ctx.fillStyle = settings.borderColor || "#171717"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+  if (settings.operation === "circle") { ctx.beginPath(); ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2); ctx.clip(); }
+  if (settings.operation === "border") { ctx.fillStyle = settings.borderColor || "#171717"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
   if (settings.operation === "blur") ctx.filter = `blur(${Math.max(0, Math.min(30, settings.blurAmount || 4))}px)`;
   if (settings.operation === "grayscale") ctx.filter = "grayscale(1)";
   if (settings.operation === "flip") { ctx.translate(settings.flipX ? width : 0, settings.flipY ? height : 0); ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1); }
-  if (settings.operation === "rotate") { const angle = ((settings.rotation ?? 90) * Math.PI) / 180; ctx.translate(canvas.width/2,canvas.height/2); ctx.rotate(angle); }
+  if (settings.operation === "rotate") { const angle = ((settings.rotation ?? 90) * Math.PI) / 180; ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(angle); }
   if (settings.operation === "pixelate") {
     const small = document.createElement("canvas"); const size = Math.max(2, Math.min(80, settings.pixelSize || 12));
-    small.width = Math.max(1, Math.ceil(width/size)); small.height = Math.max(1, Math.ceil(height/size));
+    small.width = Math.max(1, Math.ceil(width / size)); small.height = Math.max(1, Math.ceil(height / size));
     const sctx = small.getContext("2d"); if (!sctx) throw new Error("Canvas is unavailable.");
-    sctx.drawImage(image,sx,sy,sw,sh,0,0,small.width,small.height);
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(small,0,0,canvas.width,canvas.height);
+    sctx.drawImage(image, sx, sy, sw, sh, 0, 0, small.width, small.height);
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
   } else {
     const offset = settings.operation === "border" ? Math.max(0, settings.borderWidth || 0) : 0;
-    if (settings.operation === "rotate") ctx.drawImage(image,-srcW/2,-srcH/2,srcW,srcH);
-    else ctx.drawImage(image,sx,sy,sw,sh,offset,offset,width,height);
+    if (settings.operation === "rotate") ctx.drawImage(image, -srcW / 2, -srcH / 2, srcW, srcH);
+    else ctx.drawImage(image, sx, sy, sw, sh, offset, offset, width, height);
   }
   if (settings.operation === "text" && settings.text) {
-    ctx.filter = "none"; ctx.font = `600 ${Math.max(8,Math.min(240,settings.textSize || 36))}px Arial`;
+    ctx.filter = "none"; ctx.font = `600 ${Math.max(8, Math.min(240, settings.textSize || 36))}px Arial`;
     ctx.fillStyle = settings.textColor || "#ffffff"; ctx.textAlign = "left";
     ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 3;
-    ctx.fillText(settings.text,Math.max(0,settings.textX ?? 24),Math.max(20,settings.textY ?? height-24),width);
+    ctx.fillText(settings.text, Math.max(0, settings.textX ?? 24), Math.max(20, settings.textY ?? height - 24), width);
   }
   const type = settings.operation === "compress" || settings.operation === "convert" ? (settings.format || "image/webp") : "image/png";
-  const blob = await canvasBlob(canvas,type,Math.max(.1,Math.min(1,settings.quality ?? .82)));
+  const blob = await canvasBlob(canvas, type, Math.max(.1, Math.min(1, settings.quality ?? .82)));
   return { blob, width: canvas.width, height: canvas.height, mime: blob.type || type };
 }
 export function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
-  return `${(bytes/(1024*1024)).toFixed(2)} MB`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 /** Compose multiple images into a single PNG without uploading them anywhere. */
@@ -84,8 +84,8 @@ export async function processImages(files: File[], layout: "horizontal" | "verti
   const maxDimension = 12000;
   const scale = Math.min(1, maxDimension / Math.max(...images.map(i => layout === "horizontal" ? i.naturalWidth : i.naturalHeight)));
   const dims = images.map(i => ({ w: Math.max(1, Math.round(i.naturalWidth * scale)), h: Math.max(1, Math.round(i.naturalHeight * scale)) }));
-  const width = layout === "horizontal" ? dims.reduce((s,d) => s + d.w, 0) : Math.max(...dims.map(d => d.w));
-  const height = layout === "vertical" ? dims.reduce((s,d) => s + d.h, 0) : Math.max(...dims.map(d => d.h));
+  const width = layout === "horizontal" ? dims.reduce((s, d) => s + d.w, 0) : Math.max(...dims.map(d => d.w));
+  const height = layout === "vertical" ? dims.reduce((s, d) => s + d.h, 0) : Math.max(...dims.map(d => d.h));
   if (width > maxDimension || height > maxDimension || width * height > 80_000_000) throw new Error("The combined image would be too large. Choose smaller images.");
   const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas is unavailable in this browser.");
