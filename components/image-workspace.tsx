@@ -7,7 +7,7 @@ import {
   Download,
   RotateCcw,
   ShieldCheck,
-  Image as ImageIcon,   
+  Image as ImageIcon,
   AlertCircle,
   CheckCircle2,
   Sparkles,
