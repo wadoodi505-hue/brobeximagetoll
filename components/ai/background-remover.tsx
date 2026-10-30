@@ -84,6 +84,8 @@ const [statusMessage, setStatusMessage] = useState("");
 const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
   const [showOriginal, setShowOriginal] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState("transparent");
+  const [exportFormat, setExportFormat] = useState<"png" | "jpeg" | "webp">("png");
 
   useEffect(() => {
     return () => {
@@ -199,15 +201,66 @@ setResult(null);
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const downloadResult = () => {
+  const downloadResult = async () => {
     if (!result) return;
 
-    const link = document.createElement("a");
-    link.href = result.url;
-    link.download = `${file?.name.replace(/\.[^.]+$/, "") || "brobex-image"}-no-background.png`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    try {
+      const baseName = file?.name.replace(/\.[^.]+$/, "") || "brobex-image";
+
+      if (exportFormat === "png") {
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.download = `${baseName}-no-background.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
+
+      const bitmap = await createImageBitmap(result.blob);
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        bitmap.close();
+        throw new Error("Could not prepare the export canvas.");
+      }
+
+      context.fillStyle =
+        backgroundColor === "transparent" ? "#ffffff" : backgroundColor;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0);
+      bitmap.close();
+
+      const mime = exportFormat === "jpeg" ? "image/jpeg" : "image/webp";
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (value) => value ? resolve(value) : reject(
+            new Error("Image export failed. Please try again.")
+          ),
+          mime,
+          0.94
+        );
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${baseName}-edited.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      canvas.width = 0;
+      canvas.height = 0;
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not export this image."
+      );
+    }
   };
 
   return (
@@ -362,7 +415,7 @@ setResult(null);
                     </span>
                   </div>
 
-                  <div className="checkerboard relative flex min-h-[250px] items-center justify-center overflow-hidden p-4 sm:min-h-[340px]">
+                  <div className={`${backgroundColor === "transparent" ? "checkerboard" : ""} relative flex min-h-[250px] items-center justify-center overflow-hidden p-4 sm:min-h-[340px]`} style={{ backgroundColor: backgroundColor === "transparent" ? undefined : backgroundColor }}>
                     {result ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -495,6 +548,62 @@ setResult(null);
               </div>
 
               {result && (
+                <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Background & export</h3>
+                      <p className="mt-1 text-xs text-white/45">Preview a solid background or keep transparency.</p>
+                    </div>
+                    <select
+                      value={exportFormat}
+                      onChange={(event) => setExportFormat(event.target.value as "png" | "jpeg" | "webp")}
+                      className="rounded-lg border border-white/15 bg-[#171a1a] px-3 py-2 text-sm text-white outline-none focus:border-[#c77b53]"
+                      aria-label="Export format"
+                    >
+                      <option value="png">PNG · Transparent</option>
+                      <option value="jpeg">JPEG · Solid background</option>
+                      <option value="webp">WebP · Solid background</option>
+                    </select>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="mr-2 text-xs text-white/55">Preview background</span>
+                    {[
+                      { label: "Transparent", value: "transparent" },
+                      { label: "White", value: "#ffffff" },
+                      { label: "Black", value: "#111111" },
+                      { label: "Light gray", value: "#d1d5db" },
+                      { label: "Emerald", value: "#064e3b" },
+                      { label: "Blue", value: "#1e3a8a" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setBackgroundColor(option.value)}
+                        aria-label={`${option.label} background`}
+                        aria-pressed={backgroundColor === option.value}
+                        title={option.label}
+                        className={`h-8 rounded-lg border px-3 text-xs transition ${
+                          backgroundColor === option.value
+                            ? "border-[#d99a75] ring-1 ring-[#d99a75]"
+                            : "border-white/15 hover:border-white/40"
+                        } ${option.value === "transparent" ? "bg-[linear-gradient(45deg,#777_25%,transparent_25%,transparent_75%,#777_75%),linear-gradient(45deg,#777_25%,#222_25%,#222_75%,#777_75%)] bg-[length:12px_12px] bg-[position:0_0,6px_6px]" : ""}`}
+                        style={option.value === "transparent" ? undefined : { backgroundColor: option.value }}
+                      >
+                        {option.value === "transparent" ? "Clear" : ""}
+                      </button>
+                    ))}
+                  </div>
+
+                  {exportFormat !== "png" && (
+                    <p className="mt-3 text-xs leading-5 text-amber-200/70">
+                      JPEG and WebP exports use a solid background. Transparent PNG remains available.
+                    </p>
+                  )}
+                </section>
+              )}
+
+              {result && (
                 <p className="mt-4 text-xs leading-5 text-white/40">
                   Export ready. Your PNG retains its transparency. Results
                   depend on the source image and the AI model’s segmentation
@@ -576,4 +685,5 @@ setResult(null);
     </main>
   );
 }
+
 
