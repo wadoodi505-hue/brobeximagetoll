@@ -1,4 +1,5 @@
 ﻿
+import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -173,8 +174,9 @@ export default async function ToolPage({
       </div>
 
       <div className="page-content">
-        {/* Select the correct workspace for this tool */}
-        {tool.slug === "photo-cleanup" ? (
+        {tool.slug === "colorize-photo" ? (
+          <ColorizePhotoWorkspace />
+        ) : tool.slug === "photo-cleanup" ? (
           <PhotoCleanupWorkspace />
         ) : tool.slug === "remove-objects-from-photo" ? (
           <RemoveObjectsWorkspace />
@@ -188,7 +190,7 @@ export default async function ToolPage({
           <WritingWorkspace tool={tool} />
         ) : (
           <div className="integration-notice">
-            <span className="integration-icon">âœ³</span>
+            <span className="integration-icon">✳</span>
             <div>
               <h3>Processing engine not configured</h3>
               <p>
