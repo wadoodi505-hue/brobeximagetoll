@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -179,7 +179,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   // Professional before/after comparison.
   const [comparison, setComparison] = useState(50);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("compare");
-  const [cropPreviewMode, setCropPreviewMode] = useState(true);
+  const cropPreviewMode = true;
 
   const [metadata, setMetadata] = useState<Metadata | null>(null);
 
@@ -342,7 +342,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
         setResult(nextUrl);
         setResultBlob(output.blob);
         setMessage(
-          `Combined ${files.length} images into ${output.width} × ${output.height} pixels.`,
+          `Combined ${files.length} images into ${output.width} Ã— ${output.height} pixels.`,
         );
         return;
       }
@@ -417,11 +417,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
       if (op === "unblur") {
         setMessage(
-          `Enhancement complete: ${output.width} × ${output.height} pixels. PNG output · ${formatBytes(output.blob.size)}. Your image was processed locally.`,
+          `Enhancement complete: ${output.width} Ã— ${output.height} pixels. PNG output Â· ${formatBytes(output.blob.size)}. Your image was processed locally.`,
         );
       } else {
         setMessage(
-          `Processed ${output.width} × ${output.height} pixels. Output: ${formatBytes(output.blob.size)}.`,
+          `Processed ${output.width} Ã— ${output.height} pixels. Output: ${formatBytes(output.blob.size)}.`,
         );
       }
     } catch (e) {
@@ -533,8 +533,8 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
             </strong>
             <span>
               {op === "combine"
-                ? files.map((item) => item.name).join(" · ")
-                : `${formatBytes(file.size)} · ${file.type || "Unknown MIME type"}`}
+                ? files.map((item) => item.name).join(" Â· ")
+                : `${formatBytes(file.size)} Â· ${file.type || "Unknown MIME type"}`}
             </span>
             <small>Click to choose another image</small>
           </>
@@ -542,7 +542,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
           <>
             <UploadCloud size={30} />
             <strong>Drop an image here or browse files</strong>
-            <span>Supported image formats · 20 MB maximum per image</span>
+            <span>Supported image formats Â· 20 MB maximum per image</span>
             <small>Your image is not uploaded to a server.</small>
           </>
         )}
@@ -632,7 +632,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                         style={{ left: `${comparison}%` }}
                         aria-hidden="true"
                       >
-                        <span>↔</span>
+                        <span>â†”</span>
                       </div>
                     </>
                   )}
@@ -651,7 +651,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                   {busy && (
                     <div className="unblur-processing-overlay" role="status">
                       <span className="unblur-spinner" />
-                      <strong>Enhancing image…</strong>
+                      <strong>Enhancing imageâ€¦</strong>
                       <span>Keep this tab open until processing finishes.</span>
                     </div>
                   )}
@@ -688,7 +688,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                       <Maximize2 size={16} />
                       <span>
                         <strong>
-                          {uhdDimensions.width} × {uhdDimensions.height}
+                          {uhdDimensions.width} Ã— {uhdDimensions.height}
                         </strong>
                         <small>UHD-frame output dimensions</small>
                       </span>
@@ -752,7 +752,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
                       <div className="crop-dimensions">
                         <span>Selected area</span>
-                        <strong>{cropW} × {cropH} px</strong>
+                        <strong>{cropW} Ã— {cropH} px</strong>
                         <span>
                           Position: {cropX}, {cropY}
                         </span>
@@ -854,7 +854,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                         </button>
 
                         <span>
-                          {cropW} × {cropH} px
+                          {cropW} Ã— {cropH} px
                         </span>
                       </div>
                     </div>
@@ -881,7 +881,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
                 <div className="unblur-quick-preset">
                   <span>Processing preset</span>
-                  <strong>Balanced · UHD frame</strong>
+                  <strong>Balanced Â· UHD frame</strong>
                   <small>
                     Sharpening and noise reduction run together in one action.
                   </small>
@@ -942,11 +942,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                   <div className="unblur-target">
                     <span>Target output</span>
                     <strong>
-                      {uhdDimensions.width} × {uhdDimensions.height} px
+                      {uhdDimensions.width} Ã— {uhdDimensions.height} px
                     </strong>
                     <small>
-                      Aspect ratio preserved · Maximum 3840 × 2160 landscape
-                      frame or 2160 × 3840 portrait frame
+                      Aspect ratio preserved Â· Maximum 3840 Ã— 2160 landscape
+                      frame or 2160 Ã— 3840 portrait frame
                     </small>
                   </div>
                 )}
@@ -1093,7 +1093,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     Reset crop
                   </button>
                   <span>
-                    Output: {cropW} × {cropH} px
+                    Output: {cropW} Ã— {cropH} px
                   </span>
                 </div>
               </div>
@@ -1131,9 +1131,9 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     setRotation(Number(event.target.value))
                   }
                 >
-                  <option value={90}>90° clockwise</option>
-                  <option value={180}>180°</option>
-                  <option value={270}>270° clockwise</option>
+                  <option value={90}>90Â° clockwise</option>
+                  <option value={180}>180Â°</option>
+                  <option value={270}>270Â° clockwise</option>
                 </select>
               </label>
             )}
@@ -1255,7 +1255,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                 }
               >
                 {busy ? (
-                  "Processing…"
+                  "Processingâ€¦"
                 ) : op === "metadata" ? (
                   "Read metadata"
                 ) : op === "combine" ? (
@@ -1310,7 +1310,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               <div className="metadata-card">
                 <h4>Image properties</h4>
                 <p>
-                  Dimensions: {metadata.width} × {metadata.height}px
+                  Dimensions: {metadata.width} Ã— {metadata.height}px
                 </p>
                 <p>MIME type: {metadata.type}</p>
                 <p>File size: {formatBytes(metadata.size)}</p>
@@ -1343,5 +1343,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 }
 
 function WandIcon() {
-  return <span aria-hidden="true">✳</span>;
+  return <span aria-hidden="true">âœ³</span>;
 }
+
