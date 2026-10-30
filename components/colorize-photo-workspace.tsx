@@ -10,9 +10,7 @@ import {
     SlidersHorizontal,
     X,
     AlertCircle,
-    CheckCircle2,
     Sun,
-    Contrast,
     Palette,
     Focus,
     Sparkles,
@@ -1246,3 +1244,4 @@ export function ColorizePhotoWorkspace() {
         </section>
     );
 }
+
