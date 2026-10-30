@@ -1,7 +1,15 @@
-﻿
-"use client";
+﻿"use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+    type ChangeEvent,
+    type DragEvent,
+} from "react";
+
 import {
     UploadCloud,
     Download,
@@ -22,7 +30,8 @@ import {
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const MAX_PIXELS = 8_000_000;
-const PREVIEW_MAX_SIZE = 1600;
+const PREVIEW_MAX_SIZE = 1100;
+const MAX_HISTORY = 31;
 
 type Settings = {
     brightness: number;
@@ -45,6 +54,18 @@ type Settings = {
     sepia: number;
     grayscale: number;
     invert: number;
+};
+
+type SettingKey = keyof Settings;
+
+type Control = {
+    key: SettingKey;
+    label: string;
+    min: number;
+    max: number;
+    step?: number;
+    unit?: string;
+    description: string;
 };
 
 const DEFAULT_SETTINGS: Settings = {
@@ -70,18 +91,6 @@ const DEFAULT_SETTINGS: Settings = {
     invert: 0,
 };
 
-type SettingKey = keyof Settings;
-
-type Control = {
-    key: SettingKey;
-    label: string;
-    min: number;
-    max: number;
-    step?: number;
-    unit?: string;
-    description: string;
-};
-
 const GROUPS: {
     title: string;
     icon: typeof Sun;
@@ -91,8 +100,8 @@ const GROUPS: {
             title: "Light",
             icon: Sun,
             controls: [
-                { key: "brightness", label: "Brightness", min: 0, max: 200, unit: "%", description: "Overall image brightness." },
-                { key: "exposure", label: "Exposure", min: -100, max: 100, description: "Adjust the overall exposure." },
+                { key: "brightness", label: "Brightness", min: 0, max: 200, unit: "%", description: "Adjust overall image brightness." },
+                { key: "exposure", label: "Exposure", min: -100, max: 100, description: "Control the overall exposure level." },
                 { key: "contrast", label: "Contrast", min: 0, max: 200, unit: "%", description: "Control the difference between light and dark." },
                 { key: "highlights", label: "Highlights", min: -100, max: 100, description: "Recover or emphasize bright areas." },
                 { key: "shadows", label: "Shadows", min: -100, max: 100, description: "Lift or deepen dark areas." },
@@ -154,6 +163,22 @@ function getDimensions(width: number, height: number, maxSize?: number) {
     };
 }
 
+function createSettingsSnapshot(settings: Settings): Settings {
+    return { ...settings };
+}
+
+/**
+ * Deterministic integer-based noise.
+ * Avoids expensive Math.sin calls for every pixel.
+ */
+function pixelNoise(x: number, y: number) {
+    let value = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+    value = Math.imul(value ^ (value >>> 13), 1274126177);
+    value ^= value >>> 16;
+
+    return (value >>> 0) / 4294967295 * 2 - 1;
+}
+
 function applyAdjustments(
     canvas: HTMLCanvasElement,
     image: HTMLImageElement,
@@ -174,7 +199,7 @@ function applyAdjustments(
     });
 
     if (!context) {
-        throw new Error("Your browser could not create an image editor canvas.");
+        throw new Error("Your browser could not initialize the image editor.");
     }
 
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -190,96 +215,42 @@ function applyAdjustments(
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     context.filter = "none";
 
-    if (
-        settings.exposure === 0 &&
-        settings.highlights === 0 &&
-        settings.shadows === 0 &&
-        settings.vibrance === 0 &&
-        settings.temperature === 0 &&
-        settings.tint === 0 &&
-        settings.sharpness === 0 &&
-        settings.clarity === 0 &&
-        settings.noiseReduction === 0 &&
-        settings.fade === 0 &&
-        settings.vignette === 0 &&
-        settings.grain === 0 &&
-        settings.sepia === 0 &&
-        settings.grayscale === 0 &&
-        settings.invert === 0
-    ) {
-        return;
-    }
+    const hasPixelAdjustments =
+        settings.exposure !== 0 ||
+        settings.highlights !== 0 ||
+        settings.shadows !== 0 ||
+        settings.vibrance !== 0 ||
+        settings.temperature !== 0 ||
+        settings.tint !== 0 ||
+        settings.sharpness !== 0 ||
+        settings.clarity !== 0 ||
+        settings.noiseReduction !== 0 ||
+        settings.fade !== 0 ||
+        settings.vignette !== 0 ||
+        settings.grain !== 0 ||
+        settings.sepia !== 0 ||
+        settings.grayscale !== 0 ||
+        settings.invert !== 0;
 
-    const imageData = context.getImageData(
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-    );
+    if (!hasPixelAdjustments) return;
 
-    const pixels = imageData.data;
     const width = canvas.width;
     const height = canvas.height;
+
+    const imageData = context.getImageData(0, 0, width, height);
+    const pixels = imageData.data;
 
     const sharpness = settings.sharpness / 100;
     const clarity = settings.clarity / 100;
     const denoise = settings.noiseReduction / 100;
 
-    // Preserve a source copy for detail processing.
-    const source = new Uint8ClampedArray(pixels);
+    const useDetailProcessing =
+        sharpness > 0 || clarity > 0 || denoise > 0;
 
-    // Apply edge-aware smoothing and unsharp detail enhancement.
-    if (sharpness > 0 || clarity > 0 || denoise > 0) {
-        const blurred = new Uint8ClampedArray(source.length);
+    let source: Uint8ClampedArray | null = null;
 
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                const p = (y * width + x) * 4;
-
-                for (let channel = 0; channel < 3; channel++) {
-                    let total = 0;
-                    let count = 0;
-
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            const nx = x + dx;
-                            const ny = y + dy;
-
-                            if (
-                                nx >= 0 &&
-                                nx < width &&
-                                ny >= 0 &&
-                                ny < height
-                            ) {
-                                total += source[
-                                    (ny * width + nx) * 4 + channel
-                                ];
-                                count++;
-                            }
-                        }
-                    }
-
-                    blurred[p + channel] = total / count;
-                }
-
-                blurred[p + 3] = source[p + 3];
-            }
-        }
-
-        for (let i = 0; i < pixels.length; i += 4) {
-            for (let channel = 0; channel < 3; channel++) {
-                const original = source[i + channel];
-                const smooth = blurred[i + channel];
-
-                let value = mix(original, smooth, denoise * 0.8);
-
-                const detail = original - smooth;
-
-                value += detail * (sharpness * 1.5 + clarity * 0.9);
-
-                pixels[i + channel] = clamp(value);
-            }
-        }
+    if (useDetailProcessing) {
+        source = new Uint8ClampedArray(pixels);
     }
 
     const exposureFactor = Math.pow(2, settings.exposure / 100);
@@ -299,32 +270,75 @@ function applyAdjustments(
     const centerY = height / 2;
     const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
 
-    // Deterministic grain: the same settings produce the same export.
+    const detailStrength = sharpness * 1.5 + clarity * 0.9;
+    const smoothingStrength = denoise * 0.8;
+
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            const i = (y * width + x) * 4;
+            const index = (y * width + x) * 4;
 
-            let r = pixels[i];
-            let g = pixels[i + 1];
-            let b = pixels[i + 2];
+            let r = pixels[index];
+            let g = pixels[index + 1];
+            let b = pixels[index + 2];
 
+            // Detail processing uses the immutable original pixel buffer.
+            if (source && useDetailProcessing) {
+                const left = Math.max(0, x - 1);
+                const right = Math.min(width - 1, x + 1);
+                const top = Math.max(0, y - 1);
+                const bottom = Math.min(height - 1, y + 1);
+
+                const centerIndex = index;
+                const leftIndex = (y * width + left) * 4;
+                const rightIndex = (y * width + right) * 4;
+                const topIndex = (top * width + x) * 4;
+                const bottomIndex = (bottom * width + x) * 4;
+
+                for (let channel = 0; channel < 3; channel++) {
+                    const original = source[centerIndex + channel];
+
+                    const smooth = (
+                        original +
+                        source[leftIndex + channel] +
+                        source[rightIndex + channel] +
+                        source[topIndex + channel] +
+                        source[bottomIndex + channel]
+                    ) / 5;
+
+                    const detail = original - smooth;
+
+                    pixels[index + channel] = clamp(
+                        mix(original, smooth, smoothingStrength) +
+                        detail * detailStrength,
+                    );
+                }
+
+                r = pixels[index];
+                g = pixels[index + 1];
+                b = pixels[index + 2];
+            }
+
+            // Exposure.
             r *= exposureFactor;
             g *= exposureFactor;
             b *= exposureFactor;
 
+            // Highlights and shadows.
             const luminance =
                 0.2126 * r +
                 0.7152 * g +
                 0.0722 * b;
 
-            const highlightMask = Math.max(
+            const highlightMask = clamp(
+                (luminance - 110) / 145,
                 0,
-                Math.min(1, (luminance - 110) / 145),
+                1,
             );
 
-            const shadowMask = Math.max(
+            const shadowMask = clamp(
+                (145 - luminance) / 145,
                 0,
-                Math.min(1, (145 - luminance) / 145),
+                1,
             );
 
             const lightAdjustment =
@@ -337,15 +351,18 @@ function applyAdjustments(
 
             // Temperature and tint.
             r += temperature * 35 + tint * 12;
-            g += tint * -22;
-            b -= temperature * 35 - tint * 12;
+            g -= tint * 22;
+            b += -temperature * 35 + tint * 12;
 
-            // Selective vibrance.
+            // Vibrance.
             const average = (r + g + b) / 3;
             const maxChannel = Math.max(r, g, b);
             const minChannel = Math.min(r, g, b);
+
             const currentSaturation =
-                maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+                maxChannel === 0
+                    ? 0
+                    : (maxChannel - minChannel) / maxChannel;
 
             const vibranceAmount =
                 vibrance * (1 - currentSaturation) * 0.75;
@@ -354,12 +371,14 @@ function applyAdjustments(
             g += (g - average) * vibranceAmount;
             b += (b - average) * vibranceAmount;
 
-            // Fade lifts dark values and softens contrast.
-            r = mix(r, 220, fade * 0.17);
-            g = mix(g, 220, fade * 0.17);
-            b = mix(b, 220, fade * 0.17);
+            // Fade.
+            if (fade > 0) {
+                r = mix(r, 220, fade * 0.17);
+                g = mix(g, 220, fade * 0.17);
+                b = mix(b, 220, fade * 0.17);
+            }
 
-            // Sepia blend.
+            // Sepia.
             if (sepia > 0) {
                 const sr = r * 0.393 + g * 0.769 + b * 0.189;
                 const sg = r * 0.349 + g * 0.686 + b * 0.168;
@@ -370,7 +389,7 @@ function applyAdjustments(
                 b = mix(b, sb, sepia);
             }
 
-            // Grayscale blend.
+            // Grayscale.
             if (grayscale > 0) {
                 const gray =
                     0.2126 * r +
@@ -382,7 +401,7 @@ function applyAdjustments(
                 b = mix(b, gray, grayscale);
             }
 
-            // Invert blend.
+            // Invert.
             if (invert > 0) {
                 r = mix(r, 255 - r, invert);
                 g = mix(g, 255 - g, invert);
@@ -394,6 +413,7 @@ function applyAdjustments(
                 const dx = (x - centerX) / maxDistance;
                 const dy = (y - centerY) / maxDistance;
                 const distance = Math.sqrt(dx * dx + dy * dy);
+
                 const amount = Math.max(
                     0,
                     1 - Math.pow(distance, 1.7) * vignette * 1.15,
@@ -406,21 +426,16 @@ function applyAdjustments(
 
             // Film grain.
             if (grain > 0) {
-                const seed = Math.sin(
-                    x * 12.9898 + y * 78.233,
-                ) * 43758.5453;
-
-                const random = (seed - Math.floor(seed) - 0.5) * 2;
-                const noise = random * grain * 28;
+                const noise = pixelNoise(x, y) * grain * 28;
 
                 r += noise;
                 g += noise;
                 b += noise;
             }
 
-            pixels[i] = clamp(r);
-            pixels[i + 1] = clamp(g);
-            pixels[i + 2] = clamp(b);
+            pixels[index] = clamp(r);
+            pixels[index + 1] = clamp(g);
+            pixels[index + 2] = clamp(b);
         }
     }
 
@@ -439,19 +454,51 @@ export function ColorizePhotoWorkspace() {
     const [format, setFormat] = useState("image/png");
     const [history, setHistory] = useState<Settings[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const [previewReady, setPreviewReady] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const previewCanvasRef = useRef<HTMLCanvasElement>(null);
     const originalImageRef = useRef<HTMLImageElement | null>(null);
     const objectUrlRef = useRef("");
     const renderFrameRef = useRef<number | null>(null);
+    const loadTokenRef = useRef(0);
 
-    const [dimensions, setDimensions] = useState({
-        width: 0,
-        height: 0,
-    });
+    const settingsRef = useRef(settings);
+    const historyRef = useRef(history);
+    const historyIndexRef = useRef(historyIndex);
+    const adjustmentStartRef = useRef<Settings | null>(null);
 
-    const [previewReady, setPreviewReady] = useState(false);
+    useEffect(() => {
+        settingsRef.current = settings;
+    }, [settings]);
+
+    useEffect(() => {
+        historyRef.current = history;
+    }, [history]);
+
+    useEffect(() => {
+        historyIndexRef.current = historyIndex;
+    }, [historyIndex]);
+
+    const pushHistory = useCallback((snapshot: Settings) => {
+        const currentHistory = historyRef.current;
+        const currentIndex = historyIndexRef.current;
+
+        const nextHistory = [
+            ...currentHistory.slice(0, currentIndex + 1),
+            createSettingsSnapshot(snapshot),
+        ].slice(-MAX_HISTORY);
+
+        const nextIndex = nextHistory.length - 1;
+
+        historyRef.current = nextHistory;
+        historyIndexRef.current = nextIndex;
+
+        setHistory(nextHistory);
+        setHistoryIndex(nextIndex);
+    }, []);
 
     const setNewImage = useCallback((nextFile: File) => {
         setError("");
@@ -462,18 +509,36 @@ export function ColorizePhotoWorkspace() {
             return;
         }
 
+        if (nextFile.size <= 0) {
+            setError("The selected file is empty.");
+            return;
+        }
+
         if (nextFile.size > MAX_FILE_SIZE) {
             setError("Maximum image size is 20 MB.");
             return;
         }
 
+        const token = ++loadTokenRef.current;
         const url = URL.createObjectURL(nextFile);
         const image = new window.Image();
 
+        setStatus("Loading your image...");
+
         image.onload = () => {
-            if (image.naturalWidth * image.naturalHeight > MAX_PIXELS) {
+            if (token !== loadTokenRef.current) {
                 URL.revokeObjectURL(url);
-                setError("This image exceeds the 8-megapixel limit.");
+                return;
+            }
+
+            if (
+                !image.naturalWidth ||
+                !image.naturalHeight ||
+                image.naturalWidth * image.naturalHeight > MAX_PIXELS
+            ) {
+                URL.revokeObjectURL(url);
+                setStatus("");
+                setError("This image is invalid or exceeds the 8-megapixel limit.");
                 return;
             }
 
@@ -490,8 +555,19 @@ export function ColorizePhotoWorkspace() {
                 width: image.naturalWidth,
                 height: image.naturalHeight,
             });
-            setSettings(DEFAULT_SETTINGS);
-            setHistory([DEFAULT_SETTINGS]);
+
+            settingsRef.current = { ...DEFAULT_SETTINGS };
+            setSettings({ ...DEFAULT_SETTINGS });
+
+            adjustmentStartRef.current = null;
+
+            const initialHistory = [{ ...DEFAULT_SETTINGS }];
+            historyRef.current = initialHistory;
+            historyIndexRef.current = 0;
+
+            setHistory(initialHistory);
+            setHistoryIndex(0);
+
             setShowOriginal(false);
             setPreviewReady(true);
             setStatus("Image loaded. Your editing studio is ready.");
@@ -499,6 +575,10 @@ export function ColorizePhotoWorkspace() {
 
         image.onerror = () => {
             URL.revokeObjectURL(url);
+
+            if (token !== loadTokenRef.current) return;
+
+            setStatus("");
             setError("Could not open this image. Please try another file.");
         };
 
@@ -518,12 +598,14 @@ export function ColorizePhotoWorkspace() {
                 settings,
                 PREVIEW_MAX_SIZE,
             );
+            setError("");
         } catch (err) {
             console.error("BROBEX preview error:", err);
+
             setError(
                 err instanceof Error
                     ? err.message
-                    : "Could not render the preview.",
+                    : "Could not render the image preview.",
             );
         }
     }, [settings]);
@@ -550,6 +632,8 @@ export function ColorizePhotoWorkspace() {
 
     useEffect(() => {
         return () => {
+            loadTokenRef.current++;
+
             if (objectUrlRef.current) {
                 URL.revokeObjectURL(objectUrlRef.current);
             }
@@ -560,66 +644,136 @@ export function ColorizePhotoWorkspace() {
         };
     }, []);
 
-    function updateSetting(key: SettingKey, value: number) {
-        const next = {
-            ...settings,
-            [key]: value,
-        };
+    const beginAdjustment = useCallback(() => {
+        if (!adjustmentStartRef.current) {
+            adjustmentStartRef.current = createSettingsSnapshot(
+                settingsRef.current,
+            );
+        }
+    }, []);
 
+    const updateSetting = useCallback(
+        (key: SettingKey, value: number) => {
+            beginAdjustment();
+
+            const next = {
+                ...settingsRef.current,
+                [key]: value,
+            };
+
+            settingsRef.current = next;
+            setSettings(next);
+        },
+        [beginAdjustment],
+    );
+
+    const commitAdjustment = useCallback(() => {
+        const startingSettings = adjustmentStartRef.current;
+
+        if (!startingSettings) return;
+
+        adjustmentStartRef.current = null;
+
+        const currentSettings = settingsRef.current;
+
+        const changed = Object.keys(DEFAULT_SETTINGS).some((key) => {
+            const settingKey = key as SettingKey;
+
+            return startingSettings[settingKey] !== currentSettings[settingKey];
+        });
+
+        if (changed) {
+            pushHistory(currentSettings);
+        }
+    }, [pushHistory]);
+
+    const resetAll = useCallback(() => {
+        adjustmentStartRef.current = null;
+
+        const next = { ...DEFAULT_SETTINGS };
+
+        settingsRef.current = next;
         setSettings(next);
-        setHistory((previous) => [
-            ...previous.slice(0, historyIndex + 1),
-            next,
-        ].slice(-31));
-        setHistoryIndex((previous) => Math.min(previous + 1, 30));
-    }
 
-    function resetAll() {
-        setSettings(DEFAULT_SETTINGS);
-        setHistory([DEFAULT_SETTINGS]);
+        const nextHistory = [next];
+        historyRef.current = nextHistory;
+        historyIndexRef.current = 0;
+
+        setHistory(nextHistory);
         setHistoryIndex(0);
+
         setStatus("All adjustments have been reset.");
-    }
+    }, []);
 
-    function resetControl(key: SettingKey) {
-        updateSetting(key, DEFAULT_SETTINGS[key]);
-    }
+    const resetControl = useCallback(
+        (key: SettingKey) => {
+            beginAdjustment();
+            updateSetting(key, DEFAULT_SETTINGS[key]);
+            commitAdjustment();
+        },
+        [beginAdjustment, updateSetting, commitAdjustment],
+    );
 
-    function undo() {
-        if (historyIndex <= 0) return;
+    const undo = useCallback(() => {
+        commitAdjustment();
 
-        const nextIndex = historyIndex - 1;
+        const nextIndex = historyIndexRef.current - 1;
+
+        if (nextIndex < 0) return;
+
+        const next = historyRef.current[nextIndex];
+
+        historyIndexRef.current = nextIndex;
+        settingsRef.current = next;
+
         setHistoryIndex(nextIndex);
-        setSettings(history[nextIndex]);
-    }
+        setSettings(next);
+    }, [commitAdjustment]);
 
-    function redo() {
-        if (historyIndex >= history.length - 1) return;
+    const redo = useCallback(() => {
+        commitAdjustment();
 
-        const nextIndex = historyIndex + 1;
+        const nextIndex = historyIndexRef.current + 1;
+
+        if (nextIndex >= historyRef.current.length) return;
+
+        const next = historyRef.current[nextIndex];
+
+        historyIndexRef.current = nextIndex;
+        settingsRef.current = next;
+
         setHistoryIndex(nextIndex);
-        setSettings(history[nextIndex]);
-    }
+        setSettings(next);
+    }, [commitAdjustment]);
 
-    function clearImage() {
+    const clearImage = useCallback(() => {
+        loadTokenRef.current++;
+
         if (objectUrlRef.current) {
             URL.revokeObjectURL(objectUrlRef.current);
             objectUrlRef.current = "";
         }
 
         originalImageRef.current = null;
+        adjustmentStartRef.current = null;
+
+        settingsRef.current = { ...DEFAULT_SETTINGS };
+        historyRef.current = [];
+        historyIndexRef.current = -1;
+
         setFile(null);
         setOriginalUrl("");
-        setSettings(DEFAULT_SETTINGS);
+        setSettings({ ...DEFAULT_SETTINGS });
         setHistory([]);
         setHistoryIndex(-1);
         setDimensions({ width: 0, height: 0 });
         setPreviewReady(false);
+        setShowOriginal(false);
         setError("");
         setStatus("");
-    }
+    }, []);
 
-    async function downloadImage() {
+    const downloadImage = useCallback(async () => {
         const image = originalImageRef.current;
 
         if (!image) {
@@ -627,14 +781,21 @@ export function ColorizePhotoWorkspace() {
             return;
         }
 
+        if (exporting) return;
+
+        commitAdjustment();
+
         setError("");
+        setExporting(true);
         setStatus("Preparing your full-resolution export...");
+
+        let exportUrl = "";
 
         try {
             const canvas = document.createElement("canvas");
 
-            // No preview downscaling for the final export.
-            applyAdjustments(canvas, image, settings);
+            // Export at the original image dimensions.
+            applyAdjustments(canvas, image, settingsRef.current);
 
             const quality = format === "image/png" ? undefined : 0.94;
 
@@ -642,7 +803,7 @@ export function ColorizePhotoWorkspace() {
                 canvas.toBlob(
                     (result) => {
                         if (!result) {
-                            reject(new Error("Image export failed."));
+                            reject(new Error("The browser could not create the export file."));
                             return;
                         }
 
@@ -653,8 +814,12 @@ export function ColorizePhotoWorkspace() {
                 );
             });
 
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
+            if (!blob.size) {
+                throw new Error("The exported image is empty.");
+            }
+
+            exportUrl = URL.createObjectURL(blob);
+
             const extension =
                 format === "image/jpeg"
                     ? "jpg"
@@ -662,30 +827,65 @@ export function ColorizePhotoWorkspace() {
                         ? "webp"
                         : "png";
 
-            link.href = url;
+            const link = document.createElement("a");
+
+            link.href = exportUrl;
             link.download = `brobex-edited-photo.${extension}`;
+            link.style.display = "none";
 
             document.body.appendChild(link);
             link.click();
             link.remove();
 
-            window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-            setStatus("Your edited image has been exported.");
+            setStatus("Your edited image has been exported successfully.");
         } catch (err) {
+            console.error("BROBEX export error:", err);
+
             setError(
                 err instanceof Error
                     ? err.message
                     : "Could not export the image.",
             );
+
             setStatus("");
+        } finally {
+            if (exportUrl) {
+                window.setTimeout(() => URL.revokeObjectURL(exportUrl), 3000);
+            }
+
+            setExporting(false);
         }
-    }
+    }, [format, exporting, commitAdjustment]);
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const selected = event.target.files?.[0];
+
+        if (selected) setNewImage(selected);
+
+        event.target.value = "";
+    };
+
+    const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setDragging(false);
+
+        const dropped = event.dataTransfer.files?.[0];
+
+        if (dropped) setNewImage(dropped);
+    };
 
     const selectedGroup =
         GROUPS.find((group) => group.title === activeGroup) ?? GROUPS[0];
 
-    const buttonStyle: React.CSSProperties = {
+    const activeControls = Object.entries(settings).filter(
+        ([key, value]) =>
+            value !== DEFAULT_SETTINGS[key as SettingKey],
+    ).length;
+
+    const canUndo = historyIndex > 0;
+    const canRedo = historyIndex < history.length - 1;
+
+    const buttonStyle: CSSProperties = {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -700,7 +900,7 @@ export function ColorizePhotoWorkspace() {
         fontWeight: 650,
     };
 
-    const panelStyle: React.CSSProperties = {
+    const panelStyle: CSSProperties = {
         border: "1px solid var(--line)",
         borderRadius: 15,
         background: "var(--surface)",
@@ -709,7 +909,12 @@ export function ColorizePhotoWorkspace() {
     };
 
     return (
-        <section style={{ display: "grid", gap: 18, width: "100%", minWidth: 0 }}>
+        <section style={{
+            display: "grid",
+            gap: 18,
+            width: "100%",
+            minWidth: 0,
+        }}>
             <div style={panelStyle}>
                 <div style={{
                     display: "flex",
@@ -729,13 +934,14 @@ export function ColorizePhotoWorkspace() {
                                 Photo Editing Studio
                             </h2>
                         </div>
+
                         <p style={{
                             color: "var(--muted)",
                             fontSize: 12,
                             lineHeight: 1.7,
                             margin: "7px 0 0",
                         }}>
-                            Professional manual adjustments with instant browser-based previews.
+                            Professional image adjustments with browser-based previews.
                         </p>
                     </div>
 
@@ -768,12 +974,7 @@ export function ColorizePhotoWorkspace() {
                             setDragging(true);
                         }}
                         onDragLeave={() => setDragging(false)}
-                        onDrop={(event) => {
-                            event.preventDefault();
-                            setDragging(false);
-                            const dropped = event.dataTransfer.files?.[0];
-                            if (dropped) setNewImage(dropped);
-                        }}
+                        onDrop={handleDrop}
                         style={{
                             display: "grid",
                             justifyItems: "center",
@@ -800,8 +1001,11 @@ export function ColorizePhotoWorkspace() {
                         </div>
 
                         <strong style={{ fontSize: 14 }}>
-                            {dragging ? "Drop your image here" : "Upload an image to start editing"}
+                            {dragging
+                                ? "Drop your image here"
+                                : "Upload an image to start editing"}
                         </strong>
+
                         <span style={{
                             color: "var(--muted)",
                             fontSize: 12,
@@ -817,11 +1021,7 @@ export function ColorizePhotoWorkspace() {
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     hidden
-                    onChange={(event) => {
-                        const selected = event.target.files?.[0];
-                        if (selected) setNewImage(selected);
-                        event.target.value = "";
-                    }}
+                    onChange={handleFileChange}
                 />
 
                 {file && (
@@ -843,6 +1043,7 @@ export function ColorizePhotoWorkspace() {
                             minWidth: 0,
                         }}>
                             <ImageIcon size={20} />
+
                             <div style={{ minWidth: 0 }}>
                                 <strong style={{
                                     display: "block",
@@ -851,8 +1052,10 @@ export function ColorizePhotoWorkspace() {
                                 }}>
                                     {file.name}
                                 </strong>
+
                                 <small style={{ color: "var(--muted)" }}>
-                                    {dimensions.width} × {dimensions.height} · {(file.size / 1048576).toFixed(2)} MB
+                                    {dimensions.width} × {dimensions.height} ·{" "}
+                                    {(file.size / 1048576).toFixed(2)} MB
                                 </small>
                             </div>
                         </div>
@@ -865,6 +1068,7 @@ export function ColorizePhotoWorkspace() {
                             >
                                 Replace
                             </button>
+
                             <button
                                 type="button"
                                 onClick={clearImage}
@@ -906,7 +1110,7 @@ export function ColorizePhotoWorkspace() {
             </div>
 
             {file && (
-                <div style={{
+                <div className="brobex-editor-layout" style={{
                     display: "grid",
                     gridTemplateColumns: "minmax(0, 1.65fr) minmax(280px, .85fr)",
                     gap: 18,
@@ -922,13 +1126,16 @@ export function ColorizePhotoWorkspace() {
                             marginBottom: 14,
                         }}>
                             <div>
-                                <strong style={{ fontSize: 14 }}>Live preview</strong>
+                                <strong style={{ fontSize: 14 }}>
+                                    Live preview
+                                </strong>
+
                                 <p style={{
                                     color: "var(--muted)",
                                     fontSize: 11,
                                     margin: "4px 0 0",
                                 }}>
-                                    Changes update automatically
+                                    Preview is optimized for editing.
                                 </p>
                             </div>
 
@@ -1005,10 +1212,9 @@ export function ColorizePhotoWorkspace() {
                                 marginBottom: 8,
                             }}>
                                 <strong>Adjustment overview</strong>
+
                                 <span style={{ color: "var(--muted)" }}>
-                                    {Object.entries(settings).filter(([key, value]) =>
-                                        value !== DEFAULT_SETTINGS[key as SettingKey]
-                                    ).length} active
+                                    {activeControls} active
                                 </span>
                             </div>
 
@@ -1017,26 +1223,48 @@ export function ColorizePhotoWorkspace() {
                                 gap: 8,
                                 flexWrap: "wrap",
                             }}>
-                                <button type="button" onClick={undo} disabled={historyIndex <= 0} style={{
-                                    ...buttonStyle,
-                                    opacity: historyIndex <= 0 ? .4 : 1,
-                                }}>
+                                <button
+                                    type="button"
+                                    onClick={undo}
+                                    disabled={!canUndo}
+                                    style={{
+                                        ...buttonStyle,
+                                        opacity: canUndo ? 1 : 0.4,
+                                        cursor: canUndo ? "pointer" : "not-allowed",
+                                    }}
+                                >
                                     <Undo2 size={15} /> Undo
                                 </button>
-                                <button type="button" onClick={redo} disabled={historyIndex >= history.length - 1} style={{
-                                    ...buttonStyle,
-                                    opacity: historyIndex >= history.length - 1 ? .4 : 1,
-                                }}>
+
+                                <button
+                                    type="button"
+                                    onClick={redo}
+                                    disabled={!canRedo}
+                                    style={{
+                                        ...buttonStyle,
+                                        opacity: canRedo ? 1 : 0.4,
+                                        cursor: canRedo ? "pointer" : "not-allowed",
+                                    }}
+                                >
                                     <Redo2 size={15} /> Redo
                                 </button>
-                                <button type="button" onClick={resetAll} style={buttonStyle}>
+
+                                <button
+                                    type="button"
+                                    onClick={resetAll}
+                                    style={buttonStyle}
+                                >
                                     <RotateCcw size={15} /> Reset all
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ ...panelStyle, display: "grid", gap: 15 }}>
+                    <div style={{
+                        ...panelStyle,
+                        display: "grid",
+                        gap: 15,
+                    }}>
                         <div>
                             <div style={{
                                 display: "flex",
@@ -1044,8 +1272,11 @@ export function ColorizePhotoWorkspace() {
                                 gap: 8,
                             }}>
                                 <Settings2 size={18} />
-                                <h3 style={{ margin: 0, fontSize: 16 }}>Adjustments</h3>
+                                <h3 style={{ margin: 0, fontSize: 16 }}>
+                                    Adjustments
+                                </h3>
                             </div>
+
                             <p style={{
                                 color: "var(--muted)",
                                 fontSize: 11,
@@ -1078,7 +1309,9 @@ export function ColorizePhotoWorkspace() {
                                             padding: "10px 6px",
                                             borderRadius: 8,
                                             border: `1px solid ${active ? "#16a34a" : "var(--line)"}`,
-                                            background: active ? "rgba(22,163,74,.09)" : "var(--soft)",
+                                            background: active
+                                                ? "rgba(22,163,74,.09)"
+                                                : "var(--soft)",
                                             color: "var(--ink)",
                                             cursor: "pointer",
                                             fontSize: 11,
@@ -1100,7 +1333,9 @@ export function ColorizePhotoWorkspace() {
                             borderBottom: "1px solid var(--line)",
                         }}>
                             <selectedGroup.icon size={17} />
-                            <strong style={{ fontSize: 13 }}>{selectedGroup.title} controls</strong>
+                            <strong style={{ fontSize: 13 }}>
+                                {selectedGroup.title} controls
+                            </strong>
                         </div>
 
                         <div style={{ display: "grid", gap: 21 }}>
@@ -1118,6 +1353,7 @@ export function ColorizePhotoWorkspace() {
                                         <strong style={{ fontSize: 12 }}>
                                             {control.label}
                                         </strong>
+
                                         <span style={{
                                             color: "var(--muted)",
                                             fontSize: 11,
@@ -1133,12 +1369,18 @@ export function ColorizePhotoWorkspace() {
                                         max={control.max}
                                         step={control.step ?? 1}
                                         value={settings[control.key]}
-                                        onChange={(event) =>
+                                        onPointerDown={beginAdjustment}
+                                        onPointerUp={commitAdjustment}
+                                        onPointerCancel={commitAdjustment}
+                                        onKeyDown={beginAdjustment}
+                                        onKeyUp={commitAdjustment}
+                                        onBlur={commitAdjustment}
+                                        onChange={(event) => {
                                             updateSetting(
                                                 control.key,
                                                 Number(event.target.value),
-                                            )
-                                        }
+                                            );
+                                        }}
                                         aria-label={control.label}
                                         style={{
                                             width: "100%",
@@ -1166,7 +1408,8 @@ export function ColorizePhotoWorkspace() {
                                                 fontSize: 10,
                                             }}
                                         >
-                                            <RotateCcw size={12} /> Reset {control.label}
+                                            <RotateCcw size={12} />
+                                            Reset {control.label}
                                         </button>
                                     )}
                                 </label>
@@ -1186,6 +1429,7 @@ export function ColorizePhotoWorkspace() {
                                 fontWeight: 650,
                             }}>
                                 Export format
+
                                 <select
                                     value={format}
                                     onChange={(event) => setFormat(event.target.value)}
@@ -1207,6 +1451,7 @@ export function ColorizePhotoWorkspace() {
                             <button
                                 type="button"
                                 onClick={downloadImage}
+                                disabled={exporting}
                                 style={{
                                     width: "100%",
                                     display: "flex",
@@ -1218,18 +1463,29 @@ export function ColorizePhotoWorkspace() {
                                     borderRadius: 9,
                                     background: "var(--ink)",
                                     color: "var(--bg)",
-                                    cursor: "pointer",
+                                    cursor: exporting ? "wait" : "pointer",
+                                    opacity: exporting ? 0.7 : 1,
                                     fontWeight: 750,
                                     fontSize: 13,
                                 }}
                             >
                                 <Download size={17} />
-                                Export full-resolution image
+                                {exporting
+                                    ? "Preparing export..."
+                                    : "Export full-resolution image"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            <style jsx>{`
+                @media (max-width: 850px) {
+                    .brobex-editor-layout {
+                        grid-template-columns: minmax(0, 1fr) !important;
+                    }
+                }
+            `}</style>
 
             <p style={{
                 margin: 0,
@@ -1238,10 +1494,9 @@ export function ColorizePhotoWorkspace() {
                 lineHeight: 1.7,
             }}>
                 BROBEX Photo Editing Studio processes images locally in your browser.
-                Your original file remains unchanged. Preview rendering is optimized
-                for responsiveness; exports use the original image dimensions.
+                Your original file remains unchanged. Preview rendering uses optimized
+                dimensions, while exports retain the original image dimensions.
             </p>
         </section>
     );
 }
-
