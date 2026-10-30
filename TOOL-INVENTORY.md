@@ -10,7 +10,7 @@
 | 6 | Unblur Image | image | Integration required |
 | 7 | Remove Person from Photo | image | Integration required |
 | 8 | Photo Cleanup | image | Integration required |
-| 9 | Colorize Photo | image | Integration required |
+| 9 | adjust photo | image | Integration required |
 | 10 | Make Background Transparent | image | Integration required |
 | 11 | Blur Background | image | Integration required |
 | 12 | Translate Image | image | Integration required |

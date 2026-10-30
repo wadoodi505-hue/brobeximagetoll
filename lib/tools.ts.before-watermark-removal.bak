@@ -83,8 +83,8 @@ export const tools: ToolDefinition[] = [
     "status": "integration"
   },
   {
-    "slug": "colorize-photo",
-    "name": "Colorize Photo",
+    "slug": "adjust photo",
+    "name": "adjust photo",
     "description": "Colorize monochrome photographs with an AI provider.",
     "category": "image",
     "icon": "WandSparkles",

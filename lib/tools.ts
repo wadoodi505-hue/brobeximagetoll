@@ -25,9 +25,9 @@ export const tools: ToolDefinition[] = [
     status: "browser"
   },
   {
-    "slug": "colorize-photo",
-    "name": "Colorize Photo",
-    "description": "Colorize monochrome photographs with an AI provider.",
+    "slug": "adjust photo",
+    "name": "adjust photo",
+    "description": "adjust photo photographs .",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
