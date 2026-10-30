@@ -1371,4 +1371,228 @@ button:disabled {
 .crop-actions {
     grid-column: 1 / -1;
     margin-top: 8px;
+}/* =========================================
+   BROBEX PROFESSIONAL TOOL STUDIO
+========================================= */
+
+.brobex-studio {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    overflow: hidden;
+    color: #f5f2e9;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(190, 151, 75, 0.10), transparent 48%),
+        linear-gradient(180deg, #090909 0%, #0c0c0c 55%, #090909 100%);
+    border: 1px solid rgba(202, 169, 104, 0.15);
+    border-radius: 24px;
+    margin-bottom: 30px;
+}
+
+.brobex-studio-glow {
+    position: absolute;
+    z-index: -1;
+    top: -180px;
+    left: 50%;
+    width: 620px;
+    height: 360px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(199, 163, 91, 0.13), transparent 70%);
+    pointer-events: none;
+}
+
+.brobex-studio-inner {
+    position: relative;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 54px 28px 28px;
+}
+
+.brobex-studio-brand {
+    text-align: center;
+    margin-bottom: 54px;
+}
+
+.brobex-studio-brand a {
+    display: inline-block;
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: 0.24em;
+    line-height: 1.2;
+    color: transparent;
+    background: linear-gradient(110deg, #f5e6bd 5%, #c9a45e 48%, #f1d99e 85%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    text-decoration: none;
+}
+
+.brobex-studio-brand a span {
+    color: #d6b46f;
+}
+
+.brobex-studio-brand p {
+    margin-top: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    color: rgba(225, 207, 166, 0.55);
+}
+
+.brobex-studio-heading {
+    max-width: 760px;
+    margin: 0 auto 38px;
+    text-align: center;
+}
+
+.brobex-studio-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border: 1px solid rgba(204, 171, 106, 0.23);
+    border-radius: 999px;
+    background: rgba(204, 171, 106, 0.06);
+    color: #d9bd83;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.19em;
+}
+
+.brobex-studio-heading h1 {
+    margin: 22px 0 12px;
+    font-size: clamp(34px, 5vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.055em;
+    line-height: 1.08;
+    color: transparent;
+    background: linear-gradient(105deg, #fff1ce 5%, #cba65e 48%, #f0d9a2 90%);
+    background-clip: text;
+    -webkit-background-clip: text;
+}
+
+.brobex-studio-heading h1 span {
+    color: #cba65e;
+}
+
+.brobex-studio-heading>p {
+    max-width: 590px;
+    margin: 0 auto;
+    color: rgba(238, 235, 226, 0.58);
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.brobex-studio-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 20px;
+    color: rgba(238, 235, 226, 0.65);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+}
+
+.brobex-studio-status>span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.brobex-studio-status .is-ready {
+    background: #83b99a;
+    box-shadow: 0 0 12px rgba(131, 185, 154, 0.5);
+}
+
+.brobex-studio-status .is-limited {
+    background: #d5a65c;
+}
+
+.brobex-studio-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    margin-top: 42px;
+    padding: 22px 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.brobex-studio-steps>div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brobex-studio-steps span {
+    color: #d3b477;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.brobex-studio-steps p {
+    color: rgba(238, 235, 226, 0.65);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.brobex-studio-steps>i {
+    width: 35px;
+    height: 1px;
+    background: rgba(204, 171, 106, 0.3);
+}
+
+.brobex-studio-footer {
+    padding-top: 24px;
+    text-align: center;
+    color: rgba(238, 235, 226, 0.32);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+}
+
+@media (max-width: 600px) {
+    .brobex-studio {
+        border-radius: 16px;
+    }
+
+    .brobex-studio-inner {
+        padding: 38px 16px 22px;
+    }
+
+    .brobex-studio-brand {
+        margin-bottom: 38px;
+    }
+
+    .brobex-studio-brand a {
+        font-size: 29px;
+    }
+
+    .brobex-studio-brand p {
+        font-size: 8px;
+        letter-spacing: 0.22em;
+    }
+
+    .brobex-studio-steps {
+        gap: 9px;
+    }
+
+    .brobex-studio-steps>div {
+        gap: 5px;
+    }
+
+    .brobex-studio-steps>i {
+        width: 13px;
+    }
+
+    .brobex-studio-steps p {
+        font-size: 8px;
+        letter-spacing: 0.08em;
+    }
+
+    .brobex-studio-footer {
+        font-size: 8px;
+        letter-spacing: 0.12em;
+    }
 }
