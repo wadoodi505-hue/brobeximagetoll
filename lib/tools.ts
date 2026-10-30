@@ -25,16 +25,14 @@ export const tools: ToolDefinition[] = [
     status: "browser"
   },
   {
-    "slug": "adjust photo",
-    "name": "adjust photo",
-    "description": "adjust photo photographs .",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    slug: "colorize-photo",
+    name: "Adjust Photo",
+    description: "Adjust brightness, exposure, contrast, saturation, temperature, sharpness, and more.",
+    category: "image",
+    icon: "SlidersHorizontal",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp"],
+    method: "Local browser Canvas processing",
+    status: "browser"
   },
   {
     "slug": "make-background-transparent",
@@ -1068,6 +1066,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
