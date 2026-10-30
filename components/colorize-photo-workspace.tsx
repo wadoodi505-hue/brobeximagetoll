@@ -434,7 +434,6 @@ export function ColorizePhotoWorkspace() {
     const [originalUrl, setOriginalUrl] = useState("");
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
     const [activeGroup, setActiveGroup] = useState("Light");
-    const [comparison, setComparison] = useState(0);
     const [showOriginal, setShowOriginal] = useState(false);
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState("");
@@ -495,8 +494,6 @@ export function ColorizePhotoWorkspace() {
             });
             setSettings(DEFAULT_SETTINGS);
             setHistory([DEFAULT_SETTINGS]);
-            setHistoryIndex(0);
-            setComparison(0);
             setShowOriginal(false);
             setPreviewReady(true);
             setStatus("Image loaded. Your editing studio is ready.");
