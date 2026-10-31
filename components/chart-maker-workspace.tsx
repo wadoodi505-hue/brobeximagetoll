@@ -193,12 +193,19 @@ export function ChartMakerWorkspace() {
             numericKeys.forEach((key) => {
                 const rawValue = row[key];
 
+                const normalizedValue =
+                    typeof rawValue === "string"
+                        ? rawValue.trim().replace(/,/g, "")
+                        : rawValue;
+
                 result[key] =
-                    rawValue === "" ||
-                        rawValue === null ||
-                        rawValue === undefined
+                    normalizedValue === "" ||
+                        normalizedValue === null ||
+                        normalizedValue === undefined
                         ? null
-                        : Number(rawValue);
+                        : Number.isFinite(Number(normalizedValue))
+                            ? Number(normalizedValue)
+                            : null;
             });
 
             return result;
@@ -1023,39 +1030,161 @@ export function ChartMakerWorkspace() {
         );
 
         // Line chart.
+
+        // Line chart — improved rendering, spacing, tooltips and data points.
         if (chartType === "line") {
             return (
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                        {commonAxes}
+                    <LineChart
+                        data={chartData}
+                        margin={{
+                            top: 24,
+                            right: 24,
+                            left: 16,
+                            bottom: 28,
+                        }}
+                    >
+                        {showGrid && (
+                            <CartesianGrid
+                                stroke="#303A36"
+                                strokeDasharray="4 5"
+                                vertical={false}
+                            />
+                        )}
 
-                        {numericKeys.map((key, index) => (
-                            <Line
-                                key={key}
-                                type="monotone"
-                                dataKey={key}
-                                name={key}
-                                stroke={
-                                    COLORS[index % COLORS.length]
-                                }
-                                strokeWidth={3}
-                                dot={{ r: 4 }}
-                                activeDot={{ r: 6 }}
-                            >
-                                {showLabels && (
-                                    <LabelList
-                                        dataKey={key}
-                                        position="top"
-                                        fill="#DCE4DF"
-                                        fontSize={10}
-                                    />
-                                )}
-                            </Line>
-                        ))}
+                        <XAxis
+                            dataKey={labelKey}
+                            stroke="#AAB3AE"
+                            tick={chartStyle}
+                            tickLine={false}
+                            axisLine={{ stroke: "#46514C" }}
+                            interval={0}
+                            minTickGap={12}
+                            height={45}
+                            label={
+                                xLabel
+                                    ? {
+                                        value: xLabel,
+                                        position: "insideBottom",
+                                        offset: -12,
+                                        fill: "#AAB3AE",
+                                        fontSize: 11,
+                                    }
+                                    : undefined
+                            }
+                        />
+
+                        <YAxis
+                            stroke="#AAB3AE"
+                            tick={chartStyle}
+                            tickLine={false}
+                            axisLine={false}
+                            width={65}
+                            domain={["auto", "auto"]}
+                            allowDecimals={true}
+                            label={
+                                yLabel
+                                    ? {
+                                        value: yLabel,
+                                        angle: -90,
+                                        position: "insideLeft",
+                                        fill: "#AAB3AE",
+                                        fontSize: 11,
+                                    }
+                                    : undefined
+                            }
+                        />
+
+                        <Tooltip
+                            cursor={{
+                                stroke: "#C77B53",
+                                strokeDasharray: "4 4",
+                            }}
+                            contentStyle={{
+                                background: "#171D1B",
+                                border: "1px solid #46514C",
+                                borderRadius: 12,
+                                padding: "12px 14px",
+                                color: "#FFFFFF",
+                                boxShadow: "0 8px 30px rgba(0,0,0,0.35)",
+                            }}
+                            labelStyle={{
+                                color: "#FFFFFF",
+                                fontWeight: 700,
+                                marginBottom: 8,
+                            }}
+                            itemStyle={{
+                                fontSize: 12,
+                                paddingTop: 3,
+                                paddingBottom: 3,
+                            }}
+                            formatter={(value, name) => [
+                                typeof value === "number"
+                                    ? value.toLocaleString()
+                                    : value ?? "—",
+                                name,
+                            ]}
+                        />
+
+                        {showLegend && (
+                            <Legend
+                                verticalAlign="top"
+                                align="center"
+                                wrapperStyle={{
+                                    paddingBottom: 18,
+                                    fontSize: 12,
+                                }}
+                            />
+                        )}
+
+                        {numericKeys.map((key, index) => {
+                            const color = COLORS[index % COLORS.length];
+
+                            return (
+                                <Line
+                                    key={key}
+                                    type="linear"
+                                    dataKey={key}
+                                    name={key}
+                                    stroke={color}
+                                    strokeWidth={3}
+                                    connectNulls={false}
+                                    dot={{
+                                        r: 5,
+                                        fill: color,
+                                        stroke: background,
+                                        strokeWidth: 2,
+                                    }}
+                                    activeDot={{
+                                        r: 8,
+                                        fill: color,
+                                        stroke: "#FFFFFF",
+                                        strokeWidth: 2,
+                                    }}
+                                    isAnimationActive={false}
+                                >
+                                    {showLabels && (
+                                        <LabelList
+                                            dataKey={key}
+                                            position="top"
+                                            fill="#FFFFFF"
+                                            fontSize={11}
+                                            offset={10}
+                                            formatter={(value) =>
+                                                typeof value === "number"
+                                                    ? value.toLocaleString()
+                                                    : value
+                                            }
+                                        />
+                                    )}
+                                </Line>
+                            );
+                        })}
                     </LineChart>
                 </ResponsiveContainer>
             );
         }
+
 
         // Area chart.
         if (chartType === "area") {
