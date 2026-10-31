@@ -1,4 +1,5 @@
 ﻿import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
@@ -73,8 +74,10 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </ThemeProvider>
+                <Script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2771980465268081" crossOrigin="anonymous" strategy="beforeInteractive" />
         <Analytics />
       </body>
     </html>
   );
 }
+
