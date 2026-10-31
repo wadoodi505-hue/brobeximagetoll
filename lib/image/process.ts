@@ -15,7 +15,7 @@ export type ImageOperation =
   | "blur"
   | "convert"
   | "rotate"
-  | "unblur";
+  | "unblur" | "square-crop" | "triangle-crop" | "shape-crop" | "aspect-ratio-crop";
 
 export type ProcessSettings = {
   operation: ImageOperation;
@@ -264,8 +264,45 @@ export async function processImage(
     height = sh;
   }
 
+  if (settings.operation === "square-crop") {
+    const side = Math.min(srcW, srcH);
+    sx = Math.floor((srcW - side) / 2);
+    sy = Math.floor((srcH - side) / 2);
+    sw = side;
+    sh = side;
+    width = side;
+    height = side;
+  }
+
+  if (settings.operation === "aspect-ratio-crop") {
+    const ratio = 16 / 9;
+
+    if (srcW / srcH > ratio) {
+      sh = srcH;
+      sw = Math.max(1, Math.round(sh * ratio));
+      sx = Math.floor((srcW - sw) / 2);
+    } else {
+      sw = srcW;
+      sh = Math.max(1, Math.round(sw / ratio));
+      sy = Math.floor((srcH - sh) / 2);
+    }
+
+    width = sw;
+    height = sh;
+  }
+
   if (
-    settings.operation === "rotate" &&
+    settings.operation === "triangle-crop" ||
+    settings.operation === "shape-crop"
+  ) {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
+    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
+    width = sw;
+    height = sh;
+  }
+  if (settings.operation === "rotate" &&
     Math.abs(settings.rotation || 0) % 180 === 90
   ) {
     [width, height] = [height, width];
@@ -294,6 +331,27 @@ export async function processImage(
   if (settings.operation === "circle") {
     ctx.beginPath();
     ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+    ctx.clip();
+  }
+  if (settings.operation === "triangle-crop") {
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.clip();
+  }
+
+  if (settings.operation === "shape-crop") {
+    const inset = width * 0.25;
+    ctx.beginPath();
+    ctx.moveTo(inset, 0);
+    ctx.lineTo(width - inset, 0);
+    ctx.lineTo(width, height / 2);
+    ctx.lineTo(width - inset, height);
+    ctx.lineTo(inset, height);
+    ctx.lineTo(0, height / 2);
+    ctx.closePath();
     ctx.clip();
   }
 
@@ -346,7 +404,7 @@ export async function processImage(
   } else {
     const offset = border;
 
-    if (settings.operation === "rotate") {
+  if (settings.operation === "rotate") {
       ctx.drawImage(image, -srcW / 2, -srcH / 2, srcW, srcH);
     } else {
       ctx.drawImage(

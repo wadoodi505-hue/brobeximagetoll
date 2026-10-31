@@ -31,13 +31,6 @@ export function ImageToolDirectory() {
 
   return (
     <section className="image-directory" aria-label="Image tool directory">
-      <div className="directory-intro">
-        <span className="directory-eyebrow">THE BROBEX TOOLKIT</span>
-        <h2 className="directory-main-title">Explore Image Tools</h2>
-        <p className="directory-main-description">
-          Everything you need to edit, resize, convert and optimize your images.
-        </p>
-      </div>
 
       <div className="directory-search">
         <Search size={19} aria-hidden="true" />
@@ -46,7 +39,7 @@ export function ImageToolDirectory() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search for an image tool..."
+          placeholder="Search tools..."
           aria-label="Search image tools"
         />
 
@@ -141,3 +134,4 @@ export function ImageToolDirectory() {
     </section>
   );
 }
+

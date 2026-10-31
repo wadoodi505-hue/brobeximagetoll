@@ -1,0 +1,619 @@
+﻿
+export type ImageOperation =
+  | "png-to-svg"
+  | "resize"
+  | "compress"
+  | "crop"
+  | "flip"
+  | "grayscale"
+  | "pixelate"
+  | "text"
+  | "border"
+  | "combine"
+  | "circle"
+  | "metadata"
+  | "blur"
+  | "convert"
+  | "rotate"
+  | "unblur" | "square-crop" | "triangle-crop" | "shape-crop" | "aspect-ratio-crop";
+
+export type ProcessSettings = {
+  operation: ImageOperation;
+  width?: number;
+  height?: number;
+  quality?: number;
+  format?: string;
+  cropX?: number;
+  cropY?: number;
+  cropWidth?: number;
+  cropHeight?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  rotation?: number;
+  pixelSize?: number;
+  text?: string;
+  textSize?: number;
+  textColor?: string;
+  textX?: number;
+  textY?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  blurAmount?: number;
+  sharpness?: number;
+  detailStrength?: number;
+  noiseReduction?: number;
+};
+
+export function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(
+        new Error("This file could not be decoded as a supported image."),
+      );
+    };
+
+    image.src = url;
+  });
+}
+
+function canvasBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(
+            new Error(
+              `This browser cannot export ${type}. Try PNG or JPEG.`,
+            ),
+          );
+          return;
+        }
+
+        if (blob.type && blob.type !== type) {
+          reject(
+            new Error(
+              `This browser cannot export ${type}. It returned ${blob.type} instead. Choose a different output format.`,
+            ),
+          );
+          return;
+        }
+
+        resolve(blob);
+      },
+      type,
+      quality,
+    );
+  });
+}
+
+/**
+ * Browser-side unsharp masking.
+ * This improves perceived clarity but cannot recreate detail
+ * that was never captured in the original image.
+ */
+export function sharpenImage(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  sharpness: number,
+  detailStrength: number,
+  noiseReduction: number,
+): void {
+  if (width < 3 || height < 3) return;
+
+  const image = ctx.getImageData(0, 0, width, height);
+  const source = image.data;
+  const output = new Uint8ClampedArray(source);
+
+  const amount = Math.max(0, Math.min(2.5, sharpness));
+  const detail = Math.max(0, Math.min(1.5, detailStrength));
+  const denoise = Math.max(0, Math.min(0.8, noiseReduction));
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = (y * width + x) * 4;
+      const north = i - width * 4;
+      const south = i + width * 4;
+
+      for (let c = 0; c < 3; c++) {
+        const center = source[i + c];
+        const n = source[north + c];
+        const s = source[south + c];
+        const w = source[i - 4 + c];
+        const e = source[i + 4 + c];
+
+        const nw = source[north - 4 + c];
+        const ne = source[north + 4 + c];
+        const sw = source[south - 4 + c];
+        const se = source[south + 4 + c];
+
+        const average = (n + s + w + e + nw + ne + sw + se) / 8;
+        const smoothed = center * (1 - denoise) + average * denoise;
+
+        const lowPass =
+          (center * 4 + n * 2 + s * 2 + w * 2 + e * 2 +
+            nw + ne + sw + se) / 16;
+
+        const edge = smoothed - lowPass;
+
+        output[i + c] = Math.max(
+          0,
+          Math.min(255, smoothed + edge * (amount + detail)),
+        );
+      }
+
+      output[i + 3] = source[i + 3];
+    }
+  }
+
+  image.data.set(output);
+  ctx.putImageData(image, 0, 0);
+}
+
+export async function processImage(
+  file: File,
+  settings: ProcessSettings,
+): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
+  if (!file.size) throw new Error("The selected file is empty.");
+
+  // Export a PNG inside a standards-compatible SVG document.
+  if (settings.operation === "png-to-svg") {
+    if (file.type !== "image/png") {
+      throw new Error("Please upload a valid PNG image.");
+    }
+
+    const image = await loadImage(file);
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Could not read the PNG image."));
+          return;
+        }
+
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => reject(
+        new Error("Failed to read the PNG image."),
+      );
+
+      reader.readAsDataURL(file);
+    });
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${image.naturalWidth}"
+     height="${image.naturalHeight}"
+     viewBox="0 0 ${image.naturalWidth} ${image.naturalHeight}">
+  <image
+    width="${image.naturalWidth}"
+    height="${image.naturalHeight}"
+    href="${dataUrl}"
+    xlink:href="${dataUrl}"
+    preserveAspectRatio="none"
+  />
+</svg>`;
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+
+    return {
+      blob,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      mime: "image/svg+xml",
+    };
+  }
+
+  const image = await loadImage(file);
+  const maxDimension = 12000;
+  const srcW = image.naturalWidth;
+  const srcH = image.naturalHeight;
+
+  if (
+    settings.operation === "unblur" &&
+    srcW * srcH > 12_000_000
+  ) {
+    throw new Error(
+      "This image exceeds 12 megapixels. Resize it before sharpening to protect browser memory.",
+    );
+  }
+
+  let width = Math.max(
+    1,
+    Math.min(maxDimension, Math.round(settings.width || srcW)),
+  );
+  let height = Math.max(
+    1,
+    Math.min(maxDimension, Math.round(settings.height || srcH)),
+  );
+
+  let sx = 0;
+  let sy = 0;
+  let sw = srcW;
+  let sh = srcH;
+
+  if (settings.operation === "crop") {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(
+      1,
+      Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)),
+    );
+    sh = Math.max(
+      1,
+      Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)),
+    );
+    width = sw;
+    height = sh;
+  }
+
+  if (settings.operation === "square-crop") {
+    const side = Math.min(srcW, srcH);
+    sx = Math.floor((srcW - side) / 2);
+    sy = Math.floor((srcH - side) / 2);
+    sw = side;
+    sh = side;
+    width = side;
+    height = side;
+  }
+
+  if (settings.operation === "aspect-ratio-crop") {
+    const ratio = 16 / 9;
+
+    if (srcW / srcH > ratio) {
+      sh = srcH;
+      sw = Math.max(1, Math.round(sh * ratio));
+      sx = Math.floor((srcW - sw) / 2);
+    } else {
+      sw = srcW;
+      sh = Math.max(1, Math.round(sw / ratio));
+      sy = Math.floor((srcH - sh) / 2);
+    }
+
+    width = sw;
+    height = sh;
+  }
+
+  if (
+    settings.operation === "triangle-crop" ||
+    settings.operation === "shape-crop"
+  ) {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
+    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
+    width = sw;
+    height = sh;
+  }
+  if ( &&
+    Math.abs(settings.rotation || 0) % 180 === 90
+  ) {
+    [width, height] = [height, width];
+  }
+
+  if (settings.operation === "circle") {
+    width = Math.min(srcW, srcH);
+    height = width;
+    sx = Math.floor((srcW - width) / 2);
+    sy = Math.floor((srcH - height) / 2);
+    sw = width;
+    sh = height;
+  }
+
+  const border = settings.operation === "border"
+    ? Math.max(0, settings.borderWidth || 0)
+    : 0;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width + border * 2;
+  canvas.height = height + border * 2;
+
+  const ctx = canvas.getContext("2d", { alpha: true });
+  if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+
+  if (settings.operation === "circle") {
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+    ctx.clip();
+  }
+  if (settings.operation === "triangle-crop") {
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.clip();
+  }
+
+  if (settings.operation === "shape-crop") {
+    const inset = width * 0.25;
+    ctx.beginPath();
+    ctx.moveTo(inset, 0);
+    ctx.lineTo(width - inset, 0);
+    ctx.lineTo(width, height / 2);
+    ctx.lineTo(width - inset, height);
+    ctx.lineTo(inset, height);
+    ctx.lineTo(0, height / 2);
+    ctx.closePath();
+    ctx.clip();
+  }
+
+  if (settings.operation === "border") {
+    ctx.fillStyle = settings.borderColor || "#171717";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  if (settings.operation === "blur") {
+    ctx.filter = `blur(${Math.max(
+      0,
+      Math.min(30, settings.blurAmount || 4),
+    )}px)`;
+  }
+
+  if (settings.operation === "grayscale") {
+    ctx.filter = "grayscale(1)";
+  }
+
+  if (settings.operation === "flip") {
+    ctx.translate(
+      settings.flipX ? width : 0,
+      settings.flipY ? height : 0,
+    );
+    ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1);
+  }
+
+  if (settings.operation === "square-crop") {
+    const side = Math.min(srcW, srcH);
+    sx = Math.floor((srcW - side) / 2);
+    sy = Math.floor((srcH - side) / 2);
+    sw = side;
+    sh = side;
+    width = side;
+    height = side;
+  }
+
+  if (settings.operation === "aspect-ratio-crop") {
+    const ratio = 16 / 9;
+
+    if (srcW / srcH > ratio) {
+      sh = srcH;
+      sw = Math.max(1, Math.round(sh * ratio));
+      sx = Math.floor((srcW - sw) / 2);
+    } else {
+      sw = srcW;
+      sh = Math.max(1, Math.round(sw / ratio));
+      sy = Math.floor((srcH - sh) / 2);
+    }
+
+    width = sw;
+    height = sh;
+  }
+
+  if (
+    settings.operation === "triangle-crop" ||
+    settings.operation === "shape-crop"
+  ) {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
+    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
+    width = sw;
+    height = sh;
+  }
+  if () {
+    const angle = ((settings.rotation ?? 90) * Math.PI) / 180;
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(angle);
+  }
+
+  if (settings.operation === "pixelate") {
+    const small = document.createElement("canvas");
+    const size = Math.max(2, Math.min(80, settings.pixelSize || 12));
+
+    small.width = Math.max(1, Math.ceil(width / size));
+    small.height = Math.max(1, Math.ceil(height / size));
+
+    const smallCtx = small.getContext("2d");
+    if (!smallCtx) throw new Error("Canvas is unavailable.");
+
+    smallCtx.drawImage(
+      image, sx, sy, sw, sh, 0, 0, small.width, small.height,
+    );
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
+  } else {
+    const offset = border;
+
+    if (settings.operation === "square-crop") {
+    const side = Math.min(srcW, srcH);
+    sx = Math.floor((srcW - side) / 2);
+    sy = Math.floor((srcH - side) / 2);
+    sw = side;
+    sh = side;
+    width = side;
+    height = side;
+  }
+
+  if (settings.operation === "aspect-ratio-crop") {
+    const ratio = 16 / 9;
+
+    if (srcW / srcH > ratio) {
+      sh = srcH;
+      sw = Math.max(1, Math.round(sh * ratio));
+      sx = Math.floor((srcW - sw) / 2);
+    } else {
+      sw = srcW;
+      sh = Math.max(1, Math.round(sw / ratio));
+      sy = Math.floor((srcH - sh) / 2);
+    }
+
+    width = sw;
+    height = sh;
+  }
+
+  if (
+    settings.operation === "triangle-crop" ||
+    settings.operation === "shape-crop"
+  ) {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
+    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
+    width = sw;
+    height = sh;
+  }
+  if () {
+      ctx.drawImage(image, -srcW / 2, -srcH / 2, srcW, srcH);
+    } else {
+      ctx.drawImage(
+        image, sx, sy, sw, sh,
+        offset, offset, width, height,
+      );
+    }
+  }
+
+  if (settings.operation === "unblur") {
+    sharpenImage(
+      ctx,
+      canvas.width,
+      canvas.height,
+      settings.sharpness ?? 1.2,
+      settings.detailStrength ?? 0.25,
+      settings.noiseReduction ?? 0.1,
+    );
+  }
+
+  if (settings.operation === "text" && settings.text) {
+    ctx.filter = "none";
+    ctx.font = `600 ${Math.max(
+      8,
+      Math.min(240, settings.textSize || 36),
+    )}px Arial`;
+    ctx.fillStyle = settings.textColor || "#ffffff";
+    ctx.textAlign = "left";
+    ctx.shadowColor = "rgba(0,0,0,.55)";
+    ctx.shadowBlur = 3;
+    ctx.fillText(
+      settings.text,
+      Math.max(0, settings.textX ?? 24),
+      Math.max(20, settings.textY ?? height - 24),
+      width,
+    );
+  }
+
+  const type =
+    settings.operation === "compress" || settings.operation === "convert"
+      ? settings.format || "image/webp"
+      : "image/png";
+
+  const blob = await canvasBlob(
+    canvas,
+    type,
+    Math.max(0.1, Math.min(1, settings.quality ?? 0.82)),
+  );
+
+  return {
+    blob,
+    width: canvas.width,
+    height: canvas.height,
+    mime: blob.type || type,
+  };
+}
+
+export function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/** Compose multiple images into a single PNG without uploading them anywhere. */
+export async function processImages(
+  files: File[],
+  layout: "horizontal" | "vertical" = "horizontal",
+): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
+  if (files.length < 2) {
+    throw new Error("Choose at least two images to combine.");
+  }
+
+  const images = await Promise.all(files.map(loadImage));
+  const maxDimension = 12000;
+
+  const scale = Math.min(
+    1,
+    maxDimension /
+      Math.max(
+        ...images.map((i) =>
+          layout === "horizontal" ? i.naturalWidth : i.naturalHeight,
+        ),
+      ),
+  );
+
+  const dims = images.map((i) => ({
+    w: Math.max(1, Math.round(i.naturalWidth * scale)),
+    h: Math.max(1, Math.round(i.naturalHeight * scale)),
+  }));
+
+  const width =
+    layout === "horizontal"
+      ? dims.reduce((sum, d) => sum + d.w, 0)
+      : Math.max(...dims.map((d) => d.w));
+
+  const height =
+    layout === "vertical"
+      ? dims.reduce((sum, d) => sum + d.h, 0)
+      : Math.max(...dims.map((d) => d.h));
+
+  if (
+    width > maxDimension ||
+    height > maxDimension ||
+    width * height > 80_000_000
+  ) {
+    throw new Error(
+      "The combined image would be too large. Choose smaller images.",
+    );
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  let x = 0;
+  let y = 0;
+
+  images.forEach((image, index) => {
+    const d = dims[index];
+    ctx.drawImage(image, x, y, d.w, d.h);
+
+    if (layout === "horizontal") x += d.w;
+    else y += d.h;
+  });
+
+  const blob = await canvasBlob(canvas, "image/png", 1);
+
+  return { blob, width, height, mime: blob.type || "image/png" };
+}
+

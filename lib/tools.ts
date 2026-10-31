@@ -148,7 +148,49 @@ export const tools: ToolDefinition[] = [
     "operation": "crop"
   },
   {
-    "slug": "flip-image",
+    "slug": "square-crop",
+    "name": "Square Crop",
+    "description": "Create a centered square crop with transparent-free image output.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": ["image/*"],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "square-crop"
+  },
+  {
+    "slug": "triangle-crop",
+    "name": "Triangle Crop",
+    "description": "Crop an image into a triangle with transparent corners.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": ["image/*"],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "triangle-crop"
+  },
+  {
+    "slug": "shape-crop",
+    "name": "Shape Crop",
+    "description": "Create a hexagon-shaped image crop with transparent corners.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": ["image/*"],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "shape-crop"
+  },
+  {
+    "slug": "aspect-ratio-crop",
+    "name": "Aspect Ratio Crop",
+    "description": "Create a centered 16:9 crop for widescreen layouts.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": ["image/*"],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "aspect-ratio-crop"
+  },  {
     "name": "Flip Image",
     "description": "Flip horizontally or vertically and rotate raster images",
     "category": "image",
@@ -1092,6 +1134,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 

@@ -1,4 +1,4 @@
-export type Category = "image" | "pdf" | "write" | "video" | "file";
+﻿export type Category = "image" | "pdf" | "write" | "video" | "file";
 export type ToolStatus = "browser" | "integration";
 export type ToolDefinition = {
   slug: string;
@@ -9,7 +9,8 @@ export type ToolDefinition = {
   acceptedTypes: string[];
   method: string;
   status: ToolStatus;
-  operation?: "resize" | "compress" | "crop" | "flip" | "grayscale" | "pixelate" | "text" | "border" | "combine" | "circle" | "metadata" | "blur" | "convert" | "rotate" | "unblur" | "png-to-svg" ;
+  operation?: "resize" | "compress" | "crop" | "flip" | "grayscale" | "pixelate" | "text" | "border" | "combine" | "circle" | "metadata" | "blur" | "convert" | "rotate" | "unblur" | "png-to-svg" | "square-crop" | "triangle-crop" | "shape-crop" | "aspect-ratio-crop" ;
   outputMime?: string;
   outputExtension?: string;
 };
+

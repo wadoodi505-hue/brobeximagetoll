@@ -3315,3 +3315,47 @@ button:disabled {
 }
 
 /* END BROBEX CONSISTENT PREMIUM UPLOAD EXPERIENCE */
+
+/* BROBEX shared category directory layout */
+.tool-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.category-directory-tool {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 16px;
+  text-decoration: none;
+}
+
+.category-directory-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 5px;
+}
+
+.category-directory-description {
+  display: block;
+  color: var(--muted, #929aa2);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.category-directory-tool .status {
+  width: fit-content;
+}
+
+@media (max-width: 600px) {
+  .category-directory-tool {
+    gap: 10px;
+  }
+
+  .category-directory-description {
+    font-size: 0.78rem;
+  }
+}

@@ -709,10 +709,10 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               <>
 
                   <div className="panel-heading">
-                    {op === "crop" ? "Interactive crop editor" : "Original preview"}
+                    {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") ? "Interactive crop editor" : "Original preview"}
                   </div>
 
-                  {op === "crop" && preview ? (
+                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && preview ? (
                     <>
                       <div className="crop-editor-viewport">
                         <div
@@ -778,7 +778,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                           src={preview}
                           alt="Image crop preview"
                           style={
-                            op === "crop" && cropPreviewMode
+                            ["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && cropPreviewMode
                               ? {
                                 clipPath: `inset(
                   ${(cropY / Math.max(1, height)) * 100}%
@@ -793,7 +793,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                       </div>
                     )}
                   </div>
-                  {op === "crop" && (
+                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && (
                     <div className="settings-grid crop-controls">
                       <div className="crop-controls-heading">
                         <strong>Crop dimensions</strong>
@@ -1047,7 +1047,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
             )}
 
 
-            {op === "crop" && (
+            {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && (
               <div className="settings-grid crop-controls">
                 <div className="crop-controls-heading">
                   <strong>Crop settings</strong>
@@ -1347,4 +1347,5 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 function WandIcon() {
   return <span aria-hidden="true">âœ³</span>;
 }
+
 

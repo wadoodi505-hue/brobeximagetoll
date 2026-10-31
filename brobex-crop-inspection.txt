@@ -1,0 +1,3659 @@
+========== BROBEX CROP INSPECTION ==========
+
+========== .\lib\image\process.ts ==========
+
+export type ImageOperation =
+  | "png-to-svg"
+  | "resize"
+  | "compress"
+  | "crop"
+  | "flip"
+  | "grayscale"
+  | "pixelate"
+  | "text"
+  | "border"
+  | "combine"
+  | "circle"
+  | "metadata"
+  | "blur"
+  | "convert"
+  | "rotate"
+  | "unblur";
+
+export type ProcessSettings = {
+  operation: ImageOperation;
+  width?: number;
+  height?: number;
+  quality?: number;
+  format?: string;
+  cropX?: number;
+  cropY?: number;
+  cropWidth?: number;
+  cropHeight?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  rotation?: number;
+  pixelSize?: number;
+  text?: string;
+  textSize?: number;
+  textColor?: string;
+  textX?: number;
+  textY?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  blurAmount?: number;
+  sharpness?: number;
+  detailStrength?: number;
+  noiseReduction?: number;
+};
+
+export function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(
+        new Error("This file could not be decoded as a supported image."),
+      );
+    };
+
+    image.src = url;
+  });
+}
+
+function canvasBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(
+            new Error(
+              `This browser cannot export ${type}. Try PNG or JPEG.`,
+            ),
+          );
+          return;
+        }
+
+        if (blob.type && blob.type !== type) {
+          reject(
+            new Error(
+              `This browser cannot export ${type}. It returned ${blob.type} instead. Choose a different output format.`,
+            ),
+          );
+          return;
+        }
+
+        resolve(blob);
+      },
+      type,
+      quality,
+    );
+  });
+}
+
+/**
+ * Browser-side unsharp masking.
+ * This improves perceived clarity but cannot recreate detail
+ * that was never captured in the original image.
+ */
+export function sharpenImage(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  sharpness: number,
+  detailStrength: number,
+  noiseReduction: number,
+): void {
+  if (width < 3 || height < 3) return;
+
+  const image = ctx.getImageData(0, 0, width, height);
+  const source = image.data;
+  const output = new Uint8ClampedArray(source);
+
+  const amount = Math.max(0, Math.min(2.5, sharpness));
+  const detail = Math.max(0, Math.min(1.5, detailStrength));
+  const denoise = Math.max(0, Math.min(0.8, noiseReduction));
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = (y * width + x) * 4;
+      const north = i - width * 4;
+      const south = i + width * 4;
+
+      for (let c = 0; c < 3; c++) {
+        const center = source[i + c];
+        const n = source[north + c];
+        const s = source[south + c];
+        const w = source[i - 4 + c];
+        const e = source[i + 4 + c];
+
+        const nw = source[north - 4 + c];
+        const ne = source[north + 4 + c];
+        const sw = source[south - 4 + c];
+        const se = source[south + 4 + c];
+
+        const average = (n + s + w + e + nw + ne + sw + se) / 8;
+        const smoothed = center * (1 - denoise) + average * denoise;
+
+        const lowPass =
+          (center * 4 + n * 2 + s * 2 + w * 2 + e * 2 +
+            nw + ne + sw + se) / 16;
+
+        const edge = smoothed - lowPass;
+
+        output[i + c] = Math.max(
+          0,
+          Math.min(255, smoothed + edge * (amount + detail)),
+        );
+      }
+
+      output[i + 3] = source[i + 3];
+    }
+  }
+
+  image.data.set(output);
+  ctx.putImageData(image, 0, 0);
+}
+
+export async function processImage(
+  file: File,
+  settings: ProcessSettings,
+): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
+  if (!file.size) throw new Error("The selected file is empty.");
+
+  // Export a PNG inside a standards-compatible SVG document.
+  if (settings.operation === "png-to-svg") {
+    if (file.type !== "image/png") {
+      throw new Error("Please upload a valid PNG image.");
+    }
+
+    const image = await loadImage(file);
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Could not read the PNG image."));
+          return;
+        }
+
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => reject(
+        new Error("Failed to read the PNG image."),
+      );
+
+      reader.readAsDataURL(file);
+    });
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${image.naturalWidth}"
+     height="${image.naturalHeight}"
+     viewBox="0 0 ${image.naturalWidth} ${image.naturalHeight}">
+  <image
+    width="${image.naturalWidth}"
+    height="${image.naturalHeight}"
+    href="${dataUrl}"
+    xlink:href="${dataUrl}"
+    preserveAspectRatio="none"
+  />
+</svg>`;
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+
+    return {
+      blob,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      mime: "image/svg+xml",
+    };
+  }
+
+  const image = await loadImage(file);
+  const maxDimension = 12000;
+  const srcW = image.naturalWidth;
+  const srcH = image.naturalHeight;
+
+  if (
+    settings.operation === "unblur" &&
+    srcW * srcH > 12_000_000
+  ) {
+    throw new Error(
+      "This image exceeds 12 megapixels. Resize it before sharpening to protect browser memory.",
+    );
+  }
+
+  let width = Math.max(
+    1,
+    Math.min(maxDimension, Math.round(settings.width || srcW)),
+  );
+  let height = Math.max(
+    1,
+    Math.min(maxDimension, Math.round(settings.height || srcH)),
+  );
+
+  let sx = 0;
+  let sy = 0;
+  let sw = srcW;
+  let sh = srcH;
+
+  if (settings.operation === "crop") {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
+    sw = Math.max(
+      1,
+      Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)),
+    );
+    sh = Math.max(
+      1,
+      Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)),
+    );
+    width = sw;
+    height = sh;
+  }
+
+  if (
+    settings.operation === "rotate" &&
+    Math.abs(settings.rotation || 0) % 180 === 90
+  ) {
+    [width, height] = [height, width];
+  }
+
+  if (settings.operation === "circle") {
+    width = Math.min(srcW, srcH);
+    height = width;
+    sx = Math.floor((srcW - width) / 2);
+    sy = Math.floor((srcH - height) / 2);
+    sw = width;
+    sh = height;
+  }
+
+  const border = settings.operation === "border"
+    ? Math.max(0, settings.borderWidth || 0)
+    : 0;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width + border * 2;
+  canvas.height = height + border * 2;
+
+  const ctx = canvas.getContext("2d", { alpha: true });
+  if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+
+  if (settings.operation === "circle") {
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+    ctx.clip();
+  }
+
+  if (settings.operation === "border") {
+    ctx.fillStyle = settings.borderColor || "#171717";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  if (settings.operation === "blur") {
+    ctx.filter = `blur(${Math.max(
+      0,
+      Math.min(30, settings.blurAmount || 4),
+    )}px)`;
+  }
+
+  if (settings.operation === "grayscale") {
+    ctx.filter = "grayscale(1)";
+  }
+
+  if (settings.operation === "flip") {
+    ctx.translate(
+      settings.flipX ? width : 0,
+      settings.flipY ? height : 0,
+    );
+    ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1);
+  }
+
+  if (settings.operation === "rotate") {
+    const angle = ((settings.rotation ?? 90) * Math.PI) / 180;
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(angle);
+  }
+
+  if (settings.operation === "pixelate") {
+    const small = document.createElement("canvas");
+    const size = Math.max(2, Math.min(80, settings.pixelSize || 12));
+
+    small.width = Math.max(1, Math.ceil(width / size));
+    small.height = Math.max(1, Math.ceil(height / size));
+
+    const smallCtx = small.getContext("2d");
+    if (!smallCtx) throw new Error("Canvas is unavailable.");
+
+    smallCtx.drawImage(
+      image, sx, sy, sw, sh, 0, 0, small.width, small.height,
+    );
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
+  } else {
+    const offset = border;
+
+    if (settings.operation === "rotate") {
+      ctx.drawImage(image, -srcW / 2, -srcH / 2, srcW, srcH);
+    } else {
+      ctx.drawImage(
+        image, sx, sy, sw, sh,
+        offset, offset, width, height,
+      );
+    }
+  }
+
+  if (settings.operation === "unblur") {
+    sharpenImage(
+      ctx,
+      canvas.width,
+      canvas.height,
+      settings.sharpness ?? 1.2,
+      settings.detailStrength ?? 0.25,
+      settings.noiseReduction ?? 0.1,
+    );
+  }
+
+  if (settings.operation === "text" && settings.text) {
+    ctx.filter = "none";
+    ctx.font = `600 ${Math.max(
+      8,
+      Math.min(240, settings.textSize || 36),
+    )}px Arial`;
+    ctx.fillStyle = settings.textColor || "#ffffff";
+    ctx.textAlign = "left";
+    ctx.shadowColor = "rgba(0,0,0,.55)";
+    ctx.shadowBlur = 3;
+    ctx.fillText(
+      settings.text,
+      Math.max(0, settings.textX ?? 24),
+      Math.max(20, settings.textY ?? height - 24),
+      width,
+    );
+  }
+
+  const type =
+    settings.operation === "compress" || settings.operation === "convert"
+      ? settings.format || "image/webp"
+      : "image/png";
+
+  const blob = await canvasBlob(
+    canvas,
+    type,
+    Math.max(0.1, Math.min(1, settings.quality ?? 0.82)),
+  );
+
+  return {
+    blob,
+    width: canvas.width,
+    height: canvas.height,
+    mime: blob.type || type,
+  };
+}
+
+export function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/** Compose multiple images into a single PNG without uploading them anywhere. */
+export async function processImages(
+  files: File[],
+  layout: "horizontal" | "vertical" = "horizontal",
+): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
+  if (files.length < 2) {
+    throw new Error("Choose at least two images to combine.");
+  }
+
+  const images = await Promise.all(files.map(loadImage));
+  const maxDimension = 12000;
+
+  const scale = Math.min(
+    1,
+    maxDimension /
+      Math.max(
+        ...images.map((i) =>
+          layout === "horizontal" ? i.naturalWidth : i.naturalHeight,
+        ),
+      ),
+  );
+
+  const dims = images.map((i) => ({
+    w: Math.max(1, Math.round(i.naturalWidth * scale)),
+    h: Math.max(1, Math.round(i.naturalHeight * scale)),
+  }));
+
+  const width =
+    layout === "horizontal"
+      ? dims.reduce((sum, d) => sum + d.w, 0)
+      : Math.max(...dims.map((d) => d.w));
+
+  const height =
+    layout === "vertical"
+      ? dims.reduce((sum, d) => sum + d.h, 0)
+      : Math.max(...dims.map((d) => d.h));
+
+  if (
+    width > maxDimension ||
+    height > maxDimension ||
+    width * height > 80_000_000
+  ) {
+    throw new Error(
+      "The combined image would be too large. Choose smaller images.",
+    );
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  let x = 0;
+  let y = 0;
+
+  images.forEach((image, index) => {
+    const d = dims[index];
+    ctx.drawImage(image, x, y, d.w, d.h);
+
+    if (layout === "horizontal") x += d.w;
+    else y += d.h;
+  });
+
+  const blob = await canvasBlob(canvas, "image/png", 1);
+
+  return { blob, width, height, mime: blob.type || "image/png" };
+}
+
+========== .\components\image-workspace.tsx ==========
+
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  UploadCloud,
+  Download,
+  RotateCcw,
+  ShieldCheck,
+  Image as ImageIcon,
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  WandSparkles,
+  Maximize2,
+} from "lucide-react";
+import type { ToolDefinition } from "@/types/tools";
+import {
+  formatBytes,
+  processImage,
+  processImages,
+} from "@/lib/image/process";
+
+const MAX_BYTES = 20 * 1024 * 1024;
+const MAX_FILES = 20;
+const MAX_OUTPUT_PIXELS = 8_294_400;
+
+// Fit the image inside a UHD 4K frame without stretching or cropping.
+// Portrait images use the portrait equivalent of the same UHD frame.
+function getUhdDimensions(sourceWidth: number, sourceHeight: number) {
+  const portrait = sourceHeight > sourceWidth;
+  const maxWidth = portrait ? 2160 : 3840;
+  const maxHeight = portrait ? 3840 : 2160;
+
+  const scale = Math.min(
+    maxWidth / sourceWidth,
+    maxHeight / sourceHeight,
+    Math.sqrt(MAX_OUTPUT_PIXELS / (sourceWidth * sourceHeight)),
+  );
+
+  return {
+    width: Math.max(1, Math.round(sourceWidth * scale)),
+    height: Math.max(1, Math.round(sourceHeight * scale)),
+  };
+}
+
+type Metadata = {
+  width: number;
+  height: number;
+  type: string;
+  size: number;
+};
+
+type PreviewMode = "compare" | "original" | "enhanced";
+
+export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [preview, setPreview] = useState("");
+  const [result, setResult] = useState("");
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const [width, setWidth] = useState(800);
+  const [height, setHeight] = useState(600);
+  const [lock, setLock] = useState(true);
+  const [quality, setQuality] = useState(82);
+  const [format, setFormat] = useState(tool.outputMime || "image/webp");
+
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
+  const [cropW, setCropW] = useState(800);
+  const [cropH, setCropH] = useState(600);
+  const cropStageRef = useRef<HTMLDivElement>(null);
+
+  const cropDragRef = useRef<{
+    mode: string;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  } | null>(null);
+
+  function beginCropDrag(
+    event: React.PointerEvent,
+    mode: string,
+  ) {
+    if (busy || !cropStageRef.current) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    cropDragRef.current = {
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: cropX,
+      y: cropY,
+      w: cropW,
+      h: cropH,
+    };
+
+    cropStageRef.current.setPointerCapture(event.pointerId);
+  }
+
+  function updateCropDrag(event: React.PointerEvent) {
+    const drag = cropDragRef.current;
+    const stage = cropStageRef.current;
+
+    if (!drag || !stage || width < 1 || height < 1) return;
+
+    const rect = stage.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const dx = ((event.clientX - drag.startX) / rect.width) * width;
+    const dy = ((event.clientY - drag.startY) / rect.height) * height;
+    const mode = drag.mode;
+
+    let x = drag.x;
+    let y = drag.y;
+    let w = drag.w;
+    let h = drag.h;
+
+    if (mode === "move") {
+      x = Math.max(0, Math.min(width - w, drag.x + dx));
+      y = Math.max(0, Math.min(height - h, drag.y + dy));
+    } else {
+      if (mode.includes("w")) {
+        const right = drag.x + drag.w;
+        x = Math.max(0, Math.min(right - 1, drag.x + dx));
+        w = right - x;
+      }
+
+      if (mode.includes("e")) {
+        w = Math.max(1, Math.min(width - drag.x, drag.w + dx));
+      }
+
+      if (mode.includes("n")) {
+        const bottom = drag.y + drag.h;
+        y = Math.max(0, Math.min(bottom - 1, drag.y + dy));
+        h = bottom - y;
+      }
+
+      if (mode.includes("s")) {
+        h = Math.max(1, Math.min(height - drag.y, drag.h + dy));
+      }
+    }
+
+    setCropX(Math.round(x));
+    setCropY(Math.round(y));
+    setCropW(Math.round(w));
+    setCropH(Math.round(h));
+  }
+
+  function endCropDrag() {
+    cropDragRef.current = null;
+  }
+
+  const [flipX, setFlipX] = useState(true);
+  const [flipY, setFlipY] = useState(false);
+  const [text, setText] = useState("BROBEX");
+  const [textSize, setTextSize] = useState(36);
+  const [textColor, setTextColor] = useState("#ffffff");
+  const [borderWidth, setBorderWidth] = useState(12);
+  const [borderColor, setBorderColor] = useState("#171717");
+  const [pixelSize, setPixelSize] = useState(12);
+  const [rotation, setRotation] = useState(90);
+  const [blurAmount, setBlurAmount] = useState(4);
+
+  // Automatic enhancement defaults: restrained sharpening and noise reduction.
+  const [sharpness, setSharpness] = useState(1.25);
+  const [detailStrength, setDetailStrength] = useState(0.3);
+  const [noiseReduction, setNoiseReduction] = useState(0.12);
+
+  // Professional before/after comparison.
+  const [comparison, setComparison] = useState(50);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("compare");
+  const cropPreviewMode = true;
+
+  const [metadata, setMetadata] = useState<Metadata | null>(null);
+
+  const operationId = useRef(0);
+  const previewRef = useRef("");
+  const resultRef = useRef("");
+
+  const op = tool.operation;
+  const canProcess = tool.status === "browser" && !!op;
+
+  // Keep refs synchronized so cleanup always revokes the current URLs.
+  useEffect(() => {
+    previewRef.current = preview;
+  }, [preview]);
+
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
+
+  useEffect(() => {
+    return () => {
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+      if (resultRef.current) URL.revokeObjectURL(resultRef.current);
+    };
+  }, []);
+
+  function clearOutput() {
+    operationId.current += 1;
+    setResult("");
+    setResultBlob(null);
+    setError("");
+    setMessage("");
+    setMetadata(null);
+    setPreviewMode("compare");
+  }
+
+  function validateImage(next: File): string | null {
+    if (!next.size) return "The selected file is empty.";
+    if (next.size > MAX_BYTES) {
+      return "Maximum file size is 20 MB per image.";
+    }
+    if (!next.type.startsWith("image/")) {
+      return "Choose a supported image file.";
+    }
+    return null;
+  }
+
+  function inspectImage(next: File) {
+    const url = URL.createObjectURL(next);
+    const image = new Image();
+
+    image.onload = () => {
+      setWidth(image.naturalWidth);
+      setHeight(image.naturalHeight);
+      setCropW(image.naturalWidth);
+      setCropH(image.naturalHeight);
+      URL.revokeObjectURL(url);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      setError(
+        "The browser could not decode this image. Try PNG, JPEG or WebP.",
+      );
+    };
+
+    image.src = url;
+  }
+
+  function selectFile(next: File | null) {
+    if (busy) return;
+
+    clearOutput();
+
+    if (!next) {
+      setFile(null);
+      setFiles([]);
+      setPreview("");
+      return;
+    }
+
+    const validationError = validateImage(next);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setError("");
+    setFile(next);
+    setFiles([next]);
+    setPreview(URL.createObjectURL(next));
+    inspectImage(next);
+  }
+
+  function selectMultipleFiles(chosen: File[]) {
+    if (busy) return;
+
+    clearOutput();
+
+    if (chosen.length > MAX_FILES) {
+      setError(`Choose no more than ${MAX_FILES} images at once.`);
+      return;
+    }
+
+    if (chosen.length === 0) return;
+
+    const invalid = chosen.find((item) => validateImage(item));
+
+    if (invalid) {
+      setError(
+        `${invalid.name}: every image must be a supported image no larger than 20 MB.`,
+      );
+      return;
+    }
+
+    setError("");
+    setFiles(chosen);
+    setFile(chosen[0]);
+    setPreview(URL.createObjectURL(chosen[0]));
+    inspectImage(chosen[0]);
+  }
+
+  function reset() {
+    if (busy) return;
+
+    clearOutput();
+    setFiles([]);
+    setFile(null);
+    setPreview("");
+    setError("");
+    setMessage("");
+    setComparison(50);
+  }
+
+  async function run() {
+    if (!file || busy) return;
+
+    const currentOperation = ++operationId.current;
+
+    setBusy(true);
+    setError("");
+    setMessage("");
+    setMetadata(null);
+
+    try {
+      if (op === "combine") {
+        if (files.length < 2) {
+          throw new Error("Choose at least two images to combine.");
+        }
+
+        const output = await processImages(
+          files,
+          tool.slug === "collage-maker" ? "vertical" : "horizontal",
+        );
+
+        if (currentOperation !== operationId.current) return;
+
+        const nextUrl = URL.createObjectURL(output.blob);
+        setResult(nextUrl);
+        setResultBlob(output.blob);
+        setMessage(
+          `Combined ${files.length} images into ${output.width} × ${output.height} pixels.`,
+        );
+        return;
+      }
+
+      if (op === "metadata") {
+        const image = new Image();
+        image.src = preview;
+        await image.decode();
+
+        if (currentOperation !== operationId.current) return;
+
+        setMetadata({
+          width: image.naturalWidth,
+          height: image.naturalHeight,
+          type: file.type || "Unknown",
+          size: file.size,
+        });
+
+        setMessage("Image properties read successfully.");
+        return;
+      }
+
+      if (!canProcess || !op) {
+        throw new Error(
+          "This tool does not have a browser operation configured.",
+        );
+      }
+
+      let outputWidth = width;
+      let outputHeight = height;
+
+      // One-click UHD enhancement: upscale and sharpen in the same operation.
+      if (op === "unblur") {
+        const dimensions = getUhdDimensions(width, height);
+        outputWidth = dimensions.width;
+        outputHeight = dimensions.height;
+      }
+
+      const settings: Parameters<typeof processImage>[1] = {
+        operation: op,
+        width: outputWidth,
+        height: outputHeight,
+        quality: quality / 100,
+        format,
+        cropX,
+        cropY,
+        cropWidth: cropW,
+        cropHeight: cropH,
+        flipX,
+        flipY,
+        text,
+        textSize,
+        textColor,
+        borderWidth,
+        borderColor,
+        pixelSize,
+        rotation,
+        blurAmount,
+        sharpness,
+        detailStrength,
+        noiseReduction,
+      };
+
+      const output = await processImage(file, settings);
+
+      if (currentOperation !== operationId.current) return;
+
+      const nextUrl = URL.createObjectURL(output.blob);
+      setResult(nextUrl);
+      setResultBlob(output.blob);
+      setPreviewMode("compare");
+
+      if (op === "unblur") {
+        setMessage(
+          `Enhancement complete: ${output.width} × ${output.height} pixels. PNG output · ${formatBytes(output.blob.size)}. Your image was processed locally.`,
+        );
+      } else {
+        setMessage(
+          `Processed ${output.width} × ${output.height} pixels. Output: ${formatBytes(output.blob.size)}.`,
+        );
+      }
+    } catch (e) {
+      if (currentOperation !== operationId.current) return;
+
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Processing failed. Try another image.",
+      );
+    } finally {
+      if (currentOperation === operationId.current) {
+        setBusy(false);
+      }
+    }
+  }
+
+  const outputName = useMemo(() => {
+    const mime = op === "unblur" ? "image/png" : resultBlob?.type || format;
+
+    const extension =
+      mime === "image/svg+xml"
+        ? "svg"
+        : mime === "image/jpeg"
+          ? "jpg"
+          : mime === "image/png"
+            ? "png"
+            : mime === "image/webp"
+              ? "webp"
+              : mime.split("/")[1] || "png";
+
+    const baseName =
+      file?.name.replace(/\.[^.]+$/, "") || "brobex-image";
+
+    return `${baseName}${op === "unblur" ? "-enhanced-4k" : "-processed"}.${extension}`;
+  }, [file, resultBlob, format, op]);
+
+  const uhdDimensions = useMemo(
+    () => (file ? getUhdDimensions(width, height) : null),
+    [file, width, height],
+  );
+
+  return (
+    <div className="workspace">
+      <div className="workspace-top">
+        <div>
+          <span className="eyebrow">
+            {op === "unblur" ? "BROBEX CLARITY STUDIO" : "BROWSER WORKSPACE"}
+          </span>
+
+          <h2>
+            {op === "unblur"
+              ? "Unblur & enhance to 4K"
+              : "Upload and process"}
+          </h2>
+
+          <p>
+            {op === "unblur"
+              ? "One-click sharpening, controlled noise reduction and UHD-sized export in your browser."
+              : "Your image stays in this browser for supported operations."}
+          </p>
+        </div>
+
+        <span className="privacy-chip">
+          <ShieldCheck size={15} />
+          Local processing
+        </span>
+      </div>
+
+      <label
+        className={`dropzone ${file ? "has-file" : ""}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          if (busy) return;
+
+          const chosen = Array.from(event.dataTransfer.files);
+
+          if (op === "combine") {
+            selectMultipleFiles(chosen);
+          } else {
+            selectFile(chosen[0] || null);
+          }
+        }}
+      >
+        <input
+          type="file"
+          disabled={busy}
+          multiple={op === "combine"}
+          accept={tool.acceptedTypes.join(",")}
+          onChange={(event) => {
+            const chosen = Array.from(event.target.files || []);
+
+            if (op === "combine") {
+              selectMultipleFiles(chosen);
+            } else {
+              selectFile(chosen[0] || null);
+            }
+
+            event.currentTarget.value = "";
+          }}
+        />
+
+        {file ? (
+          <>
+            <ImageIcon size={28} />
+            <strong>
+              {op === "combine"
+                ? `${files.length} images selected`
+                : file.name}
+            </strong>
+            <span>
+              {op === "combine"
+                ? files.map((item) => item.name).join(" · ")
+                : `${formatBytes(file.size)} · ${file.type || "Unknown MIME type"}`}
+            </span>
+            <small>Click to choose another image</small>
+          </>
+        ) : (
+          <>
+            <UploadCloud size={30} />
+            <strong>Drop an image here or browse files</strong>
+            <span>Supported image formats · 20 MB maximum per image</span>
+            <small>Your image is not uploaded to a server.</small>
+          </>
+        )}
+      </label>
+
+      {file && (
+        <div className="file-facts">
+          <span>
+            Original: <b>{file.name}</b>
+          </span>
+          <span>
+            Size: <b>{formatBytes(file.size)}</b>
+          </span>
+          <span>
+            Type: <b>{file.type || "Unknown"}</b>
+          </span>
+        </div>
+      )}
+
+      {file && (
+        <div className="workspace-columns">
+          <div
+            className={`preview-panel ${op === "unblur" ? "unblur-preview-panel" : ""}`}
+          >
+            {op === "unblur" ? (
+              <>
+                <div className="unblur-preview-header">
+                  <div>
+                    <span className="eyebrow">IMAGE RESTORATION STUDIO</span>
+                    <h3>Clarity preview</h3>
+                    <p>
+                      Review the original and enhanced image before downloading.
+                    </p>
+                  </div>
+
+                  <span className="unblur-status">
+                    <span className="unblur-status-dot" />
+                    {busy ? "Enhancing" : result ? "Enhanced" : "Ready"}
+                  </span>
+                </div>
+
+                <div
+                  className="unblur-mode-switch"
+                  role="group"
+                  aria-label="Image preview mode"
+                >
+                  {(
+                    [
+                      ["compare", "Compare"],
+                      ["original", "Original"],
+                      ["enhanced", "Enhanced"],
+                    ] as [PreviewMode, string][]
+                  ).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className={previewMode === mode ? "active" : ""}
+                      aria-pressed={previewMode === mode}
+                      disabled={mode === "enhanced" && !result}
+                      onClick={() => setPreviewMode(mode)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="unblur-comparison">
+                  {previewMode === "original" || !result ? (
+                    <img src={preview} alt="Original image preview" />
+                  ) : previewMode === "enhanced" ? (
+                    <img src={result} alt="Enhanced image preview" />
+                  ) : (
+                    <>
+                      <img src={preview} alt="Original image comparison" />
+
+                      <div
+                        className="unblur-comparison-result"
+                        style={{
+                          clipPath: `inset(0 0 0 ${comparison}%)`,
+                        }}
+                      >
+                        <img src={result} alt="Enhanced image comparison" />
+                      </div>
+
+                      <div
+                        className="unblur-comparison-divider"
+                        style={{ left: `${comparison}%` }}
+                        aria-hidden="true"
+                      >
+                        <span>↔</span>
+                      </div>
+                    </>
+                  )}
+
+                  {previewMode === "compare" && result && (
+                    <>
+                      <span className="unblur-image-label original-label">
+                        ORIGINAL
+                      </span>
+                      <span className="unblur-image-label enhanced-label">
+                        ENHANCED
+                      </span>
+                    </>
+                  )}
+
+                  {busy && (
+                    <div className="unblur-processing-overlay" role="status">
+                      <span className="unblur-spinner" />
+                      <strong>Enhancing image…</strong>
+                      <span>Keep this tab open until processing finishes.</span>
+                    </div>
+                  )}
+                </div>
+
+                {previewMode === "compare" && result && (
+                  <label className="unblur-comparison-control">
+                    <span>Comparison position</span>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      value={comparison}
+                      onChange={(event) =>
+                        setComparison(Number(event.target.value))
+                      }
+                      aria-label="Move comparison divider"
+                    />
+                  </label>
+                )}
+
+                <div className="unblur-preview-footer">
+                  <span>{formatBytes(file.size)} original</span>
+                  <span>
+                    {resultBlob
+                      ? `${formatBytes(resultBlob.size)} enhanced`
+                      : "Enhance to compare results"}
+                  </span>
+                </div>
+
+                {resultBlob && uhdDimensions && (
+                  <div className="unblur-output-specs">
+                    <div>
+                      <Maximize2 size={16} />
+                      <span>
+                        <strong>
+                          {uhdDimensions.width} × {uhdDimensions.height}
+                        </strong>
+                        <small>UHD-frame output dimensions</small>
+                      </span>
+                    </div>
+                    <div>
+                      <ShieldCheck size={16} />
+                      <span>
+                        <strong>PNG export</strong>
+                        <small>Lossless output encoding</small>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+
+                  <div className="panel-heading">
+                    {op === "crop" ? "Interactive crop editor" : "Original preview"}
+                  </div>
+
+                  {op === "crop" && preview ? (
+                    <>
+                      <div className="crop-editor-viewport">
+                        <div
+                          ref={cropStageRef}
+                          className="crop-editor-stage"
+                          onPointerMove={updateCropDrag}
+                          onPointerUp={endCropDrag}
+                          onPointerCancel={endCropDrag}
+                          onLostPointerCapture={endCropDrag}
+                        >
+                          <img
+                            src={preview}
+                            alt="Drag the crop frame to select the image area"
+                            draggable={false}
+                          />
+
+                          <div
+                            className="crop-selection"
+                            style={{
+                              left: `${(cropX / Math.max(1, width)) * 100}%`,
+                              top: `${(cropY / Math.max(1, height)) * 100}%`,
+                              width: `${(cropW / Math.max(1, width)) * 100}%`,
+                              height: `${(cropH / Math.max(1, height)) * 100}%`,
+                            }}
+                            onPointerDown={(event) => beginCropDrag(event, "move")}
+                          >
+                            {["nw", "n", "ne", "e", "se", "s", "sw", "w"].map(
+                              (handle) => (
+                                <span
+                                  key={handle}
+                                  className={`crop-handle crop-handle-${handle}`}
+                                  onPointerDown={(event) => beginCropDrag(event, handle)}
+                                />
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="crop-dimensions">
+                        <span>Selected area</span>
+                        <strong>{cropW} × {cropH} px</strong>
+                        <span>
+                          Position: {cropX}, {cropY}
+                        </span>
+                      </div>
+
+                      <p className="hint">
+                        Drag inside the frame to move it. Drag its edges or corners to resize.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="preview-canvas">
+                      {preview && (
+                        <img src={preview} alt="Original selected image" />
+                      )}
+                    </div>
+                  )}
+                  <div className="preview-canvas">
+                    {preview && (
+                      <div className="crop-preview-stage">
+                        <img
+                          src={preview}
+                          alt="Image crop preview"
+                          style={
+                            op === "crop" && cropPreviewMode
+                              ? {
+                                clipPath: `inset(
+                  ${(cropY / Math.max(1, height)) * 100}%
+                  ${100 - ((cropX + cropW) / Math.max(1, width)) * 100}%
+                  ${100 - ((cropY + cropH) / Math.max(1, height)) * 100}%
+                  ${(cropX / Math.max(1, width)) * 100}%
+                )`,
+                              }
+                              : undefined
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {op === "crop" && (
+                    <div className="settings-grid crop-controls">
+                      <div className="crop-controls-heading">
+                        <strong>Crop dimensions</strong>
+                        <span>Fine-tune your selection in pixels.</span>
+                      </div>
+
+                      {(
+                        [
+                          ["X position", cropX, setCropX, width],
+                          ["Y position", cropY, setCropY, height],
+                          ["Width (px)", cropW, setCropW, width - cropX],
+                          ["Height (px)", cropH, setCropH, height - cropY],
+                        ] as [
+                          string,
+                          number,
+                          (value: number) => void,
+                          number,
+                        ][]
+                      ).map(([label, value, setter, max]) => (
+                        <label key={label}>
+                          {label}
+                          <input
+                            type="number"
+                            min={label.includes("position") ? 0 : 1}
+                            max={Math.max(1, max)}
+                            step="1"
+                            value={value}
+                            disabled={busy}
+                            onChange={(event) => {
+                              const next = Number(event.target.value);
+                              if (!Number.isFinite(next)) return;
+
+                              const limit = Math.max(0, max);
+
+                              setter(
+                                Math.max(
+                                  label.includes("position") ? 0 : 1,
+                                  Math.min(limit, Math.floor(next)),
+                                ),
+                              );
+                            }}
+                          />
+                        </label>
+                      ))}
+
+                      <div className="crop-actions">
+                        <button
+                          type="button"
+                          className="button button-light"
+                          disabled={busy}
+                          onClick={() => {
+                            setCropX(0);
+                            setCropY(0);
+                            setCropW(width);
+                            setCropH(height);
+                          }}
+                        >
+                          <RotateCcw size={14} />
+                          Reset selection
+                        </button>
+
+                        <span>
+                          {cropW} × {cropH} px
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+              </>
+            )}
+          </div>
+
+          <div className="settings-panel">
+            <h3>{op === "unblur" ? "Enhancement settings" : "Settings"}</h3>
+
+            {op === "unblur" && (
+              <div className="unblur-settings">
+                <div className="unblur-heading">
+                  <Sparkles size={18} />
+                  <div>
+                    <strong>Automatic clarity enhancement</strong>
+                    <p className="hint">
+                      Recommended values are selected for a balanced first pass.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="unblur-quick-preset">
+                  <span>Processing preset</span>
+                  <strong>Balanced · UHD frame</strong>
+                  <small>
+                    Sharpening and noise reduction run together in one action.
+                  </small>
+                </div>
+
+                <label>
+                  Sharpness: {sharpness.toFixed(2)}
+                  <input
+                    type="range"
+                    min="0"
+                    max="2.5"
+                    step="0.05"
+                    value={sharpness}
+                    disabled={busy}
+                    onChange={(event) =>
+                      setSharpness(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <label>
+                  Detail enhancement: {detailStrength.toFixed(2)}
+                  <input
+                    type="range"
+                    min="0"
+                    max="1.5"
+                    step="0.05"
+                    value={detailStrength}
+                    disabled={busy}
+                    onChange={(event) =>
+                      setDetailStrength(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <label>
+                  Noise reduction: {noiseReduction.toFixed(2)}
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.8"
+                    step="0.02"
+                    value={noiseReduction}
+                    disabled={busy}
+                    onChange={(event) =>
+                      setNoiseReduction(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <p className="hint">
+                  More sharpening can create halos around edges. Strong noise
+                  reduction can remove fine texture. Adjust the controls and
+                  run enhancement again to apply changes.
+                </p>
+
+                {uhdDimensions && (
+                  <div className="unblur-target">
+                    <span>Target output</span>
+                    <strong>
+                      {uhdDimensions.width} × {uhdDimensions.height} px
+                    </strong>
+                    <small>
+                      Aspect ratio preserved · Maximum 3840 × 2160 landscape
+                      frame or 2160 × 3840 portrait frame
+                    </small>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {op === "resize" && (
+              <>
+                <label>
+                  Width (px)
+                  <input
+                    type="number"
+                    min="1"
+                    max="12000"
+                    value={width}
+                    onChange={(event) => {
+                      const nextWidth = Number(event.target.value);
+
+                      if (!Number.isFinite(nextWidth)) return;
+
+                      if (lock && width > 0) {
+                        setHeight(
+                          Math.max(
+                            1,
+                            Math.round(nextWidth * (height / width)),
+                          ),
+                        );
+                      }
+
+                      setWidth(nextWidth);
+                    }}
+                  />
+                </label>
+
+                <label>
+                  Height (px)
+                  <input
+                    type="number"
+                    min="1"
+                    max="12000"
+                    value={height}
+                    onChange={(event) => setHeight(Number(event.target.value))}
+                  />
+                </label>
+
+                <label className="check-setting">
+                  <input
+                    type="checkbox"
+                    checked={lock}
+                    onChange={(event) => setLock(event.target.checked)}
+                  />
+                  Keep proportions
+                </label>
+              </>
+            )}
+
+            {op === "compress" && (
+              <>
+                <label>
+                  Output format
+                  <select
+                    value={format}
+                    onChange={(event) => setFormat(event.target.value)}
+                  >
+                    <option value="image/webp">WebP</option>
+                    <option value="image/jpeg">JPEG</option>
+                    <option value="image/png">PNG</option>
+                  </select>
+                </label>
+
+                <label>
+                  Quality: {quality}%
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={quality}
+                    onChange={(event) => setQuality(Number(event.target.value))}
+                  />
+                </label>
+              </>
+            )}
+
+            {op === "convert" && (
+              <label>
+                Output format
+                <select
+                  value={format}
+                  onChange={(event) => setFormat(event.target.value)}
+                >
+                  <option value="image/png">PNG</option>
+                  <option value="image/jpeg">JPEG</option>
+                  <option value="image/webp">WebP</option>
+                </select>
+              </label>
+            )}
+
+
+            {op === "crop" && (
+              <div className="settings-grid crop-controls">
+                <div className="crop-controls-heading">
+                  <strong>Crop settings</strong>
+                  <span>Set the exact area you want to keep.</span>
+                </div>
+
+                {(
+                  [
+                    ["X position", cropX, setCropX],
+                    ["Y position", cropY, setCropY],
+                    ["Width (px)", cropW, setCropW],
+                    ["Height (px)", cropH, setCropH],
+                  ] as [string, number, (value: number) => void][]
+                ).map(([label, value, setter]) => (
+                  <label key={label}>
+                    {label}
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={value}
+                      onChange={(event) =>
+                        setter(Math.max(0, Math.floor(Number(event.target.value) || 0)))
+                      }
+                    />
+        </label>
+                ))}
+
+                <div className="crop-actions">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCropX(0);
+                      setCropY(0);
+                      if (preview) {
+                        const image = new Image();
+                        image.onload = () => {
+                          setCropW(image.naturalWidth);
+                          setCropH(image.naturalHeight);
+                        };
+                        image.src = preview;
+                      }
+                    }}
+                  >
+                    Reset crop
+                  </button>
+                  <span>
+                    Output: {cropW} × {cropH} px
+                  </span>
+                </div>
+              </div>
+            )}
+
+
+            {op === "flip" && (
+              <>
+                <label className="check-setting">
+                  <input
+                    type="checkbox"
+                    checked={flipX}
+                    onChange={(event) => setFlipX(event.target.checked)}
+                  />
+                  Flip horizontally
+                </label>
+
+                <label className="check-setting">
+                  <input
+                    type="checkbox"
+                    checked={flipY}
+                    onChange={(event) => setFlipY(event.target.checked)}
+                  />
+                  Flip vertically
+                </label>
+              </>
+            )}
+
+            {op === "rotate" && (
+              <label>
+                Rotation
+                <select
+                  value={rotation}
+                  onChange={(event) =>
+                    setRotation(Number(event.target.value))
+                  }
+                >
+                  <option value={90}>90° clockwise</option>
+                  <option value={180}>180°</option>
+                  <option value={270}>270° clockwise</option>
+                </select>
+              </label>
+            )}
+
+            {op === "pixelate" && (
+              <label>
+                Pixel block size: {pixelSize}px
+                <input
+                  type="range"
+                  min="2"
+                  max="80"
+                  value={pixelSize}
+                  onChange={(event) =>
+                    setPixelSize(Number(event.target.value))
+                  }
+                />
+              </label>
+            )}
+
+            {op === "text" && (
+              <>
+                <label>
+                  Overlay text
+                  <input
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    maxLength={120}
+                  />
+                </label>
+
+                <label>
+                  Text size
+                  <input
+                    type="number"
+                    min="8"
+                    max="240"
+                    value={textSize}
+                    onChange={(event) =>
+                      setTextSize(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <label>
+                  Text color
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(event) => setTextColor(event.target.value)}
+                  />
+                </label>
+              </>
+            )}
+
+            {op === "border" && (
+              <>
+                <label>
+                  Border width
+                  <input
+                    type="number"
+                    min="1"
+                    max="200"
+                    value={borderWidth}
+                    onChange={(event) =>
+                      setBorderWidth(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <label>
+                  Border color
+                  <input
+                    type="color"
+                    value={borderColor}
+                    onChange={(event) => setBorderColor(event.target.value)}
+                  />
+                </label>
+              </>
+            )}
+
+            {op === "blur" && (
+              <label>
+                Blur amount: {blurAmount}px
+                <input
+                  type="range"
+                  min="1"
+                  max="30"
+                  value={blurAmount}
+                  onChange={(event) =>
+                    setBlurAmount(Number(event.target.value))
+                  }
+                />
+              </label>
+            )}
+
+            {op === "metadata" && (
+              <p className="hint">
+                Reads image dimensions, MIME type and file size. Full EXIF
+                metadata is not available through every browser.
+              </p>
+            )}
+
+            {!op && (
+              <p className="hint">
+                This tool does not have a browser operation configured.
+              </p>
+            )}
+
+            <div className="workspace-actions">
+              <button
+                type="button"
+                className="button button-dark"
+                onClick={run}
+                disabled={
+                  busy ||
+                  !file ||
+                  (op === "combine" && files.length < 2) ||
+                  !canProcess
+                }
+              >
+                {busy ? (
+                  "Processing…"
+                ) : op === "metadata" ? (
+                  "Read metadata"
+                ) : op === "combine" ? (
+                  "Combine images"
+                ) : op === "unblur" ? (
+                  <>
+                    <WandSparkles size={16} />
+                    Enhance to 4K
+                  </>
+                ) : (
+                  "Process image"
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="button button-light"
+                onClick={reset}
+                disabled={busy}
+              >
+                <RotateCcw size={15} />
+                Reset
+              </button>
+            </div>
+
+            {resultBlob && result && (
+              <a
+                className="button button-dark download-button"
+                href={result}
+                download={outputName}
+              >
+                <Download size={16} />
+                {op === "png-to-svg" ? "Download SVG file" : "Download enhanced image"}
+              </a>
+            )}
+
+            {message && (
+              <p className="notice success" role="status">
+                <CheckCircle2 size={16} />
+                {message}
+              </p>
+            )}
+
+            {error && (
+              <p className="notice error" role="alert">
+                <AlertCircle size={16} />
+                {error}
+              </p>
+            )}
+
+            {metadata && (
+              <div className="metadata-card">
+                <h4>Image properties</h4>
+                <p>
+                  Dimensions: {metadata.width} × {metadata.height}px
+                </p>
+                <p>MIME type: {metadata.type}</p>
+                <p>File size: {formatBytes(metadata.size)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tool.status === "integration" && (
+        <div className="integration-notice">
+          <span className="integration-icon">
+            <WandIcon />
+          </span>
+
+          <div>
+            <h3>Integration Required</h3>
+            <p>
+              This tool needs a provider or specialist codec that is not
+              configured. No fake processing result will be generated.
+            </p>
+            <p className="hint">
+              Required path: <code>{tool.method}</code>
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WandIcon() {
+  return <span aria-hidden="true">✳</span>;
+}
+
+
+========== .\lib\tools.ts ==========
+import type { ToolDefinition, Category } from "@/types/tools";
+
+export const tools: ToolDefinition[] = [
+  {
+    "slug": "remove-background-from-image",
+    "name": "Remove Background from Image",
+    "description": "Remove an image background with a configured segmentation provider.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "AI provider / OCR integration",
+    "status": "browser"
+  },
+  {
+    slug: "upscale-image",
+    name: "Upscale Image",
+    description:
+      "Increase image resolution by 2—, 3—, or 4— with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
+    category: "image",
+    icon: "WandSparkles",
+    acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
+    method: "Local browser canvas resampling",
+    status: "browser"
+  },
+  {
+    slug: "colorize-photo",
+    name: "Adjust Photo",
+    description: "Adjust brightness, exposure, contrast, saturation, temperature, sharpness, and more.",
+    category: "image",
+    icon: "SlidersHorizontal",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp"],
+    method: "Local browser Canvas processing",
+    status: "browser"
+  },
+  {
+    "slug": "make-background-transparent",
+    "name": "Make Background Transparent",
+    "description": "Create transparency using a background segmentation provider.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Local AI background segmentation using BROBEX engine",
+    "status": "browser"
+  },
+  {
+    "slug": "blur-background",
+    "name": "Blur Background",
+    "description": "Create a professional background blur with AI-powered subject isolation and adjustable blur strength.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Local AI subject segmentation and canvas background blur",
+    "status": "browser"
+  },
+  {
+    "slug": "blur-any-object",
+    "name": "Blur Any Object",
+    "description": "Paint over any object or area to apply adjustable blur with a brush and eraser.",
+    "category": "image",
+    "icon": "Brush",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Local canvas brush-based selective blur and erasing",
+    "status": "browser"
+  },
+  {
+    "slug": "translate-image",
+    "name": "Translate Image",
+    "description": "Detect and translate image text using OCR and translation providers.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Tesseract.js browser OCR + MyMemory free translation service",
+    "status": "browser"
+  },
+  {
+    "slug": "image-to-text",
+    "name": "Image to Text",
+    "description": "Extract editable text from images with free, browser-based OCR powered by Tesseract.js.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Local browser OCR with open-source Tesseract.js",
+    "status": "browser"
+  },
+  {
+    "slug": "tiff-to-text",
+    "name": "TIFF to Text",
+    "description": "Extract editable text from single-page and supported multi-page TIFF documents using local browser OCR.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      ".tif",
+      ".tiff",
+      "image/tiff"
+    ],
+    "method": "UTIF2 TIFF decoder + local Tesseract.js OCR",
+    "status": "browser"
+  },
+  {
+    "slug": "resize-image-dimensions",
+    "name": "Resize Image Dimensions",
+    "description": "Change image width and height with optional aspect-ratio locking",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "resize"
+  },
+  {
+    "slug": "compress-image-size",
+    "name": "Compress Image Size",
+    "description": "Reduce image file size by choosing an output format and quality",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "compress"
+  },
+  {
+    "slug": "crop-image",
+    "name": "Crop Image",
+    "description": "Crop an image using coordinates and dimensions",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "crop"
+  },
+  {
+    "slug": "flip-image",
+    "name": "Flip Image",
+    "description": "Flip horizontally or vertically and rotate raster images",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "flip"
+  },
+  {
+    "slug": "black-white",
+    "name": "Black & White",
+    "description": "Convert an image to grayscale",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "grayscale"
+  },
+  {
+    "slug": "pixelate-image",
+    "name": "Pixelate Image",
+    "description": "Create a pixelated effect with an adjustable block size",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "pixelate"
+  },
+  {
+    "slug": "add-text-to-image",
+    "name": "Add Text to an Image",
+    "description": "Add customizable text to an image",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "text"
+  },
+  {
+    "slug": "add-border-to-image",
+    "name": "Add Border to Image",
+    "description": "Add a solid border around an image",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "border"
+  },
+  {
+    "slug": "combine-images",
+    "name": "Combine Images",
+    "description": "Combine multiple images into a vertical composition",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "combine"
+  },
+  {
+    "slug": "add-images-to-image",
+    "name": "Add Images to Image",
+    "description": "Overlay/compose multiple images; current workspace combines uploaded images vertically",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "combine"
+  },
+  {
+    "slug": "make-round-image",
+    "name": "Make Round Image",
+    "description": "Export a circular crop with transparent corners",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "circle"
+  },
+  {
+    "slug": "profile-photo-maker",
+    "name": "Profile Photo Maker",
+    "description": "Create a circular profile image with transparent corners",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "circle"
+  },
+  {
+    "slug": "image-splitter",
+    "name": "Image Splitter",
+    "description": "Split images into custom rows and columns, preview tiles, and download individual PNG files or a ZIP archive.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Browser Canvas API + JSZip",
+    "status": "browser"
+  },
+  {
+    "slug": "collage-maker",
+    "name": "Collage Maker",
+    "description": "Build a collage from multiple images (basic vertical composition available)",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "combine"
+  },
+  {
+    "slug": "chart-maker",
+    "name": "Chart Maker",
+    "description": "Create professional bar, line, area, pie, doughnut, scatter and radar charts. Import CSV data, customize designs and export charts as PNG, SVG and PDF.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      ".csv",
+      "text/csv"
+    ],
+    "method": "Recharts + Papa Parse + html-to-image + jsPDF",
+    "status": "browser"
+  },
+  {
+    "slug": "view-metadata",
+    "name": "View Metadata",
+    "description": "Inspect image dimensions, MIME type, size, and browser-exposed properties",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "metadata"
+  },
+  {
+    "slug": "font-awesome-to-png",
+    "name": "Font Awesome to PNG",
+    "description": "Browse, customize and export Font Awesome solid, regular and brand icons as PNG images.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": ["image/*"],
+    "method": "Font Awesome SVG + Browser Canvas API",
+    "status": "browser"
+  },
+  {
+    "slug": "png-to-jpg",
+    "name": "PNG to JPG",
+    "description": "Convert PNG files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/png"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "jpg-to-png",
+    "name": "JPG to PNG",
+    "description": "Convert JPEG files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/jpeg"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "png-to-webp",
+    "name": "PNG to WebP",
+    "description": "Convert PNG files to WEBP where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/png"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/webp",
+    "outputExtension": "webp"
+  },
+  {
+    "slug": "webp-to-png",
+    "name": "WebP to PNG",
+    "description": "Convert WEBP files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/webp"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "jpg-to-webp",
+    "name": "JPG to WebP",
+    "description": "Convert JPEG files to WEBP where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/jpeg"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/webp",
+    "outputExtension": "webp"
+  },
+  {
+    "slug": "webp-to-jpg",
+    "name": "WebP to JPG",
+    "description": "Convert WEBP files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/webp"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    slug: "png-to-svg",
+    name: "PNG to SVG",
+    description: "Convert PNG images into downloadable SVG files while preserving their original appearance and transparency.",
+    category: "image",
+    icon: "WandSparkles",
+    acceptedTypes: ["image/png"],
+    method: "Browser-based SVG export",
+    status: "browser",
+    operation: "png-to-svg",
+    outputMime: "image/svg+xml",
+    outputExtension: "svg"
+  },
+  {
+    "slug": "jpg-to-svg",
+    "name": "JPG to SVG",
+    "description": "Convert JPEG files to SVG+XML where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/jpeg"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/svg+xml",
+    "outputExtension": "svg"
+  },
+  {
+    "slug": "svg-to-png",
+    "name": "SVG to PNG",
+    "description": "Convert SVG+XML files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/svg+xml"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "heic-to-jpg",
+    "name": "HEIC to JPG",
+    "description": "Convert HEIC files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/heic"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "heic-to-png",
+    "name": "HEIC to PNG",
+    "description": "Convert HEIC files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/heic"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "heic-to-avif",
+    "name": "HEIC to AVIF",
+    "description": "Convert HEIC files to AVIF where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/heic"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/avif",
+    "outputExtension": "avif"
+  },
+  {
+    "slug": "tiff-to-jpg",
+    "name": "TIFF to JPG",
+    "description": "Convert TIFF files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/tiff"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "tiff-to-png",
+    "name": "TIFF to PNG",
+    "description": "Convert TIFF files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/tiff"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "tiff-to-svg",
+    "name": "TIFF to SVG",
+    "description": "Convert TIFF files to SVG+XML where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/tiff"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/svg+xml",
+    "outputExtension": "svg"
+  },
+  {
+    "slug": "jpg-to-tiff",
+    "name": "JPG to TIFF",
+    "description": "Convert JPEG files to TIFF where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/jpeg"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/tiff",
+    "outputExtension": "tiff"
+  },
+  {
+    "slug": "png-to-tiff",
+    "name": "PNG to TIFF",
+    "description": "Convert PNG files to TIFF where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/png"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/tiff",
+    "outputExtension": "tiff"
+  },
+  {
+    "slug": "jpg-to-avif",
+    "name": "JPG to AVIF",
+    "description": "Convert JPEG files to AVIF where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/jpeg"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/avif",
+    "outputExtension": "avif"
+  },
+  {
+    "slug": "png-to-avif",
+    "name": "PNG to AVIF",
+    "description": "Convert PNG files to AVIF where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/png"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/avif",
+    "outputExtension": "avif"
+  },
+  {
+    "slug": "webp-to-avif",
+    "name": "WebP to AVIF",
+    "description": "Convert WEBP files to AVIF where supported by this browser.",
+    "category": "image",
+    "icon": "Image",
+    "acceptedTypes": [
+      "image/webp"
+    ],
+    "method": "Canvas API",
+    "status": "browser",
+    "operation": "convert",
+    "outputMime": "image/avif",
+    "outputExtension": "avif"
+  },
+  {
+    "slug": "gif-to-jpg",
+    "name": "GIF to JPG",
+    "description": "Convert GIF files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "gif-to-png",
+    "name": "GIF to PNG",
+    "description": "Convert GIF files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "gif-to-webp",
+    "name": "GIF to WebP",
+    "description": "Convert GIF files to WEBP where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/webp",
+    "outputExtension": "webp"
+  },
+  {
+    "slug": "gif-to-avif",
+    "name": "GIF to AVIF",
+    "description": "Convert GIF files to AVIF where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/avif",
+    "outputExtension": "avif"
+  },
+  {
+    "slug": "gif-to-apng",
+    "name": "GIF to APNG",
+    "description": "Convert GIF files to APNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/apng",
+    "outputExtension": "apng"
+  },
+  {
+    "slug": "webp-to-gif",
+    "name": "WebP to GIF",
+    "description": "Convert WEBP files to GIF where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/webp"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/gif",
+    "outputExtension": "gif"
+  },
+  {
+    "slug": "eps-to-png",
+    "name": "EPS to PNG",
+    "description": "Convert APPLICATION/POSTSCRIPT files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/postscript"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "eps-to-jpg",
+    "name": "EPS to JPG",
+    "description": "Convert APPLICATION/POSTSCRIPT files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/postscript"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "eps-to-svg",
+    "name": "EPS to SVG",
+    "description": "Convert APPLICATION/POSTSCRIPT files to SVG+XML where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/postscript"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/svg+xml",
+    "outputExtension": "svg"
+  },
+  {
+    "slug": "png-to-eps",
+    "name": "PNG to EPS",
+    "description": "Convert PNG files to APPLICATION/POSTSCRIPT where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/png"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "application/postscript",
+    "outputExtension": "eps"
+  },
+  {
+    "slug": "psd-to-jpg",
+    "name": "PSD to JPG",
+    "description": "Convert VND.ADOBE.PHOTOSHOP files to JPEG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/vnd.adobe.photoshop"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/jpeg",
+    "outputExtension": "jpg"
+  },
+  {
+    "slug": "psd-to-png",
+    "name": "PSD to PNG",
+    "description": "Convert VND.ADOBE.PHOTOSHOP files to PNG where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/vnd.adobe.photoshop"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/png",
+    "outputExtension": "png"
+  },
+  {
+    "slug": "psd-to-svg",
+    "name": "PSD to SVG",
+    "description": "Convert VND.ADOBE.PHOTOSHOP files to SVG+XML where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/vnd.adobe.photoshop"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "image/svg+xml",
+    "outputExtension": "svg"
+  },
+  {
+    "slug": "psd-to-ai",
+    "name": "PSD to AI",
+    "description": "Convert VND.ADOBE.PHOTOSHOP files to APPLICATION/POSTSCRIPT where supported by this browser.",
+    "category": "image",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/vnd.adobe.photoshop"
+    ],
+    "method": "Specialist codec / vectorization integration",
+    "status": "integration",
+    "outputMime": "application/postscript",
+    "outputExtension": "ai"
+  },
+  {
+    "slug": "pdf-to-jpg",
+    "name": "PDF to JPG",
+    "description": "Convert PDF pages to JPG images using a PDF renderer.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf",
+      "image/jpeg"
+    ],
+    "method": "PDF library / document conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "merge-pdf",
+    "name": "Merge PDF",
+    "description": "Combine multiple PDF files using a PDF processing library.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf"
+    ],
+    "method": "pdf-lib (browser)",
+    "status": "browser"
+  },
+  {
+    "slug": "split-pdf",
+    "name": "Split PDF",
+    "description": "Extract selected PDF pages into a new file.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf"
+    ],
+    "method": "pdf-lib (browser)",
+    "status": "browser"
+  },
+  {
+    "slug": "compress-pdf",
+    "name": "Compress PDF",
+    "description": "Optimize a PDF with a compatible server-side or browser PDF pipeline.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf",
+      "image/jpeg"
+    ],
+    "method": "PDF library / document conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "edit-pdf",
+    "name": "Edit PDF",
+    "description": "Annotate or edit PDF documents with a PDF editor integration.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf",
+      "image/jpeg"
+    ],
+    "method": "PDF library / document conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "jpg-to-pdf",
+    "name": "JPG to PDF",
+    "description": "Create a PDF document from JPG images.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/jpeg",
+      "image/png"
+    ],
+    "method": "pdf-lib (browser)",
+    "status": "browser"
+  },
+  {
+    "slug": "pdf-to-word",
+    "name": "PDF to Word",
+    "description": "Convert PDF content into editable DOCX with a document conversion engine.",
+    "category": "pdf",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "application/pdf",
+      "image/jpeg"
+    ],
+    "method": "PDF library / document conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "gif-to-mp4",
+    "name": "GIF to MP4",
+    "description": "Convert animated GIF to MP4 using an FFmpeg/WASM or server-side media pipeline.",
+    "category": "video",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "image/gif",
+      "video/*"
+    ],
+    "method": "FFmpeg/WASM or server-side media integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsd-to-pdf",
+    "name": "VSD to PDF",
+    "description": "Requires a Visio-compatible conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsd-to-docx",
+    "name": "VSD to DOCX",
+    "description": "Requires a Visio/document conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsd-to-pptx",
+    "name": "VSD to PPTX",
+    "description": "Requires a Visio/document conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsd-to-jpg",
+    "name": "VSD to JPG",
+    "description": "Requires a Visio-compatible renderer.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsdx-to-pdf",
+    "name": "VSDX to PDF",
+    "description": "Requires a Visio-compatible conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsdx-to-docx",
+    "name": "VSDX to DOCX",
+    "description": "Requires a Visio/document conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsdx-to-pptx",
+    "name": "VSDX to PPTX",
+    "description": "Requires a Visio/document conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "vsdx-to-jpg",
+    "name": "VSDX to JPG",
+    "description": "Requires a Visio-compatible renderer.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "general-file-converter",
+    "name": "General File Converter",
+    "description": "Convert between supported file types through a configured conversion engine.",
+    "category": "file",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "*/*"
+    ],
+    "method": "Specialist file conversion integration",
+    "status": "integration"
+  },
+  {
+    "slug": "content-improver",
+    "name": "Content Improver",
+    "description": "Clean up spacing, punctuation, and common readability issues with an offline text helper. This is template-based, not AI.",
+    "category": "write",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "text/plain"
+    ],
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
+  },
+  {
+    "slug": "essay-writer",
+    "name": "Essay Writer",
+    "description": "Create a structured essay draft from a topic using an offline template. Review and expand the generated outline.",
+    "category": "write",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "text/plain"
+    ],
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
+  },
+  {
+    "slug": "paragraph-writer",
+    "name": "Paragraph Writer",
+    "description": "Create a starter paragraph from a topic using an offline template.",
+    "category": "write",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "text/plain"
+    ],
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
+  },
+  {
+    "slug": "paragraph-completer",
+    "name": "Paragraph Completer",
+    "description": "Create a simple continuation suggestion for a paragraph using an offline template.",
+    "category": "write",
+    "icon": "WandSparkles",
+    "acceptedTypes": [
+      "text/plain"
+    ],
+    "method": "Offline text helper (template-based; not AI)",
+    "status": "browser"
+  },
+  {
+    "slug": "passport-photo-maker",
+    "name": "Passport Photo Maker",
+    "description": "Create correctly sized passport and ID photos with adjustable framing and local browser export.",
+    "category": "image",
+    "icon": "UserRound",
+    "acceptedTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "method": "Browser Canvas API",
+    "status": "browser"
+  },
+] as ToolDefinition[];
+
+export const categories: { id: Category; label: string; href: string; description: string }[] = [
+  { id: "pdf", label: "PDF", href: "/tools/pdf", description: "Organize, convert, and prepare PDF documents." },
+  { id: "image", label: "Image", href: "/tools/image", description: "Edit, optimize, and convert images in your browser." },
+  { id: "write", label: "Write", href: "/tools/write", description: "Writing utilities with clear provider setup states." },
+  { id: "video", label: "Video", href: "/tools/video", description: "Media conversion tools with documented processing requirements." },
+  { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
+];
+export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
+
+
+
+
+
+
+
+
+
+========== .\types\tools.ts ==========
+export type Category = "image" | "pdf" | "write" | "video" | "file";
+export type ToolStatus = "browser" | "integration";
+export type ToolDefinition = {
+  slug: string;
+  name: string;
+  description: string;
+  category: Category;
+  icon: string;
+  acceptedTypes: string[];
+  method: string;
+  status: ToolStatus;
+  operation?: "resize" | "compress" | "crop" | "flip" | "grayscale" | "pixelate" | "text" | "border" | "combine" | "circle" | "metadata" | "blur" | "convert" | "rotate" | "unblur" | "png-to-svg" ;
+  outputMime?: string;
+  outputExtension?: string;
+};
+
+========== .\lib\image-tool-directory.ts ==========
+import { tools } from "@/lib/tools";
+
+export type DirectoryTool = {
+  name: string;
+  slug?: string;
+};
+
+export type DirectoryCategory = {
+  name: string;
+  tools: DirectoryTool[];
+};
+
+const item = (name: string, slug?: string): DirectoryTool => ({ name, slug });
+
+export const imageToolCategories: DirectoryCategory[] = [
+  {
+    name: "Most Used Tools",
+    tools: [
+      item("Passport & ID Photo Maker", "passport-photo-maker"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Text to Handwriting Converter"),
+      item("Extract Text from Image (OCR)", "image-to-text"),
+      item("Create Photo Collages", "collage-maker"),
+      item("Signature Generator"),
+      item("Increase Image File Size"),
+      item("Manual Photo Enhancement", "upscale-image"),
+      item("Signature Image Resizer"),
+      item("Resize Image in Centimeters"),
+      item("Resize Photo to 3.5 × 4.5 cm")
+    ]
+  },
+  {
+    name: "Basic Editing",
+    tools: [
+      item("Blur Background", "blur-background"),
+      item("Remove Background", "remove-background-from-image"),
+      item("Remove Text from Image"),
+      item("Remove Logo from Photo"),
+      item("Remove Object from Photo", "blur-any-object"),
+      item("Add Text to Image", "add-text-to-image"),
+      item("Rotate Image", "flip-image"),
+      item("Flip Image", "flip-image"),
+      item("Add Text to Image", "add-text-to-image"),
+      item("Freehand Crop", "crop-image"),
+      item("Create Circular Image", "make-round-image"),
+      item("Square Crop", "crop-image"),
+      item("Crop Round Corners"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Combine Multiple Images", "combine-images"),
+      item("Combine Multiple Images", "combine-images"),
+      item("Photos to Video"),
+      item("JPG to MP4"),
+      item("Slideshow Maker"),
+      item("Word to JPG"),
+      item("MP4 to JPG"),
+      item("Split Image into Grid", "image-splitter"),
+      item("Image Color Picker"),
+      item("Edit Metadata"),
+      item("View Image Properties & Metadata", "view-metadata"),
+      item("Remove Metadata"),
+      item("Crop PNG", "crop-image")
+    ]
+  },
+  {
+    name: "Blur, Pixelate and Special Effects",
+    tools: [
+      item("Beautify Image", "colorize-photo"),
+      item("Deep Fry Photo"),
+      item("Unblur Image"),
+      item("Blur Image", "blur-background"),
+      item("Blur Face", "blur-any-object"),
+      item("Unblur Face"),
+      item("Add Image Border", "add-border-to-image"),
+      item("Pixelate Image", "pixelate-image"),
+      item("Pixelate Image", "pixelate-image"),
+      item("Pixelate Image", "pixelate-image"),
+      item("Motion Blur"),
+      item("Convert Image to Black & White", "black-white"),
+      item("Convert Image to Black & White", "black-white"),
+      item("Pixelate Image", "pixelate-image"),
+      item("Add Image Border", "add-border-to-image"),
+      item("AI Face Generator"),
+      item("Blemishes Remover"),
+      item("Retouch Image", "colorize-photo"),
+      item("Add Text to Image", "add-text-to-image"),
+      item("Overlay Images", "add-images-to-image")
+    ]
+  },
+  {
+    name: "DPI & Quality",
+    tools: [
+      item("Manual Photo Enhancement", "upscale-image"),
+      item("Convert DPI (200, 300, 600)"),
+      item("View Image Properties & Metadata", "view-metadata"),
+      item("Manual Photo Enhancement", "upscale-image")
+    ]
+  },
+  {
+    name: "General Resizing",
+    tools: [
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Bulk Image Resizer"),
+      item("Manual Photo Enhancement", "upscale-image")
+    ]
+  },
+  {
+    name: "Resize Other Official Sizes",
+    tools: [
+      item("A4 Size"),
+      item("SSC Photo Resize"),
+      item("PAN Card"),
+      item("UPSC Photo"),
+      item("PSC Photo")
+    ]
+  },
+  {
+    name: "Passport & ID Photo Sizes",
+    tools: [
+      item("Red Background Passport"),
+      item("White Background Passport"),
+      item("Resize Passport"),
+      item("Sign 6cm x 2cm (300 DPI)"),
+      item("3.5cm x 4.5cm"),
+      item("Signature 50mm x 20mm"),
+      item("35mm x 45mm"),
+      item("2 x 2 Inch"),
+      item("3 x 4 Inch"),
+      item("4 x 6 Inch"),
+      item("600x600 Pixels")
+    ]
+  },
+  {
+    name: "Resize For Social Media",
+    tools: [
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Split Image into Grid", "image-splitter"),
+      item("Circular Profile Photo Maker", "profile-photo-maker"),
+      item("Resize Image Dimensions", "resize-image-dimensions"),
+      item("Resize Image Dimensions", "resize-image-dimensions")
+    ]
+  },
+  {
+    name: "Format Conversions",
+    tools: [
+      item("Image Converter"),
+      item("Convert PNG to JPG", "png-to-jpg"),
+      item("Convert PNG to JPG", "png-to-jpg"),
+      item("HEIC to JPG", "heic-to-jpg"),
+      item("Convert WebP to JPG", "webp-to-jpg"),
+      item("Convert WebP to PNG", "webp-to-png"),
+      item("AVIF to JPG", "jpg-to-avif"),
+      item("Convert PNG to JPG", "png-to-jpg"),
+      item("Convert JPG to PNG", "jpg-to-png"),
+      item("Convert PNG to JPG", "png-to-jpg"),
+      item("PNG to ICO"),
+      item("Image to Word"),
+      item("Extract Text from Image (OCR)", "image-to-text"),
+      item("Extract Text from Image (OCR)", "image-to-text"),
+      item("Export Font Awesome Icons to PNG", "font-awesome-to-png")
+    ]
+  },
+  {
+    name: "Image to PDF",
+    tools: [
+      item("Image to PDF", "jpg-to-pdf"),
+      item("PDF to JPG", "pdf-to-jpg"),
+      item("JPG to PDF (Under 50KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 100KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 150KB)", "jpg-to-pdf"),
+      item("JPEG to PDF (Under 200KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 250KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 300KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 400KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 500KB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 1MB)", "jpg-to-pdf"),
+      item("JPG to PDF (Under 2MB)", "jpg-to-pdf")
+    ]
+  },
+  {
+    name: "General Compression",
+    tools: [
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Convert MB to KB"),
+      item("Convert KB to MB")
+    ]
+  },
+  {
+    name: "Exact Target Sizes",
+    tools: [
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size"),
+      item("Compress Image to Target KB", "compress-image-size")
+    ]
+  }
+];
+
+const registeredSlugs = new Set(tools.map((tool) => tool.slug));
+
+export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
+  if (!tool.slug || !registeredSlugs.has(tool.slug)) return undefined;
+  return `/tools/${tool.slug}`;
+}
+
+
+
+export function getDirectoryToolState(tool: DirectoryTool): {
+  href: string | null;
+  available: boolean;
+} {
+  if (!tool.slug) {
+    return { href: null, available: false };
+  }
+
+  const registeredTool = tools.find((entry) => entry.slug === tool.slug);
+
+  if (!registeredTool || registeredTool.status !== "browser") {
+    return { href: null, available: false };
+  }
+
+  return {
+    href: `/tools/${registeredTool.slug}`,
+    available: true
+  };
+}
+
+========== .\components\image-tool-directory.tsx ==========
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { Search, ArrowUpRight, Clock3 } from "lucide-react";
+import {
+  imageToolCategories,
+  getDirectoryToolState
+} from "@/lib/image-tool-directory";
+
+export function ImageToolDirectory() {
+  const [query, setQuery] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    const search = query.trim().toLowerCase();
+
+    return imageToolCategories
+      .map((category) => ({
+        ...category,
+        tools: category.tools.filter((tool) =>
+          tool.name.toLowerCase().includes(search)
+        )
+      }))
+      .filter((category) => category.tools.length > 0);
+  }, [query]);
+
+  const totalResults = filteredCategories.reduce(
+    (total, category) => total + category.tools.length,
+    0
+  );
+
+  return (
+    <section className="image-directory" aria-label="Image tool directory">
+      <div className="directory-intro">
+        <span className="directory-eyebrow">THE BROBEX TOOLKIT</span>
+        <h2 className="directory-main-title">Explore Image Tools</h2>
+        <p className="directory-main-description">
+          Everything you need to edit, resize, convert and optimize your images.
+        </p>
+      </div>
+
+      <div className="directory-search">
+        <Search size={19} aria-hidden="true" />
+
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search for an image tool..."
+          aria-label="Search image tools"
+        />
+
+        {query && (
+          <button type="button" onClick={() => setQuery("")}>
+            Clear
+          </button>
+        )}
+      </div>
+
+      {query.trim() && (
+        <p className="directory-results" aria-live="polite">
+          {totalResults} {totalResults === 1 ? "tool" : "tools"} found
+        </p>
+      )}
+
+      {filteredCategories.length > 0 ? (
+        <div className="directory-categories">
+          {filteredCategories.map((category, categoryIndex) => (
+            <section
+              className="directory-category"
+              key={category.name}
+            >
+              <div className="directory-category-heading">
+                <span className="directory-category-index">
+                  {String(categoryIndex + 1).padStart(2, "0")}
+                </span>
+
+                <h2>{category.name}</h2>
+
+                <span className="directory-category-count">
+                  {String(category.tools.length).padStart(2, "0")} TOOLS
+                </span>
+              </div>
+
+              <div className="directory-tool-list">
+                {category.tools.map((tool, index) => {
+                  const state = getDirectoryToolState(tool);
+
+                  const content = (
+                    <>
+                      <span className="directory-tool-number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+
+                      <span className="directory-tool-name">
+                        {tool.name}
+                      </span>
+
+                      {state.available ? (
+                        <span className="directory-tool-action">
+                          <ArrowUpRight size={17} />
+                        </span>
+                      ) : (
+                        <span className="directory-tool-status">
+                          <Clock3 size={12} />
+                          Coming Soon
+                        </span>
+                      )}
+                    </>
+                  );
+
+                  return state.available && state.href ? (
+                    <Link
+                      className="directory-tool"
+                      href={state.href}
+                      key={`${category.name}-${tool.name}-${index}`}
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div
+                      className="directory-tool directory-tool--unavailable"
+                      key={`${category.name}-${tool.name}-${index}`}
+                      aria-label={`${tool.name}, coming soon`}
+                    >
+                      {content}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="directory-empty">
+          <Search size={25} />
+          <p>No matching tools found.</p>
+          <span>Try another search term.</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
+========== .\components\tool-search.tsx ==========
+"use client";
+import { useMemo, useState } from "react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
+import { ToolCard } from "@/components/tool-card";
+import type { ToolDefinition } from "@/types/tools";
+export function ToolSearch({tools,placeholder="Search image tools..."}:{tools:ToolDefinition[];placeholder?:string}) {
+ const [query,setQuery]=useState(""); const [filter,setFilter]=useState("all");
+ const filtered=useMemo(()=>{const q=query.trim().toLowerCase();return tools.filter(t=>(filter==="all"||t.status===filter)&&(!q||`${t.name} ${t.description} ${t.category} ${t.slug}`.toLowerCase().includes(q)))},[tools,query,filter]);
+ return <section className="search-section" aria-label="Search tools"><div className="search-box"><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={placeholder} aria-label="Search by tool name, description, or category"/>{query&&<button onClick={()=>setQuery("")} aria-label="Clear search"><X size={17}/></button>}<kbd>/</kbd></div><div className="search-meta"><span>{filtered.length} {filtered.length===1?"tool":"tools"} found</span><label className="filter-label"><SlidersHorizontal size={14}/><select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filter tools"><option value="all">All tools</option><option value="browser">Ready to Use</option><option value="integration">Integration Required</option></select></label></div><div className="tool-grid">{filtered.map(t=><ToolCard key={t.slug} tool={t}/>)}</div>{filtered.length===0&&<div className="empty-state"><Search size={28}/><h3>No matching tools</h3><p>Try another keyword or clear the search to see all tools.</p><button className="button button-dark" onClick={()=>{setQuery("");setFilter("all")}}>Clear filters</button></div>}</section>
+}
+
+========== .\app\tools\[slug]\page.tsx ==========
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
+import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
+import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
+import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
+import { UpscaleWorkspace } from "@/components/upscale-workspace";
+import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
+import { ImageWorkspace } from "@/components/image-workspace";
+import { PassportPhotoWorkspace } from "@/components/passport-photo-workspace";
+import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
+import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
+import { PdfWorkspace } from "@/components/pdf-workspace";
+import { WritingWorkspace } from "@/components/writing-workspace";
+import { TranslateImageWorkspace } from "@/components/translate-image-workspace";
+import { ImageToTextWorkspace } from "@/components/image-to-text-workspace";
+import { ToolStudioBrand } from "@/components/tool-studio-brand";
+import { ToolCard } from "@/components/tool-card";
+import { ToolSearch } from "@/components/tool-search";
+import { getTool, tools, categories } from "@/lib/tools";
+
+export function generateStaticParams() {
+  const toolParams = tools
+    .filter(
+      (tool) =>
+        typeof tool.slug === "string" &&
+        tool.slug.trim().length > 0
+    )
+    .map((tool) => ({
+      slug: tool.slug,
+    }));
+
+  const categoryParams = categories.map((category) => ({
+    slug: category.id === "file" ? "file_conversion" : category.id,
+  }));
+
+  return [...toolParams, ...categoryParams];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const categoryId = slug === "file_conversion" ? "file" : slug;
+
+  const category = categories.find(
+    (item) => item.id === categoryId
+  );
+
+  if (category) {
+    return {
+      title: `${category.label} Tools`,
+      description: category.description,
+      alternates: {
+        canonical: category.href,
+      },
+      openGraph: {
+        title: `${category.label} Tools | BROBEX`,
+        description: category.description,
+      },
+    };
+  }
+
+  const tool = getTool(slug);
+
+  if (!tool) {
+    return {};
+  }
+
+  return {
+    title: tool.name,
+    description: tool.description,
+    alternates: {
+      canonical: `/tools/${tool.slug}`,
+    },
+    openGraph: {
+      title: `${tool.name} | BROBEX Image Tools`,
+      description: tool.description,
+    },
+  };
+}
+
+export default async function ToolPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const categoryId = slug === "file_conversion" ? "file" : slug;
+  const category = categories.find(
+    (item) => item.id === categoryId
+  );
+
+  // Keep the existing category directory pages unchanged.
+  if (category) {
+    const listing = tools.filter(
+      (tool) => tool.category === category.id
+    );
+
+    return (
+      <div className="container category-page">
+        <div className="page-title category-page-title">
+          <div className="breadcrumb category-breadcrumb">
+            <Link href="/">Home</Link> / {category.label} tools
+          </div>
+
+          <span className="eyebrow category-eyebrow">
+            BROBEX TOOL DIRECTORY
+          </span>
+
+          <h1>
+            {category.id === "image"
+              ? "Image Tools"
+              : `${category.label} Tools`}
+          </h1>
+
+          <p>
+            {category.description} Browse {listing.length} tools and
+            search by name, description, or format.
+          </p>
+        </div>
+
+        <div className="page-content category-page-content">
+          <ToolSearch
+            tools={listing}
+            placeholder={`Search ${category.label.toLowerCase()} tools...`}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const tool = getTool(slug);
+
+  if (!tool) {
+    notFound();
+  }
+
+  const cat = categories.find(
+    (item) => item.id === tool.category
+  );
+
+  if (!cat) {
+    notFound();
+  }
+
+  const related = tools
+    .filter(
+      (item) =>
+        item.category === tool.category &&
+        item.slug !== tool.slug
+    )
+    .slice(0, 3);
+
+  // Preserve the existing real workspace for each supported tool.
+  const workspace =
+    tool.slug === "passport-photo-maker" ? (
+      <PassportPhotoWorkspace />
+    ) : tool.slug === "chart-maker" ? (
+      <ChartMakerWorkspace />
+    ) : tool.slug === "font-awesome-to-png" ? (
+      <FontAwesomeToPngWorkspace />
+    ) : tool.slug === "image-splitter" ? (
+      <ImageSplitterWorkspace />
+    ) : tool.slug === "tiff-to-text" ? (
+      <TiffToTextWorkspace />
+    ) : tool.slug === "image-to-text" ? (
+      <ImageToTextWorkspace />
+    ) : tool.slug === "translate-image" ? (
+      <TranslateImageWorkspace />
+    ) : tool.slug === "colorize-photo" ? (
+      <ColorizePhotoWorkspace />
+    ) : tool.slug === "photo-cleanup" ? (
+      <PhotoCleanupWorkspace />
+    ) : tool.slug === "remove-objects-from-photo" ? (
+      <RemoveObjectsWorkspace />
+    ) : tool.slug === "upscale-image" ? (
+      <UpscaleWorkspace />
+    ) : tool.category === "pdf" ? (
+      <PdfWorkspace tool={tool} />
+    ) : tool.category === "image" ? (
+      <ImageWorkspace tool={tool} />
+    ) : tool.category === "write" ? (
+      <WritingWorkspace tool={tool} />
+    ) : (
+      <div className="integration-notice">
+        <span className="integration-icon" aria-hidden="true">
+          !
+        </span>
+        <div>
+          <h3>Processing engine not configured</h3>
+          <p>
+            This tool requires a dedicated processing engine or external
+            integration. It has not been marked as working because the
+            current project does not include a tested implementation
+            for this operation.
+          </p>
+          <p>
+            This page will remain available for information, but the
+            processing feature is not currently active.
+          </p>
+        </div>
+      </div>
+    );
+
+  const isWritingTool = tool.category === "write";
+
+  return (
+    <div className="container">
+      <div className="breadcrumb">
+        <Link href="/">Home</Link> /{" "}
+        <Link href={cat.href}>{cat.label} tools</Link> / {tool.name}
+      </div>
+
+      <ToolStudioBrand
+        title={tool.name}
+        description={tool.description}
+        category={cat.label}
+        status={tool.status === "browser" ? "browser" : "integration"}
+      >
+        <div className="page-content">
+          {workspace}
+
+          <div className="privacy-line">
+            {tool.status === "browser"
+              ? "Processing takes place in your browser when supported by the selected tool. Check the individual tool's compatibility before using large files."
+              : "This tool requires an additional processing integration. Its availability is clearly identified; no completed result is simulated."}
+          </div>
+
+          {tool.status === "browser" && (
+            <>
+              <h2>
+                {isWritingTool
+                  ? `How to use ${tool.name}`
+                  : `How to use ${tool.name}`}
+              </h2>
+
+              {isWritingTool ? (
+                <ol>
+                  <li>Enter or paste text into the writing workspace.</li>
+                  <li>Choose the available writing options.</li>
+                  <li>Review the result and copy it when you are satisfied.</li>
+                </ol>
+              ) : (
+                <ol>
+                  <li>Select a supported file in the workspace.</li>
+                  <li>Review the preview and adjust available settings.</li>
+                  <li>Run the operation and review the result before downloading.</li>
+                </ol>
+              )}
+            </>
+          )}
+
+          <h2>Compatibility and limitations</h2>
+
+          <p>
+            This tool uses the processing method listed as{" "}
+            <strong>{tool.method}</strong>. Browser and device support
+            can vary by file format and available memory. Unsupported
+            formats and external providers are not silently substituted.
+            Integration-required tools show their actual setup state
+            instead of presenting a simulated result.
+          </p>
+
+          {related.length > 0 && (
+            <>
+              <div className="divider" />
+
+              <h2>Related tools</h2>
+
+              <div className="tool-grid">
+                {related.map((item) => (
+                  <ToolCard key={item.slug} tool={item} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </ToolStudioBrand>
+    </div>
+  );
+}
