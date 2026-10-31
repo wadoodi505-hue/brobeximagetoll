@@ -66,8 +66,8 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [width, setWidth] = useState(800);
   const [height, setHeight] = useState(600);
   const [lock, setLock] = useState(true);
-  const [quality, setQuality] = useState(82);
-  const [format, setFormat] = useState(tool.outputMime || "image/webp");
+  const [quality, setQuality] = useState(tool.slug === "compress-image-size" ? 50 : 82);
+  const [format, setFormat] = useState(tool.slug === "compress-image-size" ? "image/webp" : tool.outputMime || "image/webp");
 
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
@@ -439,6 +439,21 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
   }
 
+
+  // Automatically compress uploaded images on the target-size tool.
+  useEffect(() => {
+    if (tool.slug !== "compress-image-size") return;
+
+    if (!file) {
+      autoCompressFileRef.current = null;
+      return;
+    }
+
+    if (autoCompressFileRef.current === file) return;
+
+    autoCompressFileRef.current = file;
+    void run();
+  }, [file, op, tool.slug]);
   const outputName = useMemo(() => {
     const mime = op === "unblur" ? "image/png" : resultBlob?.type || format;
 
@@ -867,7 +882,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
           </div>
 
           <div className="settings-panel">
-            <h3>{op === "unblur" ? "Enhancement settings" : "Settings"}</h3>
+            {tool.slug !== "compress-image-size" && <h3>{op === "unblur" ? "Enhancement settings" : "Settings"}</h3>}
 
             {op === "unblur" && (
               <div className="unblur-settings">
@@ -1005,7 +1020,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               </>
             )}
 
-            {op === "compress" && (
+            {op === "compress" && tool.slug !== "compress-image-size" && (
               <>
                 <label>
                   Output format
@@ -1247,7 +1262,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
             <div className="workspace-actions">
               <button
                 type="button"
-                className="button button-dark"
+                className={`button button-dark ${tool.slug === "compress-image-size" ? "auto-compress-hidden" : ""}`}
                 onClick={run}
                 disabled={
                   busy ||
@@ -1347,5 +1362,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 function WandIcon() {
   return <span aria-hidden="true">âœ³</span>;
 }
+
 
 

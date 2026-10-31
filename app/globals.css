@@ -3465,3 +3465,8 @@ button:disabled {
     transition: none;
   }
 }
+
+/* Automatic compression tool: hide redundant manual processing action */
+.auto-compress-hidden {
+  display: none !important;
+}
