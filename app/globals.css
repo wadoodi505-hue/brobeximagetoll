@@ -1790,3 +1790,284 @@ button:disabled {
         font-size: 13px;
     }
 }
+
+/* BROBEX Passport Photo Maker */
+.passport-workspace {
+    --passport-accent: #8bcf75;
+}
+
+.passport-local-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.passport-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(270px, .85fr);
+    gap: 18px;
+    margin-top: 22px;
+}
+
+.passport-preview-panel,
+.passport-settings {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.passport-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.passport-panel-heading strong {
+    font-size: 14px;
+}
+
+.passport-panel-heading p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.passport-dimensions {
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.passport-upload {
+    display: flex;
+    width: 100%;
+    min-height: 340px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.passport-upload:hover {
+    border-color: #70b85c;
+}
+
+.passport-upload svg {
+    color: #70b85c;
+}
+
+.passport-upload strong {
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.passport-upload span {
+    font-size: 12px;
+    text-align: center;
+}
+
+.passport-canvas-wrap {
+    display: grid;
+    min-height: 340px;
+    place-items: center;
+    overflow: auto;
+    padding: 20px;
+    border-radius: 12px;
+    background:
+        linear-gradient(45deg, var(--soft) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--soft) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--soft) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--soft) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+.passport-canvas-wrap canvas {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 30px #0002;
+}
+
+.passport-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 13px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.passport-file-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.passport-file-row button {
+    color: var(--ink);
+    text-decoration: underline;
+    flex-shrink: 0;
+}
+
+.passport-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 19px;
+}
+
+.passport-setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.passport-setting-group > label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.passport-setting-group select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+}
+
+.passport-setting-group input[type="range"] {
+    width: 100%;
+    accent-color: #70b85c;
+}
+
+.passport-color-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.passport-color-row input {
+    width: 48px;
+    height: 38px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+}
+
+.passport-swatches {
+    display: flex;
+    gap: 9px;
+}
+
+.passport-swatches button {
+    width: 25px;
+    height: 25px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.passport-help {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.passport-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.passport-actions button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.passport-actions button:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+.passport-actions .button-dark {
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.passport-actions .button-light {
+    background: var(--bg);
+    color: var(--ink);
+}
+
+@media (max-width: 760px) {
+    .passport-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .passport-preview-panel,
+    .passport-settings {
+        padding: 14px;
+    }
+
+    .passport-upload,
+    .passport-canvas-wrap {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 420px) {
+    .passport-panel-heading {
+        flex-direction: column;
+    }
+
+    .passport-actions {
+        flex-direction: column;
+    }
+
+    .passport-actions button {
+        width: 100%;
+    }
+
+    .passport-local-badge {
+        white-space: normal;
+    }
+}

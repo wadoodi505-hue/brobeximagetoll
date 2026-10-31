@@ -1067,7 +1067,21 @@ export const tools: ToolDefinition[] = [
     ],
     "method": "Offline text helper (template-based; not AI)",
     "status": "browser"
-  }
+  },
+  {
+    "slug": "passport-photo-maker",
+    "name": "Passport Photo Maker",
+    "description": "Create correctly sized passport and ID photos with adjustable framing and local browser export.",
+    "category": "image",
+    "icon": "UserRound",
+    "acceptedTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "method": "Browser Canvas API",
+    "status": "browser"
+  },
 ] as ToolDefinition[];
 
 export const categories: { id: Category; label: string; href: string; description: string }[] = [
@@ -1078,6 +1092,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 

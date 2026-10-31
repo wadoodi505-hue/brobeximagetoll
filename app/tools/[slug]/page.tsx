@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
+import { PassportPhotoWorkspace } from "@/components/passport-photo-workspace";
 import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
 import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
 import { PdfWorkspace } from "@/components/pdf-workspace";
@@ -178,7 +179,9 @@ export default async function ToolPage({
         </div>
       </div>
       <div className="page-content">
-        {tool.slug === "chart-maker" ? (
+        {tool.slug === "passport-photo-maker" ? (
+          <PassportPhotoWorkspace />
+        ) : tool.slug === "chart-maker" ? (
           <ChartMakerWorkspace />
         ) : tool.slug === "font-awesome-to-png" ? (
           <FontAwesomeToPngWorkspace />
@@ -262,6 +265,8 @@ export default async function ToolPage({
     </div>
   );
 }
+
+
 
 
 
