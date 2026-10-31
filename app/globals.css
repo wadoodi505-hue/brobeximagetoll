@@ -3359,3 +3359,109 @@ button:disabled {
     font-size: 0.78rem;
   }
 }
+
+/* BROBEX category directory — aligned with homepage */
+.category-page .tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0 28px;
+  width: 100%;
+  min-width: 0;
+}
+
+.category-page .category-directory-tool {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  text-decoration: none;
+  transition: color .2s ease, padding .2s ease;
+}
+
+.category-page .category-directory-tool:hover {
+  padding-left: 10px;
+  border-color: var(--line);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  color: var(--accent);
+}
+
+.category-page .category-directory-tool:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.category-page .category-directory-tool .directory-tool-number {
+  flex: 0 0 23px;
+  width: 23px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.category-page .category-directory-copy {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.category-page .category-directory-tool .directory-tool-name {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 550;
+}
+
+.category-page .category-directory-tool .directory-tool-action {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  transition: .2s ease;
+}
+
+.category-page .category-directory-tool:hover .directory-tool-action {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 640px) {
+  .category-page .tool-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .category-page .category-directory-tool {
+    min-height: 50px;
+    padding: 9px 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-page .category-directory-tool,
+  .category-page .category-directory-tool .directory-tool-action {
+    transition: none;
+  }
+}

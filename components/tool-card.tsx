@@ -7,22 +7,17 @@ export function ToolCard({ tool }: { tool: ToolDefinition }) {
     <Link
       className="directory-tool category-directory-tool"
       href={`/tools/${tool.slug}`}
+      aria-label={`Open ${tool.name}`}
     >
-      <span className="directory-tool-number">
+      <span className="directory-tool-number" aria-hidden="true">
         {tool.category.toUpperCase().slice(0, 2)}
       </span>
 
       <span className="category-directory-copy">
         <span className="directory-tool-name">{tool.name}</span>
-        <span className="category-directory-description">
-          {tool.description}
-        </span>
-        <span className={`status ${tool.status}`}>
-          {tool.status === "browser" ? "Ready to Use" : "Integration Required"}
-        </span>
       </span>
 
-      <span className="directory-tool-action">
+      <span className="directory-tool-action" aria-hidden="true">
         <ArrowUpRight size={17} />
       </span>
     </Link>
