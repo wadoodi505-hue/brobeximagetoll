@@ -443,13 +443,15 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     const mime = op === "unblur" ? "image/png" : resultBlob?.type || format;
 
     const extension =
-      mime === "image/jpeg"
-        ? "jpg"
-        : mime === "image/png"
-          ? "png"
-          : mime === "image/webp"
-            ? "webp"
-            : mime.split("/")[1] || "png";
+      mime === "image/svg+xml"
+        ? "svg"
+        : mime === "image/jpeg"
+          ? "jpg"
+          : mime === "image/png"
+            ? "png"
+            : mime === "image/webp"
+              ? "webp"
+              : mime.split("/")[1] || "png";
 
     const baseName =
       file?.name.replace(/\.[^.]+$/, "") || "brobex-image";
@@ -1288,7 +1290,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                 download={outputName}
               >
                 <Download size={16} />
-                Download enhanced image
+                {op === "png-to-svg" ? "Download SVG file" : "Download enhanced image"}
               </a>
             )}
 

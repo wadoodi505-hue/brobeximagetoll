@@ -416,18 +416,17 @@ export const tools: ToolDefinition[] = [
     "outputExtension": "jpg"
   },
   {
-    "slug": "png-to-svg",
-    "name": "PNG to SVG",
-    "description": "Convert PNG files to SVG+XML where supported by this browser.",
-    "category": "image",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/png"
-    ],
-    "method": "Specialist codec / vectorization integration",
-    "status": "integration",
-    "outputMime": "image/svg+xml",
-    "outputExtension": "svg"
+    slug: "png-to-svg",
+    name: "PNG to SVG",
+    description: "Convert PNG images into downloadable SVG files while preserving their original appearance and transparency.",
+    category: "image",
+    icon: "WandSparkles",
+    acceptedTypes: ["image/png"],
+    method: "Browser-based SVG export",
+    status: "browser",
+    operation: "png-to-svg",
+    outputMime: "image/svg+xml",
+    outputExtension: "svg"
   },
   {
     "slug": "jpg-to-svg",

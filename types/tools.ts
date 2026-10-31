@@ -9,7 +9,7 @@ export type ToolDefinition = {
   acceptedTypes: string[];
   method: string;
   status: ToolStatus;
-  operation?: "resize" | "compress" | "crop" | "flip" | "grayscale" | "pixelate" | "text" | "border" | "combine" | "circle" | "metadata" | "blur" | "convert" | "rotate"| "unblur"; 
+  operation?: "resize" | "compress" | "crop" | "flip" | "grayscale" | "pixelate" | "text" | "border" | "combine" | "circle" | "metadata" | "blur" | "convert" | "rotate" | "unblur" | "png-to-svg" ;
   outputMime?: string;
   outputExtension?: string;
 };

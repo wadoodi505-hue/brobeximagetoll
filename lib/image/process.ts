@@ -1,5 +1,6 @@
 
 export type ImageOperation =
+  | "png-to-svg"
   | "resize"
   | "compress"
   | "crop"
@@ -167,6 +168,58 @@ export async function processImage(
   settings: ProcessSettings,
 ): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
   if (!file.size) throw new Error("The selected file is empty.");
+
+  // Export a PNG inside a standards-compatible SVG document.
+  if (settings.operation === "png-to-svg") {
+    if (file.type !== "image/png") {
+      throw new Error("Please upload a valid PNG image.");
+    }
+
+    const image = await loadImage(file);
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Could not read the PNG image."));
+          return;
+        }
+
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => reject(
+        new Error("Failed to read the PNG image."),
+      );
+
+      reader.readAsDataURL(file);
+    });
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${image.naturalWidth}"
+     height="${image.naturalHeight}"
+     viewBox="0 0 ${image.naturalWidth} ${image.naturalHeight}">
+  <image
+    width="${image.naturalWidth}"
+    height="${image.naturalHeight}"
+    href="${dataUrl}"
+    xlink:href="${dataUrl}"
+    preserveAspectRatio="none"
+  />
+</svg>`;
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+
+    return {
+      blob,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      mime: "image/svg+xml",
+    };
+  }
 
   const image = await loadImage(file);
   const maxDimension = 12000;
