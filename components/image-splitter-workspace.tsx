@@ -25,6 +25,8 @@ type TileResult = {
     url: string;
     width: number;
     height: number;
+    row: number;
+    column: number;
 };
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -226,6 +228,8 @@ export function ImageSplitterWorkspace() {
                         url,
                         width: tileWidth,
                         height: tileHeight,
+                        row: row + 1,
+                        column: column + 1,
                     });
 
                     canvas.width = 0;
@@ -631,39 +635,112 @@ export function ImageSplitterWorkspace() {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                                {tiles.map((tile, index) => (
-                                    <article
-                                        key={tile.name}
-                                        className="overflow-hidden rounded-xl border border-white/10 bg-[#090b0b]"
+                            <div className="space-y-7">
+
+                                {/* Reconstructed original image */}
+                                <div>
+                                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                        <div>
+                                            <h4 className="text-sm font-semibold text-white">
+                                                Reconstructed image
+                                            </h4>
+                                            <p className="mt-1 text-xs text-white/45">
+                                                All split pieces arranged in their original positions.
+                                            </p>
+                                        </div>
+
+                                        <span className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-xs text-emerald-300">
+                                            {rows} Rows × {columns} Columns
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        className="mx-auto w-full max-w-3xl overflow-hidden rounded-xl border border-white/15 bg-[#090b0b]"
+                                        style={{
+                                            aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+                                        }}
                                     >
-                                        <div className="flex aspect-square items-center justify-center bg-white/[0.03] p-3">
-                                            <img
-                                                src={tile.url}
-                                                alt={`Tile ${index + 1}`}
-                                                className="max-h-full max-w-full object-contain"
-                                            />
-                                        </div>
+                                        <div
+                                            className="grid h-full w-full gap-0"
+                                            style={{
+                                                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                                                gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+                                            }}
+                                        >
+                                            {tiles
+                                                .slice()
+                                                .sort((a, b) => a.row - b.row || a.column - b.column)
+                                                .map((tile) => (
+                                                    <div
+                                                        key={tile.name}
+                                                        className="relative min-h-0 min-w-0 overflow-hidden border-[0.5px] border-[#f0b18e]/50"
+                                                    >
+                                                        <img
+                                                            src={tile.url}
+                                                            alt={`Row ${tile.row}, column ${tile.column}`}
+                                                            className="block h-full w-full object-fill"
+                                                        />
 
-                                        <div className="p-3">
-                                            <p className="truncate text-xs font-semibold text-white/85">
-                                                Tile {index + 1}
-                                            </p>
-                                            <p className="mt-1 text-[10px] text-white/40">
-                                                {tile.width} × {tile.height}px
-                                            </p>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => downloadBlob(tile.blob, tile.name)}
-                                                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-2 py-2 text-xs text-white/75 transition hover:border-[#c77b53]/60 hover:text-white"
-                                            >
-                                                <Download size={14} />
-                                                Download PNG
-                                            </button>
+                                                        <span className="absolute bottom-1 left-1 rounded bg-black/75 px-1.5 py-1 text-[9px] text-white">
+                                                            {tile.row}:{tile.column}
+                                                        </span>
+                                                    </div>
+                                                ))}
                                         </div>
-                                    </article>
-                                ))}
+                                    </div>
+                                </div>
+
+                                {/* Individual downloadable tiles */}
+                                <div>
+                                    <div className="mb-4">
+                                        <h4 className="text-sm font-semibold text-white">
+                                            Individual image tiles
+                                        </h4>
+                                        <p className="mt-1 text-xs text-white/45">
+                                            Download any split section separately.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                                        {tiles
+                                            .slice()
+                                            .sort((a, b) => a.row - b.row || a.column - b.column)
+                                            .map((tile) => (
+                                                <article
+                                                    key={tile.name}
+                                                    className="overflow-hidden rounded-xl border border-white/10 bg-[#090b0b]"
+                                                >
+                                                    <div className="flex aspect-square items-center justify-center bg-white/[0.03] p-3">
+                                                        <img
+                                                            src={tile.url}
+                                                            alt={`Row ${tile.row}, column ${tile.column}`}
+                                                            className="max-h-full max-w-full object-contain"
+                                                        />
+                                                    </div>
+
+                                                    <div className="p-3">
+                                                        <p className="truncate text-xs font-semibold text-white/85">
+                                                            Row {tile.row} · Column {tile.column}
+                                                        </p>
+
+                                                        <p className="mt-1 text-[10px] text-white/40">
+                                                            {tile.width} × {tile.height}px
+                                                        </p>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => downloadBlob(tile.blob, tile.name)}
+                                                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-2 py-2 text-xs text-white/75 transition hover:border-[#c77b53]/60 hover:text-white"
+                                                        >
+                                                            <Download size={14} />
+                                                            Download PNG
+                                                        </button>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                    </div>
+                                </div>
+
                             </div>
                         </section>
                     )}

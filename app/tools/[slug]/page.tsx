@@ -1,4 +1,5 @@
-﻿import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
+﻿import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
+import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
@@ -119,6 +120,7 @@ export default async function ToolPage({
         </div>
 
         <div className="page-content">
+          
           <ToolSearch
             tools={listing}
             placeholder={`Search ${category.label.toLowerCase()} tools...`}
@@ -175,7 +177,9 @@ export default async function ToolPage({
         </div>
       </div>
       <div className="page-content">
-        {tool.slug === "image-splitter" ? (
+        {tool.slug === "font-awesome-to-png" ? (
+          <FontAwesomeToPngWorkspace />
+        ) : tool.slug === "image-splitter" ? (
           <ImageSplitterWorkspace />
         ) : tool.slug === "tiff-to-text" ? (
           <TiffToTextWorkspace />

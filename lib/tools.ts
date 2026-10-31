@@ -317,14 +317,12 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "font-awesome-to-png",
     "name": "Font Awesome to PNG",
-    "description": "Requires icon-font rendering configuration",
+    "description": "Browse, customize and export Font Awesome solid, regular and brand icons as PNG images.",
     "category": "image",
     "icon": "WandSparkles",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "Specialized browser/server integration",
-    "status": "integration"
+    "acceptedTypes": ["image/*"],
+    "method": "Font Awesome SVG + Browser Canvas API",
+    "status": "browser"
   },
   {
     "slug": "png-to-jpg",
