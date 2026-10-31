@@ -1,4 +1,4 @@
-
+﻿
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
@@ -11,6 +11,7 @@ import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
 import { PdfWorkspace } from "@/components/pdf-workspace";
 import { WritingWorkspace } from "@/components/writing-workspace";
 import { TranslateImageWorkspace } from "@/components/translate-image-workspace";
+import { ImageToTextWorkspace } from "@/components/image-to-text-workspace";
 import { ToolCard } from "@/components/tool-card";
 import { ToolSearch } from "@/components/tool-search";
 import { getTool, tools, categories } from "@/lib/tools";
@@ -159,7 +160,7 @@ export default async function ToolPage({
         </div>
 
         <div className="tool-detail-title">
-          <span className="tool-icon">âœ³</span>
+          <span className="tool-icon">Ã¢Å“Â³</span>
 
           <div>
             <h1>{tool.name}</h1>
@@ -175,7 +176,9 @@ export default async function ToolPage({
       </div>
 
       <div className="page-content">
-        {tool.slug === "translate-image" ? (
+        {tool.slug === "image-to-text" ? (
+          <ImageToTextWorkspace />
+        ) : tool.slug === "translate-image" ? (
           <TranslateImageWorkspace />
         ) : tool.slug === "colorize-photo" ? (
           <ColorizePhotoWorkspace />
@@ -193,7 +196,7 @@ export default async function ToolPage({
           <WritingWorkspace tool={tool} />
         ) : (
           <div className="integration-notice">
-            <span className="integration-icon">✳</span>
+            <span className="integration-icon">âœ³</span>
             <div>
               <h3>Processing engine not configured</h3>
               <p>
@@ -249,5 +252,6 @@ export default async function ToolPage({
     </div>
   );
 }
+
 
 
