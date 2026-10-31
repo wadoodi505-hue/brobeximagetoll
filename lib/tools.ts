@@ -299,7 +299,7 @@ export const tools: ToolDefinition[] = [
       ".csv",
       "text/csv"
     ],
-    "method": "Recharts + Papa Parse + Browser Canvas Export",
+    "method": "Recharts + Papa Parse + html-to-image + jsPDF",
     "status": "browser"
   },
   {

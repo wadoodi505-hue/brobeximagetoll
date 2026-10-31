@@ -26,6 +26,7 @@ import {
     PolarGrid,
     PolarAngleAxis,
     PolarRadiusAxis,
+    LabelList,
 } from "recharts";
 import Papa from "papaparse";
 import { toPng, toSvg } from "html-to-image";
@@ -46,7 +47,6 @@ import {
     FileSpreadsheet,
     Image as ImageIcon,
     FileText,
-    Check,
     Palette,
 } from "lucide-react";
 
@@ -60,6 +60,8 @@ type ChartType =
     | "radar";
 
 type DataRow = Record<string, string | number>;
+
+type ChartDataRow = Record<string, string | number | null>;
 
 const COLORS = [
     "#C77B53",
@@ -95,16 +97,38 @@ const CHART_OPTIONS: {
         { type: "radar", label: "Radar", icon: RadarIcon },
     ];
 
-function downloadFile(content: string, filename: string, type: string) {
+function downloadFile(
+    content: string,
+    filename: string,
+    type: string
+) {
     const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
 
     anchor.href = url;
     anchor.download = filename;
-    anchor.click();
+    anchor.style.display = "none";
 
-    URL.revokeObjectURL(url);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    window.setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 1000);
+}
+
+function downloadDataUrl(dataUrl: string, filename: string) {
+    const anchor = document.createElement("a");
+
+    anchor.href = dataUrl;
+    anchor.download = filename;
+    anchor.style.display = "none";
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
 }
 
 export function ChartMakerWorkspace() {
@@ -131,27 +155,49 @@ export function ChartMakerWorkspace() {
 
     const labelKey = columns[0] || "Category";
 
+    // A numeric series must contain at least one value.
+    // Every non-empty value in that series must be numeric.
     const numericKeys = useMemo(() => {
-        return columns.filter((key) =>
-            rows.some(
-                (row) =>
-                    row[key] !== "" &&
-                    row[key] !== null &&
-                    row[key] !== undefined &&
-                    Number.isFinite(Number(row[key]))
-            )
-        );
-    }, [columns, rows]);
+        return columns.filter((key) => {
+            if (key === labelKey) return false;
 
-    const chartData = useMemo(() => {
+            const values = rows
+                .map((row) => row[key])
+                .filter(
+                    (value) =>
+                        value !== "" &&
+                        value !== null &&
+                        value !== undefined
+                );
+
+            return (
+                values.length > 0 &&
+                values.every((value) => {
+                    if (typeof value === "string" && !value.trim()) {
+                        return false;
+                    }
+
+                    return Number.isFinite(Number(value));
+                })
+            );
+        });
+    }, [columns, rows, labelKey]);
+
+    const chartData = useMemo<ChartDataRow[]>(() => {
         return rows.map((row) => {
-            const result: Record<string, string | number> = {
+            const result: ChartDataRow = {
                 [labelKey]: String(row[labelKey] ?? ""),
             };
 
             numericKeys.forEach((key) => {
-                const value = Number(row[key]);
-                result[key] = Number.isFinite(value) ? value : 0;
+                const rawValue = row[key];
+
+                result[key] =
+                    rawValue === "" ||
+                        rawValue === null ||
+                        rawValue === undefined
+                        ? null
+                        : Number(rawValue);
             });
 
             return result;
@@ -162,8 +208,34 @@ export function ChartMakerWorkspace() {
         rows.length > 0 &&
         numericKeys.length > 0 &&
         chartData.some((row) =>
-            numericKeys.some((key) => Number.isFinite(Number(row[key])))
+            numericKeys.some(
+                (key) =>
+                    typeof row[key] === "number" &&
+                    Number.isFinite(row[key])
+            )
         );
+
+    const validPieData =
+        validData &&
+        chartData.some((row) => Number(row[numericKeys[0]]) > 0) &&
+        chartData.every((row) => Number(row[numericKeys[0]] ?? 0) >= 0);
+
+    const validScatterData =
+        validData &&
+        numericKeys.length >= 2 &&
+        chartData.some(
+            (row) =>
+                typeof row[numericKeys[0]] === "number" &&
+                typeof row[numericKeys[1]] === "number"
+        );
+
+    const chartReady =
+        validData &&
+        ((chartType === "pie" || chartType === "doughnut")
+            ? validPieData
+            : chartType === "scatter"
+                ? validScatterData
+                : true);
 
     function updateCell(
         rowIndex: number,
@@ -171,53 +243,88 @@ export function ChartMakerWorkspace() {
         value: string
     ) {
         setRows((previous) =>
-            previous.map((row, index) =>
-                index === rowIndex
-                    ? {
-                        ...row,
-                        [key]:
-                            key === labelKey
-                                ? value
-                                : value === ""
-                                    ? ""
-                                    : Number.isNaN(Number(value))
-                                        ? value
-                                        : Number(value),
+            previous.map((row, index) => {
+                if (index !== rowIndex) return row;
+
+                let updatedValue: string | number = value;
+
+                if (key !== labelKey && value.trim() !== "") {
+                    const numericValue = Number(value);
+
+                    if (Number.isFinite(numericValue)) {
+                        updatedValue = numericValue;
                     }
-                    : row
-            )
+                }
+
+                return {
+                    ...row,
+                    [key]: updatedValue,
+                };
+            })
         );
+
+        setMessage("");
     }
 
     function addRow() {
+        if (columns.length === 0) {
+            setRows([
+                { Category: "Item 1", Value: 0 },
+            ]);
+            return;
+        }
+
         const newRow: DataRow = {};
 
         columns.forEach((key, index) => {
-            newRow[key] = index === 0 ? `Item ${rows.length + 1}` : 0;
+            newRow[key] =
+                index === 0
+                    ? `Item ${rows.length + 1}`
+                    : 0;
         });
 
         setRows((previous) => [...previous, newRow]);
+        setMessage("");
     }
 
     function removeRow(index: number) {
-        setRows((previous) =>
-            previous.filter((_, rowIndex) => rowIndex !== index)
-        );
-    }
-
-    function addColumn() {
-        let name = `Series ${columns.length}`;
-
-        while (columns.includes(name)) {
-            name = `${name} New`;
+        if (rows.length <= 1) {
+            setMessage("At least one data row is required.");
+            return;
         }
 
         setRows((previous) =>
-            previous.map((row) => ({ ...row, [name]: 0 }))
+            previous.filter((_, rowIndex) => rowIndex !== index)
         );
+
+        setMessage("");
+    }
+
+    function addColumn() {
+        let counter = columns.length;
+        let name = `Series ${counter}`;
+
+        while (columns.includes(name)) {
+            counter += 1;
+            name = `Series ${counter}`;
+        }
+
+        setRows((previous) =>
+            previous.map((row) => ({
+                ...row,
+                [name]: 0,
+            }))
+        );
+
+        setMessage(`Added ${name}.`);
     }
 
     function removeColumn(key: string) {
+        if (key === labelKey) {
+            setMessage("The category column cannot be removed.");
+            return;
+        }
+
         if (columns.length <= 2) {
             setMessage("At least two columns are required.");
             return;
@@ -230,6 +337,8 @@ export function ChartMakerWorkspace() {
                 return updated;
             })
         );
+
+        setMessage(`Removed ${key}.`);
     }
 
     function loadSample() {
@@ -251,6 +360,7 @@ export function ChartMakerWorkspace() {
         setShowLegend(true);
         setShowGrid(true);
         setShowLabels(false);
+        setLoading(false);
         setMessage("Workspace reset.");
     }
 
@@ -258,38 +368,105 @@ export function ChartMakerWorkspace() {
         if (!file) return;
 
         if (!file.name.toLowerCase().endsWith(".csv")) {
-            setMessage("Please select a CSV file.");
+            setMessage("Please select a valid CSV file.");
             return;
         }
 
+        if (file.size > 10 * 1024 * 1024) {
+            setMessage("CSV files must be smaller than 10 MB.");
+            return;
+        }
+
+        setMessage("Importing CSV...");
+
         Papa.parse<DataRow>(file, {
             header: true,
-            skipEmptyLines: true,
-            dynamicTyping: true,
-            complete: (result) => {
-                const importedRows = result.data.filter(
-                    (row) => Object.keys(row).length > 1
-                );
+            skipEmptyLines: "greedy",
+            dynamicTyping: false,
+            transformHeader: (header) => header.trim(),
 
-                if (!importedRows.length) {
-                    setMessage("The CSV file contains no usable data.");
+            complete: (result) => {
+                const headers = result.meta.fields ?? [];
+
+                if (
+                    headers.length < 2 ||
+                    headers.some((header) => !header)
+                ) {
+                    setMessage(
+                        "Your CSV needs at least two columns with valid headers."
+                    );
+                    return;
+                }
+
+                if (result.errors.length > 0) {
+                    setMessage(
+                        `CSV formatting problem: ${result.errors[0].message}`
+                    );
+                    return;
+                }
+
+                const importedRows = result.data
+                    .map((row) => {
+                        const normalizedRow: DataRow = {};
+
+                        headers.forEach((header) => {
+                            const rawValue = row[header];
+
+                            normalizedRow[header] =
+                                typeof rawValue === "string"
+                                    ? rawValue.trim()
+                                    : rawValue ?? "";
+                        });
+
+                        return normalizedRow;
+                    })
+                    .filter((row) =>
+                        headers.some((header) => {
+                            const value = row[header];
+
+                            return (
+                                value !== "" &&
+                                value !== null &&
+                                value !== undefined
+                            );
+                        })
+                    );
+
+                if (importedRows.length === 0) {
+                    setMessage(
+                        "The CSV file contains no usable data rows."
+                    );
+                    return;
+                }
+
+                if (importedRows.length > 5000) {
+                    setMessage(
+                        "This CSV contains too many rows. Please use 5,000 rows or fewer."
+                    );
                     return;
                 }
 
                 setRows(importedRows);
                 setMessage(
-                    `Imported ${importedRows.length} rows successfully.`
+                    `Successfully imported ${importedRows.length} rows.`
                 );
             },
+
             error: () => {
-                setMessage("Could not read this CSV file.");
+                setMessage(
+                    "Could not read this CSV file. Please check its format."
+                );
             },
         });
     }
 
-    async function exportChart(format: "png" | "svg" | "pdf") {
-        if (!chartRef.current || !validData) {
-            setMessage("Add valid data before exporting.");
+    async function exportChart(
+        format: "png" | "svg" | "pdf"
+    ) {
+        if (!chartRef.current || !chartReady) {
+            setMessage(
+                "Please add valid data for the selected chart type before exporting."
+            );
             return;
         }
 
@@ -304,9 +481,14 @@ export function ChartMakerWorkspace() {
                 const svg = await toSvg(node, {
                     backgroundColor: background,
                     pixelRatio: 2,
+                    cacheBust: true,
                 });
 
-                downloadFile(svg, `${filename}.svg`, "image/svg+xml");
+                downloadFile(
+                    svg,
+                    `${filename}.svg`,
+                    "image/svg+xml;charset=utf-8"
+                );
             }
 
             if (format === "png") {
@@ -316,10 +498,7 @@ export function ChartMakerWorkspace() {
                     cacheBust: true,
                 });
 
-                const anchor = document.createElement("a");
-                anchor.href = png;
-                anchor.download = `${filename}.png`;
-                anchor.click();
+                downloadDataUrl(png, `${filename}.png`);
             }
 
             if (format === "pdf") {
@@ -335,14 +514,52 @@ export function ChartMakerWorkspace() {
                     format: "a4",
                 });
 
-                pdf.setFillColor(17, 20, 20);
-                pdf.rect(0, 0, 297, 210, "F");
-                pdf.addImage(png, "PNG", 10, 10, 277, 155);
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 10;
+
+                const image = pdf.getImageProperties(png);
+
+                const availableWidth = pageWidth - margin * 2;
+                const availableHeight = pageHeight - margin * 2;
+
+                const scale = Math.min(
+                    availableWidth / image.width,
+                    availableHeight / image.height
+                );
+
+                const imageWidth = image.width * scale;
+                const imageHeight = image.height * scale;
+
+                const x = (pageWidth - imageWidth) / 2;
+                const y = (pageHeight - imageHeight) / 2;
+
+                const hex = background.replace("#", "");
+                const red = parseInt(hex.substring(0, 2), 16);
+                const green = parseInt(hex.substring(2, 4), 16);
+                const blue = parseInt(hex.substring(4, 6), 16);
+
+                pdf.setFillColor(red, green, blue);
+                pdf.rect(0, 0, pageWidth, pageHeight, "F");
+
+                pdf.addImage(
+                    png,
+                    "PNG",
+                    x,
+                    y,
+                    imageWidth,
+                    imageHeight
+                );
+
                 pdf.save(`${filename}.pdf`);
             }
 
-            setMessage(`${format.toUpperCase()} exported successfully.`);
-        } catch {
+            setMessage(
+                `${format.toUpperCase()} exported successfully.`
+            );
+        } catch (error) {
+            console.error("Chart export failed:", error);
+
             setMessage(
                 "Export failed. Try again or use another export format."
             );
@@ -352,27 +569,42 @@ export function ChartMakerWorkspace() {
     }
 
     async function copyChart() {
-        if (!chartRef.current || !validData) return;
+        if (!chartRef.current || !chartReady) {
+            setMessage("Add valid chart data before copying.");
+            return;
+        }
+
+        if (
+            !navigator.clipboard ||
+            typeof ClipboardItem === "undefined" ||
+            !window.isSecureContext
+        ) {
+            setMessage(
+                "Image copying requires a supported browser and a secure connection."
+            );
+            return;
+        }
 
         try {
             const dataUrl = await toPng(chartRef.current, {
                 backgroundColor: background,
                 pixelRatio: 2,
+                cacheBust: true,
             });
 
-            const blob = await (await fetch(dataUrl)).blob();
-
-            if (!navigator.clipboard || !window.ClipboardItem) {
-                setMessage("Image copying is not supported in this browser.");
-                return;
-            }
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
 
             await navigator.clipboard.write([
-                new ClipboardItem({ "image/png": blob }),
+                new ClipboardItem({
+                    "image/png": blob,
+                }),
             ]);
 
             setMessage("Chart copied to clipboard.");
-        } catch {
+        } catch (error) {
+            console.error("Chart clipboard copy failed:", error);
+
             setMessage(
                 "Could not copy the chart. Check browser clipboard permissions."
             );
@@ -387,7 +619,7 @@ export function ChartMakerWorkspace() {
     function renderChart() {
         if (!validData) {
             return (
-                <div className="flex h-full min-h-[300px] items-center justify-center text-center">
+                <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                     <div>
                         <BarChart3 className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
                         <p className="font-semibold text-white">
@@ -401,7 +633,27 @@ export function ChartMakerWorkspace() {
             );
         }
 
-        if (chartType === "pie" || chartType === "doughnut") {
+        if (
+            chartType === "pie" ||
+            chartType === "doughnut"
+        ) {
+            if (!validPieData) {
+                return (
+                    <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
+                        <div>
+                            <PieChartIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+                            <p className="font-semibold text-white">
+                                Pie chart data is not valid
+                            </p>
+                            <p className="mt-2 text-sm text-white/45">
+                                Use one numeric series with non-negative
+                                values and at least one value greater than zero.
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
             const key = numericKeys[0];
 
             return (
@@ -413,7 +665,9 @@ export function ChartMakerWorkspace() {
                             nameKey={labelKey}
                             cx="50%"
                             cy="50%"
-                            innerRadius={chartType === "doughnut" ? "55%" : 0}
+                            innerRadius={
+                                chartType === "doughnut" ? "55%" : 0
+                            }
                             outerRadius="78%"
                             paddingAngle={3}
                             label={showLabels}
@@ -425,7 +679,9 @@ export function ChartMakerWorkspace() {
                                 />
                             ))}
                         </Pie>
+
                         <Tooltip />
+
                         {showLegend && <Legend />}
                     </PieChart>
                 </ResponsiveContainer>
@@ -437,8 +693,14 @@ export function ChartMakerWorkspace() {
                 <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={chartData}>
                         <PolarGrid stroke="#38413F" />
-                        <PolarAngleAxis dataKey={labelKey} stroke="#AAB3AE" />
+
+                        <PolarAngleAxis
+                            dataKey={labelKey}
+                            stroke="#AAB3AE"
+                        />
+
                         <PolarRadiusAxis stroke="#64706A" />
+
                         {numericKeys.map((key, index) => (
                             <Radar
                                 key={key}
@@ -449,7 +711,9 @@ export function ChartMakerWorkspace() {
                                 fillOpacity={0.18}
                             />
                         ))}
+
                         <Tooltip />
+
                         {showLegend && <Legend />}
                     </RadarChart>
                 </ResponsiveContainer>
@@ -457,31 +721,71 @@ export function ChartMakerWorkspace() {
         }
 
         if (chartType === "scatter") {
+            if (!validScatterData) {
+                return (
+                    <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
+                        <div>
+                            <ScatterIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+                            <p className="font-semibold text-white">
+                                Two numeric columns are required
+                            </p>
+                            <p className="mt-2 text-sm text-white/45">
+                                Add an X-value column and a Y-value column
+                                to create a scatter chart.
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const scatterData = chartData.filter(
+                (row) =>
+                    typeof row[numericKeys[0]] === "number" &&
+                    typeof row[numericKeys[1]] === "number"
+            );
+
             return (
                 <ResponsiveContainer width="100%" height="100%">
                     <ScatterChart>
-                        {showGrid && <CartesianGrid stroke="#303A36" />}
+                        {showGrid && (
+                            <CartesianGrid stroke="#303A36" />
+                        )}
+
                         <XAxis
                             type="number"
                             dataKey={numericKeys[0]}
                             name={numericKeys[0]}
                             stroke="#AAB3AE"
                             tick={chartStyle}
-                            label={{ value: xLabel, position: "insideBottom", offset: -5 }}
+                            label={{
+                                value: xLabel,
+                                position: "insideBottom",
+                                offset: -5,
+                            }}
                         />
+
                         <YAxis
                             type="number"
-                            dataKey={numericKeys[1] || numericKeys[0]}
-                            name={numericKeys[1] || numericKeys[0]}
+                            dataKey={numericKeys[1]}
+                            name={numericKeys[1]}
                             stroke="#AAB3AE"
                             tick={chartStyle}
-                            label={{ value: yLabel, angle: -90, position: "insideLeft" }}
+                            label={{
+                                value: yLabel,
+                                angle: -90,
+                                position: "insideLeft",
+                            }}
                         />
+
                         <ZAxis range={[60, 60]} />
-                        <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+
+                        <Tooltip
+                            cursor={{ strokeDasharray: "3 3" }}
+                        />
+
                         <Scatter
-                            name={title}
-                            data={chartData}
+                            name={title || "Data"}
+                            data={scatterData}
                             fill={COLORS[0]}
                         />
                     </ScatterChart>
@@ -492,8 +796,12 @@ export function ChartMakerWorkspace() {
         const commonAxes = (
             <>
                 {showGrid && (
-                    <CartesianGrid stroke="#303A36" strokeDasharray="4 4" />
+                    <CartesianGrid
+                        stroke="#303A36"
+                        strokeDasharray="4 4"
+                    />
                 )}
+
                 <XAxis
                     dataKey={labelKey}
                     stroke="#AAB3AE"
@@ -505,6 +813,7 @@ export function ChartMakerWorkspace() {
                         fill: "#AAB3AE",
                     }}
                 />
+
                 <YAxis
                     stroke="#AAB3AE"
                     tick={chartStyle}
@@ -515,6 +824,7 @@ export function ChartMakerWorkspace() {
                         fill: "#AAB3AE",
                     }}
                 />
+
                 <Tooltip
                     contentStyle={{
                         background: "#171D1B",
@@ -523,6 +833,7 @@ export function ChartMakerWorkspace() {
                         color: "#fff",
                     }}
                 />
+
                 {showLegend && <Legend />}
             </>
         );
@@ -532,16 +843,27 @@ export function ChartMakerWorkspace() {
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
                         {commonAxes}
+
                         {numericKeys.map((key, index) => (
                             <Line
                                 key={key}
                                 type="monotone"
                                 dataKey={key}
+                                name={key}
                                 stroke={COLORS[index % COLORS.length]}
                                 strokeWidth={3}
                                 dot={{ r: 4 }}
                                 activeDot={{ r: 6 }}
-                            />
+                            >
+                                {showLabels && (
+                                    <LabelList
+                                        dataKey={key}
+                                        position="top"
+                                        fill="#DCE4DF"
+                                        fontSize={10}
+                                    />
+                                )}
+                            </Line>
                         ))}
                     </LineChart>
                 </ResponsiveContainer>
@@ -553,16 +875,27 @@ export function ChartMakerWorkspace() {
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                         {commonAxes}
+
                         {numericKeys.map((key, index) => (
                             <Area
                                 key={key}
                                 type="monotone"
                                 dataKey={key}
+                                name={key}
                                 stroke={COLORS[index % COLORS.length]}
                                 fill={COLORS[index % COLORS.length]}
                                 fillOpacity={0.16}
                                 strokeWidth={2.5}
-                            />
+                            >
+                                {showLabels && (
+                                    <LabelList
+                                        dataKey={key}
+                                        position="top"
+                                        fill="#DCE4DF"
+                                        fontSize={10}
+                                    />
+                                )}
+                            </Area>
                         ))}
                     </AreaChart>
                 </ResponsiveContainer>
@@ -573,13 +906,24 @@ export function ChartMakerWorkspace() {
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                     {commonAxes}
+
                     {numericKeys.map((key, index) => (
                         <Bar
                             key={key}
                             dataKey={key}
+                            name={key}
                             fill={COLORS[index % COLORS.length]}
                             radius={[5, 5, 0, 0]}
-                        />
+                        >
+                            {showLabels && (
+                                <LabelList
+                                    dataKey={key}
+                                    position="top"
+                                    fill="#DCE4DF"
+                                    fontSize={10}
+                                />
+                            )}
+                        </Bar>
                     ))}
                 </BarChart>
             </ResponsiveContainer>
@@ -595,6 +939,24 @@ export function ChartMakerWorkspace() {
     const button =
         "inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-semibold text-white/80 transition hover:border-[#C77B53]/60 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50";
 
+    const displayOptions = [
+        {
+            label: "Show legend",
+            checked: showLegend,
+            setter: setShowLegend,
+        },
+        {
+            label: "Show grid",
+            checked: showGrid,
+            setter: setShowGrid,
+        },
+        {
+            label: "Show data labels",
+            checked: showLabels,
+            setter: setShowLabels,
+        },
+    ] as const;
+
     return (
         <div className="space-y-5 text-white">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -603,21 +965,32 @@ export function ChartMakerWorkspace() {
                         <div className="rounded-xl border border-[#C77B53]/30 bg-[#C77B53]/10 p-2">
                             <BarChart3 className="h-5 w-5 text-[#D99770]" />
                         </div>
+
                         <h2 className="text-xl font-bold tracking-tight">
                             Chart Maker
                         </h2>
                     </div>
+
                     <p className="mt-2 text-sm text-white/45">
                         Turn your data into clear, professional visualizations.
                     </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    <button className={button} onClick={loadSample}>
+                    <button
+                        type="button"
+                        className={button}
+                        onClick={loadSample}
+                    >
                         <FileSpreadsheet size={15} />
                         Sample data
                     </button>
-                    <button className={button} onClick={resetWorkspace}>
+
+                    <button
+                        type="button"
+                        className={button}
+                        onClick={resetWorkspace}
+                    >
                         <RotateCcw size={15} />
                         Reset
                     </button>
@@ -638,14 +1011,19 @@ export function ChartMakerWorkspace() {
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,1.15fr)]">
                 <div className="space-y-5">
                     <section className={panel}>
-                        <div className="mb-4 flex items-center justify-between gap-3">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h3 className="font-semibold">Your data</h3>
+                                <h3 className="font-semibold">
+                                    Your data
+                                </h3>
+
                                 <p className="mt-1 text-xs text-white/40">
                                     Edit values or import a CSV spreadsheet.
                                 </p>
                             </div>
+
                             <button
+                                type="button"
                                 className={button}
                                 onClick={() => fileInputRef.current?.click()}
                             >
@@ -665,9 +1043,12 @@ export function ChartMakerWorkspace() {
                                             >
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span>{column}</span>
+
                                                     {column !== labelKey && (
                                                         <button
+                                                            type="button"
                                                             title={`Remove ${column}`}
+                                                            aria-label={`Remove ${column} column`}
                                                             onClick={() => removeColumn(column)}
                                                             className="text-white/30 hover:text-red-400"
                                                         >
@@ -677,11 +1058,13 @@ export function ChartMakerWorkspace() {
                                                 </div>
                                             </th>
                                         ))}
+
                                         <th className="border-b border-white/10 p-2">
                                             Remove
                                         </th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {rows.map((row, rowIndex) => (
                                         <tr
@@ -689,7 +1072,10 @@ export function ChartMakerWorkspace() {
                                             className="border-b border-white/[0.06] last:border-0"
                                         >
                                             {columns.map((column) => (
-                                                <td key={column} className="p-1.5">
+                                                <td
+                                                    key={column}
+                                                    className="p-1.5"
+                                                >
                                                     <input
                                                         aria-label={`${column}, row ${rowIndex + 1}`}
                                                         value={String(row[column] ?? "")}
@@ -704,9 +1090,12 @@ export function ChartMakerWorkspace() {
                                                     />
                                                 </td>
                                             ))}
+
                                             <td className="p-2 text-center">
                                                 <button
+                                                    type="button"
                                                     title="Remove row"
+                                                    aria-label={`Remove row ${rowIndex + 1}`}
                                                     onClick={() => removeRow(rowIndex)}
                                                     className="text-white/30 hover:text-red-400"
                                                 >
@@ -720,11 +1109,20 @@ export function ChartMakerWorkspace() {
                         </div>
 
                         <div className="mt-3 flex flex-wrap gap-2">
-                            <button className={button} onClick={addRow}>
+                            <button
+                                type="button"
+                                className={button}
+                                onClick={addRow}
+                            >
                                 <Plus size={14} />
                                 Add row
                             </button>
-                            <button className={button} onClick={addColumn}>
+
+                            <button
+                                type="button"
+                                className={button}
+                                onClick={addColumn}
+                            >
                                 <Plus size={14} />
                                 Add column
                             </button>
@@ -732,7 +1130,10 @@ export function ChartMakerWorkspace() {
                     </section>
 
                     <section className={panel}>
-                        <h3 className="mb-4 font-semibold">Chart type</h3>
+                        <h3 className="mb-4 font-semibold">
+                            Chart type
+                        </h3>
+
                         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                             {CHART_OPTIONS.map((option) => {
                                 const Icon = option.icon;
@@ -740,7 +1141,9 @@ export function ChartMakerWorkspace() {
 
                                 return (
                                     <button
+                                        type="button"
                                         key={option.type}
+                                        aria-pressed={active}
                                         onClick={() => setChartType(option.type)}
                                         className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition ${active
                                                 ? "border-[#C77B53]/70 bg-[#C77B53]/10 text-[#E3A47F]"
@@ -757,58 +1160,75 @@ export function ChartMakerWorkspace() {
 
                     <section className={panel}>
                         <div className="mb-4 flex items-center gap-2">
-                            <Palette size={17} className="text-[#D99770]" />
-                            <h3 className="font-semibold">Chart customization</h3>
+                            <Palette
+                                size={17}
+                                className="text-[#D99770]"
+                            />
+
+                            <h3 className="font-semibold">
+                                Chart customization
+                            </h3>
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2">
                             <label className="space-y-1.5 text-xs text-white/55">
                                 Chart title
+
                                 <input
                                     value={title}
                                     onChange={(event) => setTitle(event.target.value)}
                                     className={field}
                                     placeholder="Enter chart title"
+                                    maxLength={120}
                                 />
                             </label>
 
                             <label className="space-y-1.5 text-xs text-white/55">
                                 Subtitle
+
                                 <input
                                     value={subtitle}
                                     onChange={(event) => setSubtitle(event.target.value)}
                                     className={field}
                                     placeholder="Enter subtitle"
+                                    maxLength={180}
                                 />
                             </label>
 
                             <label className="space-y-1.5 text-xs text-white/55">
                                 X-axis label
+
                                 <input
                                     value={xLabel}
                                     onChange={(event) => setXLabel(event.target.value)}
                                     className={field}
+                                    maxLength={80}
                                 />
                             </label>
 
                             <label className="space-y-1.5 text-xs text-white/55">
                                 Y-axis label
+
                                 <input
                                     value={yLabel}
                                     onChange={(event) => setYLabel(event.target.value)}
                                     className={field}
+                                    maxLength={80}
                                 />
                             </label>
 
                             <label className="space-y-1.5 text-xs text-white/55 sm:col-span-2">
                                 Chart background
+
                                 <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#0D1210] p-2">
                                     <input
                                         type="color"
                                         value={background}
                                         onChange={(event) => setBackground(event.target.value)}
+                                        aria-label="Chart background color"
                                         className="h-8 w-10 cursor-pointer rounded border-0 bg-transparent"
                                     />
+
                                     <span className="text-xs text-white/70">
                                         {background.toUpperCase()}
                                     </span>
@@ -817,28 +1237,25 @@ export function ChartMakerWorkspace() {
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-4">
-                            {[
-                                ["Show legend", showLegend, setShowLegend],
-                                ["Show grid", showGrid, setShowGrid],
-                                ["Show data labels", showLabels, setShowLabels],
-                            ].map(([label, checked, setter]) => (
-                                <label
-                                    key={String(label)}
-                                    className="flex cursor-pointer items-center gap-2 text-xs text-white/65"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={checked as boolean}
-                                        onChange={(event) =>
-                                            (setter as (value: boolean) => void)(
-                                                event.target.checked
-                                            )
-                                        }
-                                        className="accent-[#C77B53]"
-                                    />
-                                    {String(label)}
-                                </label>
-                            ))}
+                            {displayOptions.map(
+                                ({ label, checked, setter }) => (
+                                    <label
+                                        key={label}
+                                        className="flex cursor-pointer items-center gap-2 text-xs text-white/65"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={(event) =>
+                                                setter(event.target.checked)
+                                            }
+                                            className="accent-[#C77B53]"
+                                        />
+
+                                        {label}
+                                    </label>
+                                )
+                            )}
                         </div>
                     </section>
                 </div>
@@ -849,17 +1266,21 @@ export function ChartMakerWorkspace() {
                             <div>
                                 <div className="flex items-center gap-2">
                                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
+
                                     <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">
                                         Live preview
                                     </span>
                                 </div>
+
                                 <h3 className="mt-2 text-lg font-bold">
                                     {title || "Untitled chart"}
                                 </h3>
+
                                 <p className="mt-1 text-xs text-white/45">
                                     {subtitle}
                                 </p>
                             </div>
+
                             <span className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[10px] text-white/45">
                                 {chartType.toUpperCase()} CHART
                             </span>
@@ -874,13 +1295,16 @@ export function ChartMakerWorkspace() {
                                 <p className="text-sm font-semibold text-white">
                                     {title || "Untitled chart"}
                                 </p>
+
                                 <p className="mt-1 text-xs text-white/45">
                                     {subtitle}
                                 </p>
                             </div>
+
                             <div className="h-[340px] w-full sm:h-[410px]">
                                 {renderChart()}
                             </div>
+
                             <div className="mt-3 border-t border-white/10 pt-3 text-center text-[9px] text-white/30">
                                 Created with BROBEX Chart Maker
                             </div>
@@ -888,32 +1312,39 @@ export function ChartMakerWorkspace() {
 
                         <div className="mt-4 flex flex-wrap gap-2">
                             <button
+                                type="button"
                                 className={button}
-                                disabled={loading || !validData}
+                                disabled={loading || !chartReady}
                                 onClick={() => exportChart("png")}
                             >
                                 <ImageIcon size={14} />
                                 PNG
                             </button>
+
                             <button
+                                type="button"
                                 className={button}
-                                disabled={loading || !validData}
+                                disabled={loading || !chartReady}
                                 onClick={() => exportChart("svg")}
                             >
                                 <Download size={14} />
                                 SVG
                             </button>
+
                             <button
+                                type="button"
                                 className={button}
-                                disabled={loading || !validData}
+                                disabled={loading || !chartReady}
                                 onClick={() => exportChart("pdf")}
                             >
                                 <FileText size={14} />
                                 PDF
                             </button>
+
                             <button
+                                type="button"
                                 className={button}
-                                disabled={loading || !validData}
+                                disabled={loading || !chartReady}
                                 onClick={copyChart}
                             >
                                 <Copy size={14} />
@@ -930,16 +1361,19 @@ export function ChartMakerWorkspace() {
                         {message && (
                             <p
                                 role="status"
-                                className="mt-3 flex items-center gap-2 text-xs text-emerald-300"
+                                aria-live="polite"
+                                className="mt-3 text-xs text-[#D99770]"
                             >
-                                <Check size={14} />
                                 {message}
                             </p>
                         )}
                     </section>
 
                     <section className={panel}>
-                        <h3 className="font-semibold">Chart information</h3>
+                        <h3 className="font-semibold">
+                            Chart information
+                        </h3>
+
                         <div className="mt-4 grid grid-cols-2 gap-3">
                             {[
                                 ["Data rows", rows.length],
@@ -954,6 +1388,7 @@ export function ChartMakerWorkspace() {
                                     <p className="text-[10px] uppercase tracking-wider text-white/40">
                                         {label}
                                     </p>
+
                                     <p className="mt-2 text-lg font-semibold text-white">
                                         {value}
                                     </p>
