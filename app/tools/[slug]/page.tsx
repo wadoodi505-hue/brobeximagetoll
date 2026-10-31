@@ -4,7 +4,7 @@ import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
 import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
 import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
@@ -176,7 +176,9 @@ export default async function ToolPage({
       </div>
 
       <div className="page-content">
-        {tool.slug === "image-to-text" ? (
+        {tool.slug === "tiff-to-text" ? (
+          <TiffToTextWorkspace />
+        ) : tool.slug === "image-to-text" ? (
           <ImageToTextWorkspace />
         ) : tool.slug === "translate-image" ? (
           <TranslateImageWorkspace />

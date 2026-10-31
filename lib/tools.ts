@@ -97,14 +97,16 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "tiff-to-text",
     "name": "TIFF to Text",
-    "description": "Extract text from TIFF files using a TIFF decoder and OCR provider.",
+    "description": "Extract editable text from single-page and supported multi-page TIFF documents using local browser OCR.",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
-      "image/*"
+      ".tif",
+      ".tiff",
+      "image/tiff"
     ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    "method": "UTIF2 TIFF decoder + local Tesseract.js OCR",
+    "status": "browser"
   },
   {
     "slug": "resize-image-dimensions",
