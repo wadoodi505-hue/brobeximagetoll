@@ -228,3 +228,23 @@ export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
 }
 
 
+
+export function getDirectoryToolState(tool: DirectoryTool): {
+  href: string | null;
+  available: boolean;
+} {
+  if (!tool.slug) {
+    return { href: null, available: false };
+  }
+
+  const registeredTool = tools.find((entry) => entry.slug === tool.slug);
+
+  if (!registeredTool || registeredTool.status !== "browser") {
+    return { href: null, available: false };
+  }
+
+  return {
+    href: `/tools/${registeredTool.slug}`,
+    available: true
+  };
+}

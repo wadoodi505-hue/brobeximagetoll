@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, ArrowUpRight, Clock3 } from "lucide-react";
 import {
   imageToolCategories,
-  getDirectoryToolHref
+  getDirectoryToolState
 } from "@/lib/image-tool-directory";
 
 export function ImageToolDirectory() {
@@ -17,10 +17,8 @@ export function ImageToolDirectory() {
     return imageToolCategories
       .map((category) => ({
         ...category,
-        tools: category.tools.filter(
-          (tool) =>
-            Boolean(getDirectoryToolHref(tool)) &&
-            tool.name.toLowerCase().includes(search)
+        tools: category.tools.filter((tool) =>
+          tool.name.toLowerCase().includes(search)
         )
       }))
       .filter((category) => category.tools.length > 0);
@@ -33,6 +31,14 @@ export function ImageToolDirectory() {
 
   return (
     <section className="image-directory" aria-label="Image tool directory">
+      <div className="directory-intro">
+        <span className="directory-eyebrow">THE BROBEX TOOLKIT</span>
+        <h2 className="directory-main-title">Explore Image Tools</h2>
+        <p className="directory-main-description">
+          Everything you need to edit, resize, convert and optimize your images.
+        </p>
+      </div>
+
       <div className="directory-search">
         <Search size={19} aria-hidden="true" />
 
@@ -40,7 +46,7 @@ export function ImageToolDirectory() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search image tools..."
+          placeholder="Search for an image tool..."
           aria-label="Search image tools"
         />
 
@@ -59,26 +65,66 @@ export function ImageToolDirectory() {
 
       {filteredCategories.length > 0 ? (
         <div className="directory-categories">
-          {filteredCategories.map((category) => (
-            <section className="directory-category" key={category.name}>
+          {filteredCategories.map((category, categoryIndex) => (
+            <section
+              className="directory-category"
+              key={category.name}
+            >
               <div className="directory-category-heading">
+                <span className="directory-category-index">
+                  {String(categoryIndex + 1).padStart(2, "0")}
+                </span>
+
                 <h2>{category.name}</h2>
+
+                <span className="directory-category-count">
+                  {String(category.tools.length).padStart(2, "0")} TOOLS
+                </span>
               </div>
 
               <div className="directory-tool-list">
                 {category.tools.map((tool, index) => {
-                  const href = getDirectoryToolHref(tool);
+                  const state = getDirectoryToolState(tool);
 
-                  if (!href) return null;
+                  const content = (
+                    <>
+                      <span className="directory-tool-number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
 
-                  return (
+                      <span className="directory-tool-name">
+                        {tool.name}
+                      </span>
+
+                      {state.available ? (
+                        <span className="directory-tool-action">
+                          <ArrowUpRight size={17} />
+                        </span>
+                      ) : (
+                        <span className="directory-tool-status">
+                          <Clock3 size={12} />
+                          Coming Soon
+                        </span>
+                      )}
+                    </>
+                  );
+
+                  return state.available && state.href ? (
                     <Link
                       className="directory-tool"
-                      href={href}
+                      href={state.href}
                       key={`${category.name}-${tool.name}-${index}`}
                     >
-                      <span>{tool.name}</span>
+                      {content}
                     </Link>
+                  ) : (
+                    <div
+                      className="directory-tool directory-tool--unavailable"
+                      key={`${category.name}-${tool.name}-${index}`}
+                      aria-label={`${tool.name}, coming soon`}
+                    >
+                      {content}
+                    </div>
                   );
                 })}
               </div>
@@ -87,7 +133,9 @@ export function ImageToolDirectory() {
         </div>
       ) : (
         <div className="directory-empty">
-          No matching tools found. Try another search.
+          <Search size={25} />
+          <p>No matching tools found.</p>
+          <span>Try another search term.</span>
         </div>
       )}
     </section>
