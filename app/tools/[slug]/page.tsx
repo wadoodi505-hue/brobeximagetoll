@@ -1,4 +1,4 @@
-﻿
+
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
@@ -10,6 +10,7 @@ import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
 import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
 import { PdfWorkspace } from "@/components/pdf-workspace";
 import { WritingWorkspace } from "@/components/writing-workspace";
+import { TranslateImageWorkspace } from "@/components/translate-image-workspace";
 import { ToolCard } from "@/components/tool-card";
 import { ToolSearch } from "@/components/tool-search";
 import { getTool, tools, categories } from "@/lib/tools";
@@ -174,7 +175,9 @@ export default async function ToolPage({
       </div>
 
       <div className="page-content">
-        {tool.slug === "colorize-photo" ? (
+        {tool.slug === "translate-image" ? (
+          <TranslateImageWorkspace />
+        ) : tool.slug === "colorize-photo" ? (
           <ColorizePhotoWorkspace />
         ) : tool.slug === "photo-cleanup" ? (
           <PhotoCleanupWorkspace />

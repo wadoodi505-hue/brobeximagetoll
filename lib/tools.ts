@@ -1,4 +1,4 @@
-﻿import type { ToolDefinition, Category } from "@/types/tools";
+import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -79,8 +79,8 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    "method": "Tesseract.js browser OCR + MyMemory free translation service",
+    "status": "browser"
   },
   {
     "slug": "image-to-text",

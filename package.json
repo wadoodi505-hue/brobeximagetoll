@@ -20,7 +20,8 @@
     "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "replicate": "^1.4.0"
+    "replicate": "^1.4.0",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
