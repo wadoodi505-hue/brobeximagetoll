@@ -106,19 +106,7 @@ export const tools: ToolDefinition[] = [
     "method": "AI provider / OCR integration",
     "status": "integration"
   },
-  {
-    "slug": "resize-image-dimensions",
-    "name": "Resize Image Dimensions",
-    "description": "Change image width and height with optional aspect-ratio locking",
-    "category": "image",
-    "icon": "Image",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "Canvas API",
-    "status": "browser",
-    "operation": "resize"
-  },
+ 
   {
     "slug": "compress-image-size",
     "name": "Compress Image Size",
