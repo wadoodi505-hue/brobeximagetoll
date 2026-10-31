@@ -1596,3 +1596,197 @@ button:disabled {
         letter-spacing: 0.12em;
     }
 }
+/* BROBEX image tool directory */
+.image-directory {
+    width: 100%;
+    margin-top: 22px;
+}
+
+.directory-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 54px;
+    padding: 0 17px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface);
+    color: var(--muted);
+}
+
+.directory-search input {
+    flex: 1;
+    min-width: 0;
+    height: 50px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+}
+
+.directory-search input::placeholder {
+    color: var(--muted);
+    opacity: .8;
+}
+
+.directory-search button {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.directory-results {
+    margin: 13px 2px 22px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.directory-categories {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.directory-category {
+    min-width: 0;
+    padding: 21px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: var(--surface);
+}
+
+.directory-category-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--line);
+}
+
+.directory-category-heading h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.directory-category-heading > span {
+    display: grid;
+    place-items: center;
+    min-width: 27px;
+    height: 27px;
+    padding: 0 7px;
+    border-radius: 8px;
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.directory-tool-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.directory-tool {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    min-width: 0;
+    min-height: 39px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: background .16s ease, border-color .16s ease;
+}
+
+.directory-tool svg {
+    flex: 0 0 auto;
+    opacity: .45;
+}
+
+.directory-tool:hover {
+    border-color: var(--line);
+    background: var(--soft);
+}
+
+.directory-tool-unavailable {
+    color: var(--muted);
+    cursor: default;
+}
+
+.directory-empty {
+    padding: 35px 15px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .directory-categories {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .directory-category {
+        padding: 15px;
+    }
+
+    .directory-category-heading h3 {
+        font-size: 15px;
+    }
+
+    .directory-tool-list {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .directory-tool {
+        min-height: 40px;
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .directory-search {
+        min-height: 50px;
+        padding: 0 12px;
+    }
+
+    .directory-search input {
+        height: 46px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 640px) {
+    .directory-search {
+        min-height: 50px;
+        padding: 0 12px;
+    }
+
+    .directory-search input {
+        height: 46px;
+        font-size: 13px;
+    }
+}
