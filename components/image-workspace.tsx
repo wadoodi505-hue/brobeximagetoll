@@ -184,6 +184,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [metadata, setMetadata] = useState<Metadata | null>(null);
 
   const operationId = useRef(0);
+  const autoCompressFileRef = useRef<File | null>(null);
   const previewRef = useRef("");
   const resultRef = useRef("");
 
@@ -1362,6 +1363,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 function WandIcon() {
   return <span aria-hidden="true">âœ³</span>;
 }
+
 
 
 
