@@ -19,7 +19,7 @@ export function ImageToolDirectory() {
         ...category,
         tools: category.tools.filter(
           (tool) =>
-            getDirectoryToolHref(tool) &&
+            Boolean(getDirectoryToolHref(tool)) &&
             tool.name.toLowerCase().includes(search)
         )
       }))
