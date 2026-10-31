@@ -16,7 +16,7 @@ export const imageToolCategories: DirectoryCategory[] = [
   {
     name: "Most Used Tools",
     tools: [
-      item("Passport Photo Maker"),
+      item("Passport Photo Maker", "passport-photo-maker"),
       item("Reduce Image Size in KB", "compress-image-size"),
       item("Resize Image Pixel", "resize-image-dimensions"),
       item("Text to Handwriting"),
@@ -120,7 +120,7 @@ export const imageToolCategories: DirectoryCategory[] = [
   {
     name: "Passport & ID Photo Sizes",
     tools: [
-      item("Passport Photo Maker"),
+      item("Passport Photo Maker", "passport-photo-maker"),
       item("Red Background Passport"),
       item("White Background Passport"),
       item("Resize Passport"),
@@ -227,3 +227,4 @@ export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
   if (!tool.slug || !registeredSlugs.has(tool.slug)) return undefined;
   return `/tools/${tool.slug}`;
 }
+
