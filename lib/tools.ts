@@ -43,8 +43,8 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    "method": "Local AI background segmentation using BROBEX engine",
+    "status": "browser"
   },
   {
     "slug": "blur-background",
@@ -1066,6 +1066,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
