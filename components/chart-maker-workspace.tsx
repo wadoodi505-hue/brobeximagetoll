@@ -119,7 +119,10 @@ function downloadFile(
     }, 1000);
 }
 
-function downloadDataUrl(dataUrl: string, filename: string) {
+function downloadDataUrl(
+    dataUrl: string,
+    filename: string
+) {
     const anchor = document.createElement("a");
 
     anchor.href = dataUrl;
@@ -155,8 +158,7 @@ export function ChartMakerWorkspace() {
 
     const labelKey = columns[0] || "Category";
 
-    // A numeric series must contain at least one value.
-    // Every non-empty value in that series must be numeric.
+    // Identify valid numeric columns.
     const numericKeys = useMemo(() => {
         return columns.filter((key) => {
             if (key === labelKey) return false;
@@ -167,22 +169,21 @@ export function ChartMakerWorkspace() {
                     (value) =>
                         value !== "" &&
                         value !== null &&
-                        value !== undefined
+                        value !== undefined &&
+                        !(typeof value === "string" && !value.trim())
                 );
 
             return (
                 values.length > 0 &&
-                values.every((value) => {
-                    if (typeof value === "string" && !value.trim()) {
-                        return false;
-                    }
-
-                    return Number.isFinite(Number(value));
-                })
+                values.every((value) =>
+                    Number.isFinite(Number(value))
+                )
             );
         });
     }, [columns, rows, labelKey]);
 
+    // Convert table values into chart-compatible data.
+    // Empty numeric cells remain null rather than becoming zero.
     const chartData = useMemo<ChartDataRow[]>(() => {
         return rows.map((row) => {
             const result: ChartDataRow = {
@@ -208,35 +209,51 @@ export function ChartMakerWorkspace() {
         rows.length > 0 &&
         numericKeys.length > 0 &&
         chartData.some((row) =>
-            numericKeys.some(
-                (key) =>
-                    typeof row[key] === "number" &&
-                    Number.isFinite(row[key])
-            )
+            numericKeys.some((key) => {
+                const value = row[key];
+
+                return (
+                    typeof value === "number" &&
+                    Number.isFinite(value)
+                );
+            })
         );
 
     const validPieData =
         validData &&
-        chartData.some((row) => Number(row[numericKeys[0]]) > 0) &&
-        chartData.every((row) => Number(row[numericKeys[0]] ?? 0) >= 0);
+        chartData.some(
+            (row) => Number(row[numericKeys[0]]) > 0
+        ) &&
+        chartData.every(
+            (row) => Number(row[numericKeys[0]] ?? 0) >= 0
+        );
 
     const validScatterData =
         validData &&
         numericKeys.length >= 2 &&
-        chartData.some(
-            (row) =>
-                typeof row[numericKeys[0]] === "number" &&
-                typeof row[numericKeys[1]] === "number"
-        );
+        chartData.some((row) => {
+            const x = row[numericKeys[0]];
+            const y = row[numericKeys[1]];
+
+            return (
+                typeof x === "number" &&
+                Number.isFinite(x) &&
+                typeof y === "number" &&
+                Number.isFinite(y)
+            );
+        });
 
     const chartReady =
         validData &&
-        ((chartType === "pie" || chartType === "doughnut")
-            ? validPieData
-            : chartType === "scatter"
-                ? validScatterData
-                : true);
+        (
+            chartType === "pie" || chartType === "doughnut"
+                ? validPieData
+                : chartType === "scatter"
+                    ? validScatterData
+                    : true
+        );
 
+    // Edit an individual data cell.
     function updateCell(
         rowIndex: number,
         key: string,
@@ -266,11 +283,65 @@ export function ChartMakerWorkspace() {
         setMessage("");
     }
 
+    // Rename a category or numeric series column.
+    function renameColumn(
+        oldName: string,
+        newName: string
+    ): boolean {
+        const trimmedName = newName.trim();
+
+        if (!trimmedName) {
+            setMessage("Column name cannot be empty.");
+            return false;
+        }
+
+        if (trimmedName === oldName) {
+            return true;
+        }
+
+        const duplicate = columns.some(
+            (column) =>
+                column !== oldName &&
+                column.toLowerCase() === trimmedName.toLowerCase()
+        );
+
+        if (duplicate) {
+            setMessage(
+                "A column with this name already exists."
+            );
+
+            return false;
+        }
+
+        setRows((previous) =>
+            previous.map((row) => {
+                const updated: DataRow = {};
+
+                Object.entries(row).forEach(([key, value]) => {
+                    updated[
+                        key === oldName ? trimmedName : key
+                    ] = value;
+                });
+
+                return updated;
+            })
+        );
+
+        setMessage(
+            `Renamed "${oldName}" to "${trimmedName}".`
+        );
+
+        return true;
+    }
+
+    // Add a new data row.
     function addRow() {
         if (columns.length === 0) {
             setRows([
                 { Category: "Item 1", Value: 0 },
             ]);
+
+            setMessage("");
             return;
         }
 
@@ -287,19 +358,26 @@ export function ChartMakerWorkspace() {
         setMessage("");
     }
 
+    // Remove a data row.
     function removeRow(index: number) {
         if (rows.length <= 1) {
-            setMessage("At least one data row is required.");
+            setMessage(
+                "At least one data row is required."
+            );
+
             return;
         }
 
         setRows((previous) =>
-            previous.filter((_, rowIndex) => rowIndex !== index)
+            previous.filter(
+                (_, rowIndex) => rowIndex !== index
+            )
         );
 
         setMessage("");
     }
 
+    // Add a new numeric series.
     function addColumn() {
         let counter = columns.length;
         let name = `Series ${counter}`;
@@ -319,14 +397,21 @@ export function ChartMakerWorkspace() {
         setMessage(`Added ${name}.`);
     }
 
+    // Remove a numeric series.
     function removeColumn(key: string) {
         if (key === labelKey) {
-            setMessage("The category column cannot be removed.");
+            setMessage(
+                "The category column cannot be removed."
+            );
+
             return;
         }
 
         if (columns.length <= 2) {
-            setMessage("At least two columns are required.");
+            setMessage(
+                "At least two columns are required."
+            );
+
             return;
         }
 
@@ -342,7 +427,10 @@ export function ChartMakerWorkspace() {
     }
 
     function loadSample() {
-        setRows(INITIAL_ROWS);
+        setRows(
+            INITIAL_ROWS.map((row) => ({ ...row }))
+        );
+
         setChartType("bar");
         setTitle("Monthly Business Performance");
         setSubtitle("Sales and profit overview");
@@ -350,7 +438,10 @@ export function ChartMakerWorkspace() {
     }
 
     function resetWorkspace() {
-        setRows(INITIAL_ROWS);
+        setRows(
+            INITIAL_ROWS.map((row) => ({ ...row }))
+        );
+
         setChartType("bar");
         setTitle("Monthly Business Performance");
         setSubtitle("Sales and profit overview");
@@ -364,6 +455,7 @@ export function ChartMakerWorkspace() {
         setMessage("Workspace reset.");
     }
 
+    // Import CSV data.
     function importCSV(file?: File) {
         if (!file) return;
 
@@ -373,7 +465,10 @@ export function ChartMakerWorkspace() {
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            setMessage("CSV files must be smaller than 10 MB.");
+            setMessage(
+                "CSV files must be smaller than 10 MB."
+            );
+
             return;
         }
 
@@ -395,6 +490,22 @@ export function ChartMakerWorkspace() {
                     setMessage(
                         "Your CSV needs at least two columns with valid headers."
                     );
+
+                    return;
+                }
+
+                const normalizedHeaders = headers.map(
+                    (header) => header.toLowerCase()
+                );
+
+                if (
+                    new Set(normalizedHeaders).size !==
+                    normalizedHeaders.length
+                ) {
+                    setMessage(
+                        "Your CSV contains duplicate column names. Please rename them and try again."
+                    );
+
                     return;
                 }
 
@@ -402,6 +513,7 @@ export function ChartMakerWorkspace() {
                     setMessage(
                         `CSV formatting problem: ${result.errors[0].message}`
                     );
+
                     return;
                 }
 
@@ -436,6 +548,7 @@ export function ChartMakerWorkspace() {
                     setMessage(
                         "The CSV file contains no usable data rows."
                     );
+
                     return;
                 }
 
@@ -443,10 +556,12 @@ export function ChartMakerWorkspace() {
                     setMessage(
                         "This CSV contains too many rows. Please use 5,000 rows or fewer."
                     );
+
                     return;
                 }
 
                 setRows(importedRows);
+
                 setMessage(
                     `Successfully imported ${importedRows.length} rows.`
                 );
@@ -460,6 +575,7 @@ export function ChartMakerWorkspace() {
         });
     }
 
+    // Export chart as PNG, SVG, or PDF.
     async function exportChart(
         format: "png" | "svg" | "pdf"
     ) {
@@ -467,6 +583,7 @@ export function ChartMakerWorkspace() {
             setMessage(
                 "Please add valid data for the selected chart type before exporting."
             );
+
             return;
         }
 
@@ -489,19 +606,18 @@ export function ChartMakerWorkspace() {
                     `${filename}.svg`,
                     "image/svg+xml;charset=utf-8"
                 );
-            }
-
-            if (format === "png") {
+            } else if (format === "png") {
                 const png = await toPng(node, {
                     backgroundColor: background,
                     pixelRatio: 3,
                     cacheBust: true,
                 });
 
-                downloadDataUrl(png, `${filename}.png`);
-            }
-
-            if (format === "pdf") {
+                downloadDataUrl(
+                    png,
+                    `${filename}.png`
+                );
+            } else {
                 const png = await toPng(node, {
                     backgroundColor: background,
                     pixelRatio: 2,
@@ -514,14 +630,21 @@ export function ChartMakerWorkspace() {
                     format: "a4",
                 });
 
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
+                const pageWidth =
+                    pdf.internal.pageSize.getWidth();
+
+                const pageHeight =
+                    pdf.internal.pageSize.getHeight();
+
                 const margin = 10;
 
                 const image = pdf.getImageProperties(png);
 
-                const availableWidth = pageWidth - margin * 2;
-                const availableHeight = pageHeight - margin * 2;
+                const availableWidth =
+                    pageWidth - margin * 2;
+
+                const availableHeight =
+                    pageHeight - margin * 2;
 
                 const scale = Math.min(
                     availableWidth / image.width,
@@ -531,16 +654,37 @@ export function ChartMakerWorkspace() {
                 const imageWidth = image.width * scale;
                 const imageHeight = image.height * scale;
 
-                const x = (pageWidth - imageWidth) / 2;
-                const y = (pageHeight - imageHeight) / 2;
+                const x =
+                    (pageWidth - imageWidth) / 2;
+
+                const y =
+                    (pageHeight - imageHeight) / 2;
 
                 const hex = background.replace("#", "");
-                const red = parseInt(hex.substring(0, 2), 16);
-                const green = parseInt(hex.substring(2, 4), 16);
-                const blue = parseInt(hex.substring(4, 6), 16);
+
+                const red = parseInt(
+                    hex.substring(0, 2),
+                    16
+                );
+
+                const green = parseInt(
+                    hex.substring(2, 4),
+                    16
+                );
+
+                const blue = parseInt(
+                    hex.substring(4, 6),
+                    16
+                );
 
                 pdf.setFillColor(red, green, blue);
-                pdf.rect(0, 0, pageWidth, pageHeight, "F");
+                pdf.rect(
+                    0,
+                    0,
+                    pageWidth,
+                    pageHeight,
+                    "F"
+                );
 
                 pdf.addImage(
                     png,
@@ -558,7 +702,10 @@ export function ChartMakerWorkspace() {
                 `${format.toUpperCase()} exported successfully.`
             );
         } catch (error) {
-            console.error("Chart export failed:", error);
+            console.error(
+                "Chart export failed:",
+                error
+            );
 
             setMessage(
                 "Export failed. Try again or use another export format."
@@ -568,9 +715,13 @@ export function ChartMakerWorkspace() {
         }
     }
 
+    // Copy chart as a PNG image.
     async function copyChart() {
         if (!chartRef.current || !chartReady) {
-            setMessage("Add valid chart data before copying.");
+            setMessage(
+                "Add valid chart data before copying."
+            );
+
             return;
         }
 
@@ -582,15 +733,19 @@ export function ChartMakerWorkspace() {
             setMessage(
                 "Image copying requires a supported browser and a secure connection."
             );
+
             return;
         }
 
         try {
-            const dataUrl = await toPng(chartRef.current, {
-                backgroundColor: background,
-                pixelRatio: 2,
-                cacheBust: true,
-            });
+            const dataUrl = await toPng(
+                chartRef.current,
+                {
+                    backgroundColor: background,
+                    pixelRatio: 2,
+                    cacheBust: true,
+                }
+            );
 
             const response = await fetch(dataUrl);
             const blob = await response.blob();
@@ -603,7 +758,10 @@ export function ChartMakerWorkspace() {
 
             setMessage("Chart copied to clipboard.");
         } catch (error) {
-            console.error("Chart clipboard copy failed:", error);
+            console.error(
+                "Chart clipboard copy failed:",
+                error
+            );
 
             setMessage(
                 "Could not copy the chart. Check browser clipboard permissions."
@@ -622,9 +780,11 @@ export function ChartMakerWorkspace() {
                 <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                     <div>
                         <BarChart3 className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+
                         <p className="font-semibold text-white">
                             Your chart will appear here
                         </p>
+
                         <p className="mt-2 text-sm text-white/45">
                             Add numeric data to generate your chart.
                         </p>
@@ -633,6 +793,7 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Pie and doughnut charts.
         if (
             chartType === "pie" ||
             chartType === "doughnut"
@@ -642,9 +803,11 @@ export function ChartMakerWorkspace() {
                     <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                         <div>
                             <PieChartIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+
                             <p className="font-semibold text-white">
                                 Pie chart data is not valid
                             </p>
+
                             <p className="mt-2 text-sm text-white/45">
                                 Use one numeric series with non-negative
                                 values and at least one value greater than zero.
@@ -666,7 +829,9 @@ export function ChartMakerWorkspace() {
                             cx="50%"
                             cy="50%"
                             innerRadius={
-                                chartType === "doughnut" ? "55%" : 0
+                                chartType === "doughnut"
+                                    ? "55%"
+                                    : 0
                             }
                             outerRadius="78%"
                             paddingAngle={3}
@@ -675,7 +840,9 @@ export function ChartMakerWorkspace() {
                             {chartData.map((_, index) => (
                                 <Cell
                                     key={index}
-                                    fill={COLORS[index % COLORS.length]}
+                                    fill={
+                                        COLORS[index % COLORS.length]
+                                    }
                                 />
                             ))}
                         </Pie>
@@ -688,6 +855,7 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Radar chart.
         if (chartType === "radar") {
             return (
                 <ResponsiveContainer width="100%" height="100%">
@@ -706,8 +874,12 @@ export function ChartMakerWorkspace() {
                                 key={key}
                                 name={key}
                                 dataKey={key}
-                                stroke={COLORS[index % COLORS.length]}
-                                fill={COLORS[index % COLORS.length]}
+                                stroke={
+                                    COLORS[index % COLORS.length]
+                                }
+                                fill={
+                                    COLORS[index % COLORS.length]
+                                }
                                 fillOpacity={0.18}
                             />
                         ))}
@@ -720,15 +892,18 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Scatter chart.
         if (chartType === "scatter") {
             if (!validScatterData) {
                 return (
                     <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                         <div>
                             <ScatterIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+
                             <p className="font-semibold text-white">
                                 Two numeric columns are required
                             </p>
+
                             <p className="mt-2 text-sm text-white/45">
                                 Add an X-value column and a Y-value column
                                 to create a scatter chart.
@@ -738,11 +913,17 @@ export function ChartMakerWorkspace() {
                 );
             }
 
-            const scatterData = chartData.filter(
-                (row) =>
-                    typeof row[numericKeys[0]] === "number" &&
-                    typeof row[numericKeys[1]] === "number"
-            );
+            const scatterData = chartData.filter((row) => {
+                const x = row[numericKeys[0]];
+                const y = row[numericKeys[1]];
+
+                return (
+                    typeof x === "number" &&
+                    Number.isFinite(x) &&
+                    typeof y === "number" &&
+                    Number.isFinite(y)
+                );
+            });
 
             return (
                 <ResponsiveContainer width="100%" height="100%">
@@ -780,7 +961,9 @@ export function ChartMakerWorkspace() {
                         <ZAxis range={[60, 60]} />
 
                         <Tooltip
-                            cursor={{ strokeDasharray: "3 3" }}
+                            cursor={{
+                                strokeDasharray: "3 3",
+                            }}
                         />
 
                         <Scatter
@@ -793,6 +976,7 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Shared axes for bar, line, and area charts.
         const commonAxes = (
             <>
                 {showGrid && (
@@ -838,6 +1022,7 @@ export function ChartMakerWorkspace() {
             </>
         );
 
+        // Line chart.
         if (chartType === "line") {
             return (
                 <ResponsiveContainer width="100%" height="100%">
@@ -850,7 +1035,9 @@ export function ChartMakerWorkspace() {
                                 type="monotone"
                                 dataKey={key}
                                 name={key}
-                                stroke={COLORS[index % COLORS.length]}
+                                stroke={
+                                    COLORS[index % COLORS.length]
+                                }
                                 strokeWidth={3}
                                 dot={{ r: 4 }}
                                 activeDot={{ r: 6 }}
@@ -870,6 +1057,7 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Area chart.
         if (chartType === "area") {
             return (
                 <ResponsiveContainer width="100%" height="100%">
@@ -882,8 +1070,12 @@ export function ChartMakerWorkspace() {
                                 type="monotone"
                                 dataKey={key}
                                 name={key}
-                                stroke={COLORS[index % COLORS.length]}
-                                fill={COLORS[index % COLORS.length]}
+                                stroke={
+                                    COLORS[index % COLORS.length]
+                                }
+                                fill={
+                                    COLORS[index % COLORS.length]
+                                }
                                 fillOpacity={0.16}
                                 strokeWidth={2.5}
                             >
@@ -902,6 +1094,7 @@ export function ChartMakerWorkspace() {
             );
         }
 
+        // Bar chart.
         return (
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
@@ -912,7 +1105,9 @@ export function ChartMakerWorkspace() {
                             key={key}
                             dataKey={key}
                             name={key}
-                            fill={COLORS[index % COLORS.length]}
+                            fill={
+                                COLORS[index % COLORS.length]
+                            }
                             radius={[5, 5, 0, 0]}
                         >
                             {showLabels && (
@@ -959,6 +1154,7 @@ export function ChartMakerWorkspace() {
 
     return (
         <div className="space-y-5 text-white">
+            {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-2">
@@ -997,6 +1193,7 @@ export function ChartMakerWorkspace() {
                 </div>
             </div>
 
+            {/* CSV input */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -1010,6 +1207,7 @@ export function ChartMakerWorkspace() {
 
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,1.15fr)]">
                 <div className="space-y-5">
+                    {/* Data editor */}
                     <section className={panel}>
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <div>
@@ -1018,14 +1216,16 @@ export function ChartMakerWorkspace() {
                                 </h3>
 
                                 <p className="mt-1 text-xs text-white/40">
-                                    Edit values or import a CSV spreadsheet.
+                                    Edit values, rename columns, or import a CSV spreadsheet.
                                 </p>
                             </div>
 
                             <button
                                 type="button"
                                 className={button}
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() =>
+                                    fileInputRef.current?.click()
+                                }
                             >
                                 <Upload size={14} />
                                 Import CSV
@@ -1039,18 +1239,59 @@ export function ChartMakerWorkspace() {
                                         {columns.map((column) => (
                                             <th
                                                 key={column}
-                                                className="min-w-[100px] border-b border-white/10 p-2"
+                                                className="min-w-[110px] border-b border-white/10 p-2"
                                             >
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <span>{column}</span>
+                                                    <input
+                                                        key={column}
+                                                        type="text"
+                                                        defaultValue={column}
+                                                        aria-label={`Rename ${column} column`}
+                                                        title="Edit column name and press Enter or click outside"
+                                                        maxLength={40}
+                                                        onBlur={(event) => {
+                                                            const input =
+                                                                event.currentTarget;
+
+                                                            const renamed =
+                                                                renameColumn(
+                                                                    column,
+                                                                    input.value
+                                                                );
+
+                                                            if (!renamed) {
+                                                                input.value = column;
+                                                            }
+                                                        }}
+                                                        onKeyDown={(event) => {
+                                                            if (
+                                                                event.key === "Enter"
+                                                            ) {
+                                                                event.preventDefault();
+                                                                event.currentTarget.blur();
+                                                            }
+
+                                                            if (
+                                                                event.key === "Escape"
+                                                            ) {
+                                                                event.currentTarget.value =
+                                                                    column;
+
+                                                                event.currentTarget.blur();
+                                                            }
+                                                        }}
+                                                        className="min-w-0 w-full bg-transparent text-xs font-semibold text-white outline-none placeholder:text-white/30 focus:text-[#D99770]"
+                                                    />
 
                                                     {column !== labelKey && (
                                                         <button
                                                             type="button"
                                                             title={`Remove ${column}`}
                                                             aria-label={`Remove ${column} column`}
-                                                            onClick={() => removeColumn(column)}
-                                                            className="text-white/30 hover:text-red-400"
+                                                            onClick={() =>
+                                                                removeColumn(column)
+                                                            }
+                                                            className="shrink-0 text-white/30 hover:text-red-400"
                                                         >
                                                             <Trash2 size={12} />
                                                         </button>
@@ -1078,7 +1319,9 @@ export function ChartMakerWorkspace() {
                                                 >
                                                     <input
                                                         aria-label={`${column}, row ${rowIndex + 1}`}
-                                                        value={String(row[column] ?? "")}
+                                                        value={String(
+                                                            row[column] ?? ""
+                                                        )}
                                                         onChange={(event) =>
                                                             updateCell(
                                                                 rowIndex,
@@ -1096,7 +1339,9 @@ export function ChartMakerWorkspace() {
                                                     type="button"
                                                     title="Remove row"
                                                     aria-label={`Remove row ${rowIndex + 1}`}
-                                                    onClick={() => removeRow(rowIndex)}
+                                                    onClick={() =>
+                                                        removeRow(rowIndex)
+                                                    }
                                                     className="text-white/30 hover:text-red-400"
                                                 >
                                                     <Trash2 size={14} />
@@ -1107,6 +1352,10 @@ export function ChartMakerWorkspace() {
                                 </tbody>
                             </table>
                         </div>
+
+                        <p className="mt-2 text-[10px] text-white/35">
+                            Tip: Click a column heading to rename it. Press Enter or click outside to apply.
+                        </p>
 
                         <div className="mt-3 flex flex-wrap gap-2">
                             <button
@@ -1129,6 +1378,7 @@ export function ChartMakerWorkspace() {
                         </div>
                     </section>
 
+                    {/* Chart types */}
                     <section className={panel}>
                         <h3 className="mb-4 font-semibold">
                             Chart type
@@ -1137,14 +1387,17 @@ export function ChartMakerWorkspace() {
                         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                             {CHART_OPTIONS.map((option) => {
                                 const Icon = option.icon;
-                                const active = chartType === option.type;
+                                const active =
+                                    chartType === option.type;
 
                                 return (
                                     <button
                                         type="button"
                                         key={option.type}
                                         aria-pressed={active}
-                                        onClick={() => setChartType(option.type)}
+                                        onClick={() =>
+                                            setChartType(option.type)
+                                        }
                                         className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition ${active
                                                 ? "border-[#C77B53]/70 bg-[#C77B53]/10 text-[#E3A47F]"
                                                 : "border-white/[0.08] bg-[#0D1210] text-white/55 hover:border-white/20 hover:text-white"
@@ -1158,6 +1411,7 @@ export function ChartMakerWorkspace() {
                         </div>
                     </section>
 
+                    {/* Customization */}
                     <section className={panel}>
                         <div className="mb-4 flex items-center gap-2">
                             <Palette
@@ -1176,7 +1430,9 @@ export function ChartMakerWorkspace() {
 
                                 <input
                                     value={title}
-                                    onChange={(event) => setTitle(event.target.value)}
+                                    onChange={(event) =>
+                                        setTitle(event.target.value)
+                                    }
                                     className={field}
                                     placeholder="Enter chart title"
                                     maxLength={120}
@@ -1188,7 +1444,9 @@ export function ChartMakerWorkspace() {
 
                                 <input
                                     value={subtitle}
-                                    onChange={(event) => setSubtitle(event.target.value)}
+                                    onChange={(event) =>
+                                        setSubtitle(event.target.value)
+                                    }
                                     className={field}
                                     placeholder="Enter subtitle"
                                     maxLength={180}
@@ -1200,7 +1458,9 @@ export function ChartMakerWorkspace() {
 
                                 <input
                                     value={xLabel}
-                                    onChange={(event) => setXLabel(event.target.value)}
+                                    onChange={(event) =>
+                                        setXLabel(event.target.value)
+                                    }
                                     className={field}
                                     maxLength={80}
                                 />
@@ -1211,7 +1471,9 @@ export function ChartMakerWorkspace() {
 
                                 <input
                                     value={yLabel}
-                                    onChange={(event) => setYLabel(event.target.value)}
+                                    onChange={(event) =>
+                                        setYLabel(event.target.value)
+                                    }
                                     className={field}
                                     maxLength={80}
                                 />
@@ -1224,7 +1486,9 @@ export function ChartMakerWorkspace() {
                                     <input
                                         type="color"
                                         value={background}
-                                        onChange={(event) => setBackground(event.target.value)}
+                                        onChange={(event) =>
+                                            setBackground(event.target.value)
+                                        }
                                         aria-label="Chart background color"
                                         className="h-8 w-10 cursor-pointer rounded border-0 bg-transparent"
                                     />
@@ -1260,6 +1524,7 @@ export function ChartMakerWorkspace() {
                     </section>
                 </div>
 
+                {/* Preview and exports */}
                 <div className="space-y-5">
                     <section className={panel}>
                         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -1289,7 +1554,9 @@ export function ChartMakerWorkspace() {
                         <div
                             ref={chartRef}
                             className="w-full rounded-xl p-3 sm:p-5"
-                            style={{ backgroundColor: background }}
+                            style={{
+                                backgroundColor: background,
+                            }}
                         >
                             <div className="mb-3">
                                 <p className="text-sm font-semibold text-white">
@@ -1310,6 +1577,7 @@ export function ChartMakerWorkspace() {
                             </div>
                         </div>
 
+                        {/* Export controls */}
                         <div className="mt-4 flex flex-wrap gap-2">
                             <button
                                 type="button"
@@ -1369,6 +1637,7 @@ export function ChartMakerWorkspace() {
                         )}
                     </section>
 
+                    {/* Chart information */}
                     <section className={panel}>
                         <h3 className="font-semibold">
                             Chart information
