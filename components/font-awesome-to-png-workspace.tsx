@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
+
 import {
   faHouse, faUser, faGear, faMagnifyingGlass, faHeart,
   faStar, faBell, faCamera, faCloud, faDownload, faUpload,
@@ -13,7 +14,74 @@ import {
   faGift, faTrash, faPen, faLink, faPlay, faSun, faMoon,
   faCircleInfo, faComment, faBookmark, faEye, faCode,
   faLaptop, faPalette, faShieldHalved, faPaperPlane,
+
+  // Navigation and actions
+  faBars, faArrowRight, faArrowLeft, faArrowUp, faArrowDown,
+  faPlus, faMinus, faFilter, faSliders, faSort,
+  faEllipsis, faEllipsisVertical, faShareNodes, faCopy,
+  faPrint, faFloppyDisk, faRotate, faRotateLeft, faRotateRight,
+  faArrowsRotate, faExpand, faCompress, faExternalLink,
+
+  // Development and technology
+  faDatabase, faServer, faTerminal, faDesktop,
+  faMobileScreenButton, faTabletScreenButton, faKeyboard,
+  faMouse, faWifi, faMicrochip, faMemory,
+  faHardDrive, faGauge, faChartLine, faChartBar,
+  faChartPie, faChartArea, faDiagramProject, faBrain,
+  faRobot, faWandMagicSparkles, faCodeBranch, faBug,
+  faSitemap, faNetworkWired, faLaptopCode,
+
+  // Design and image editing
+  faPenToSquare, faScissors, faCrop, faLayerGroup,
+  faShapes, faCube, faCubes, faBrush, faDroplet,
+  faSwatchbook, faFillDrip, faEraser, faRuler,
+  faRulerCombined, faLightbulb, faObjectUngroup, faBorderAll,
+
+  // Files and documents
+  faFilePdf, faFileCode, faFileImage, faFileVideo,
+  faFileAudio, faFileLines, faFileExcel, faFileWord,
+  faFilePowerpoint, faFileArchive, faFileZipper,
+  faFileArrowDown, faFileArrowUp, faFolderOpen,
+  faFolderPlus, faFolderMinus, faClipboard,
+  faClipboardCheck, faPaste, faList, faListCheck,
+  faTable, faBook, faBookOpen,
+
+  // Business and finance
+  faBriefcase, faBuilding, faUsers, faUserGroup,
+  faUserPlus, faUserMinus, faUserShield, faIdCard,
+  faAddressCard, faWallet, faCreditCard, faMoneyBill,
+  faCoins, faReceipt, faCartShopping, faBasketShopping,
+  faStore, faTag, faTags, faPercent, faCalculator,
+  faChartSimple, faBullseye, faHandshake, faAward,
+
+  // Security and status
+  faKey, faFingerprint, faShield, faLockOpen,
+  faUnlock, faEyeSlash, faCircleExclamation,
+  faTriangleExclamation, faCircleQuestion, faCircleXmark,
+  faCirclePlus, faCircleMinus, faCheckDouble,
+  faShieldVirus, faUserLock, faUserCheck,
+
+  // Communication and media
+  faHeadphones, faMicrophone, faPodcast, faRadio,
+  faVolumeHigh, faVolumeLow, faVolumeMute,
+  faPause, faStop, faForward, faBackward,
+  faRepeat, faCommentDots, faComments,
+  faMessage , faAt, faHashtag,
+
+  // Travel and location
+  faMap, faMapPin, faMapLocationDot, faRoute,
+  faCompass, faFlag, faPlane, faCar, faTrain,
+  faBus, faBicycle, faShip, faTruck,
+
+  // Lifestyle and miscellaneous
+  faFire, faLeaf, faTree, faWater, faSnowflake,
+  faUmbrella, faCloudArrowUp, faCloudArrowDown,
+  faTrophy, faMedal, faCrown, faGamepad,
+  faDumbbell, faPersonRunning, faPersonWalking,
+  faStethoscope, faClockRotateLeft, faPowerOff,
+  faCirclePlay, faCirclePause, faCircleStop,
 } from "@fortawesome/free-solid-svg-icons";
+
 
 import {
   faHeart as faHeartRegular,
@@ -32,14 +100,37 @@ import {
   faCircleCheck,
 } from "@fortawesome/free-regular-svg-icons";
 
+
 import {
   faGithub, faInstagram, faFacebook, faYoutube,
   faWhatsapp, faXTwitter, faLinkedin, faDiscord,
-  faApple, faGoogle, faMicrosoft, faTiktok,
+  faApple, faGoogle , faTiktok,
   faSpotify, faChrome, faAmazon, faReddit,
   faPinterest, faTelegram, faSnapchat,
   faWordpress, faFigma, faAndroid,
+
+  // Developer platforms
+  faGitlab, faBitbucket, faStackOverflow,
+  faCodepen, faBehance, faDribbble,
+  faNpm, faNodeJs, faReact, faVuejs,
+  faAngular, faHtml5, faCss3Alt, faJs,
+  faPython, faJava, faPhp, faLaravel,
+  faSass, faBootstrap, faDocker, faLinux,
+
+  // Social and creator platforms
+  faThreads, faTumblr, faVimeo, faTwitch,
+  faSteam, faSoundcloud, faDeviantart,
+  faMastodon, faMedium, faDev,
+
+  // Business and cloud platforms
+  faDropbox, faGoogleDrive, faGooglePlay,
+  faPaypal, faStripe, faShopify,
+  faWix, faSquarespace, faSlack,
+  faAtlassian, faJira, faTrello,
+  faSalesforce, faAws, faMicrosoft,
+
 } from "@fortawesome/free-brands-svg-icons";
+
 
 type IconCategory = "Solid" | "Regular" | "Brands";
 
@@ -53,9 +144,11 @@ type IconItem = {
 
 const PRESET_SIZES = [64, 128, 256, 512, 1024, 2048];
 
+
 const icons: IconItem[] = [
   ...(
     [
+      // Original icons
       ["Home", faHouse],
       ["User", faUser],
       ["Settings", faGear],
@@ -99,6 +192,206 @@ const icons: IconItem[] = [
       ["Palette", faPalette],
       ["Security", faShieldHalved],
       ["Send", faPaperPlane],
+
+      // Navigation and actions
+      ["Menu", faBars],
+      ["Arrow Right", faArrowRight],
+      ["Arrow Left", faArrowLeft],
+      ["Arrow Up", faArrowUp],
+      ["Arrow Down", faArrowDown],
+      ["Plus", faPlus],
+      ["Minus", faMinus],
+      ["Filter", faFilter],
+      ["Sliders", faSliders],
+      ["Sort", faSort],
+      ["More", faEllipsis],
+      ["More Vertical", faEllipsisVertical],
+      ["Share", faShareNodes],
+      ["Copy", faCopy],
+      ["Print", faPrint],
+      ["Save", faFloppyDisk],
+      ["Rotate", faRotate],
+      ["Rotate Left", faRotateLeft],
+      ["Rotate Right", faRotateRight],
+      ["Refresh", faArrowsRotate],
+      ["Expand", faExpand],
+      ["Compress", faCompress],
+      ["External Link", faExternalLink],
+
+      // Technology and development
+      ["Database", faDatabase],
+      ["Server", faServer],
+      ["Terminal", faTerminal],
+      ["Desktop", faDesktop],
+      ["Mobile", faMobileScreenButton],
+      ["Tablet", faTabletScreenButton],
+      ["Keyboard", faKeyboard],
+      ["Mouse", faMouse],
+      ["WiFi", faWifi],
+      ["Microchip", faMicrochip],
+      ["Memory", faMemory],
+      ["Hard Drive", faHardDrive],
+      ["Gauge", faGauge],
+      ["Chart Line", faChartLine],
+      ["Chart Bar", faChartBar],
+      ["Chart Pie", faChartPie],
+      ["Chart Area", faChartArea],
+      ["Project Diagram", faDiagramProject],
+      ["Brain", faBrain],
+      ["Robot", faRobot],
+      ["AI Magic", faWandMagicSparkles],
+      ["Code Branch", faCodeBranch],
+      ["Bug", faBug],
+      ["Sitemap", faSitemap],
+      ["Network", faNetworkWired],
+      ["Laptop Code", faLaptopCode],
+
+      // Graphics and design
+      ["Edit Square", faPenToSquare],
+      ["Scissors", faScissors],
+      ["Crop", faCrop],
+      ["Layers", faLayerGroup],
+      ["Shapes", faShapes],
+      ["Cube", faCube],
+      ["Cubes", faCubes],
+      ["Brush", faBrush],
+      ["Droplet", faDroplet],
+      ["Swatches", faSwatchbook],
+      ["Fill", faFillDrip],
+      ["Eraser", faEraser],
+      ["Ruler", faRuler],
+      ["Ruler Combined", faRulerCombined],
+      ["Lightbulb", faLightbulb],
+      ["Object Ungroup", faObjectUngroup],
+      ["Border", faBorderAll],
+
+      // Files and documents
+      ["PDF", faFilePdf],
+      ["Code File", faFileCode],
+      ["Image File", faFileImage],
+      ["Video File", faFileVideo],
+      ["Audio File", faFileAudio],
+      ["Text File", faFileLines],
+      ["Excel File", faFileExcel],
+      ["Word File", faFileWord],
+      ["PowerPoint File", faFilePowerpoint],
+      ["Archive", faFileArchive],
+      ["ZIP File", faFileZipper],
+      ["Download File", faFileArrowDown],
+      ["Upload File", faFileArrowUp],
+      ["Open Folder", faFolderOpen],
+      ["New Folder", faFolderPlus],
+      ["Remove Folder", faFolderMinus],
+      ["Clipboard", faClipboard],
+      ["Clipboard Check", faClipboardCheck],
+      ["Paste", faPaste],
+      ["List", faList],
+      ["Checklist", faListCheck],
+      ["Table", faTable],
+      ["Book", faBook],
+      ["Open Book", faBookOpen],
+
+      // Business and finance
+      ["Briefcase", faBriefcase],
+      ["Building", faBuilding],
+      ["Users", faUsers],
+      ["User Group", faUserGroup],
+      ["Add User", faUserPlus],
+      ["Remove User", faUserMinus],
+      ["Protected User", faUserShield],
+      ["ID Card", faIdCard],
+      ["Address Card", faAddressCard],
+      ["Wallet", faWallet],
+      ["Credit Card", faCreditCard],
+      ["Money", faMoneyBill],
+      ["Coins", faCoins],
+      ["Receipt", faReceipt],
+      ["Shopping Cart", faCartShopping],
+      ["Shopping Basket", faBasketShopping],
+      ["Store", faStore],
+      ["Tag", faTag],
+      ["Tags", faTags],
+      ["Percentage", faPercent],
+      ["Calculator", faCalculator],
+      ["Simple Chart", faChartSimple],
+      ["Target", faBullseye],
+      ["Handshake", faHandshake],
+      ["Award", faAward],
+
+      // Security and alerts
+      ["Key", faKey],
+      ["Fingerprint", faFingerprint],
+      ["Shield", faShield],
+      ["Unlock", faUnlock],
+      ["Open Lock", faLockOpen],
+      ["Hidden Eye", faEyeSlash],
+      ["Warning Circle", faCircleExclamation],
+      ["Warning", faTriangleExclamation],
+      ["Question", faCircleQuestion],
+      ["Error Circle", faCircleXmark],
+      ["Add Circle", faCirclePlus],
+      ["Remove Circle", faCircleMinus],
+      ["Double Check", faCheckDouble],
+      ["Virus Protection", faShieldVirus],
+      ["User Lock", faUserLock],
+      ["Verified User", faUserCheck],
+
+      // Audio and communication
+      ["Headphones", faHeadphones],
+      ["Microphone", faMicrophone],
+      ["Podcast", faPodcast],
+      ["Radio", faRadio],
+      ["Volume High", faVolumeHigh],
+      ["Volume Low", faVolumeLow],
+      ["Mute", faVolumeMute],
+      ["Pause", faPause],
+      ["Stop", faStop],
+      ["Forward", faForward],
+      ["Backward", faBackward],
+      ["Repeat", faRepeat],
+      ["Comment Dots", faCommentDots],
+      ["Comments", faComments],
+      ["Message", faMessage],
+      ["At Symbol", faAt],
+      ["Hashtag", faHashtag],
+
+      // Travel and maps
+      ["Map", faMap],
+      ["Map Pin", faMapPin],
+      ["Map Location", faMapLocationDot],
+      ["Route", faRoute],
+      ["Compass", faCompass],
+      ["Flag", faFlag],
+      ["Airplane", faPlane],
+      ["Car", faCar],
+      ["Train", faTrain],
+      ["Bus", faBus],
+      ["Bicycle", faBicycle],
+      ["Ship", faShip],
+      ["Truck", faTruck],
+
+      // Nature and lifestyle
+      ["Fire", faFire],
+      ["Leaf", faLeaf],
+      ["Tree", faTree],
+      ["Water", faWater],
+      ["Snowflake", faSnowflake],
+      ["Umbrella", faUmbrella],
+      ["Cloud Upload", faCloudArrowUp],
+      ["Cloud Download", faCloudArrowDown],
+      ["Trophy", faTrophy],
+      ["Medal", faMedal],
+      ["Crown", faCrown],
+      ["Gaming", faGamepad],
+      ["Fitness", faDumbbell],
+      ["Running", faPersonRunning],
+      ["Walking", faPersonWalking],
+      ["Medical", faStethoscope],
+      ["History", faClockRotateLeft],
+      ["Power", faPowerOff],
+      ["Circle Play", faCirclePlay],
+      ["Circle Pause", faCirclePause],
+      ["Circle Stop", faCircleStop],
     ] as [string, IconDefinition][]
   ).map(([name, definition]) => ({
     name,
@@ -153,6 +446,58 @@ const icons: IconItem[] = [
       ["WordPress", faWordpress],
       ["Figma", faFigma],
       ["Android", faAndroid],
+
+      // Developer platforms
+      ["GitLab", faGitlab],
+      ["Bitbucket", faBitbucket],
+      ["Stack Overflow", faStackOverflow],
+      ["CodePen", faCodepen],
+      ["Behance", faBehance],
+      ["Dribbble", faDribbble],
+      ["NPM", faNpm],
+      ["Node.js", faNodeJs],
+      ["React", faReact],
+      ["Vue.js", faVuejs],
+      ["Angular", faAngular],
+      ["HTML5", faHtml5],
+      ["CSS3", faCss3Alt],
+      ["JavaScript", faJs],
+      ["Python", faPython],
+      ["Java", faJava],
+      ["PHP", faPhp],
+      ["Laravel", faLaravel],
+      ["Sass", faSass],
+      ["Bootstrap", faBootstrap],
+      ["Docker", faDocker],
+      ["Linux", faLinux],
+
+      // Social and creator platforms
+      ["Threads", faThreads],
+      ["Tumblr", faTumblr],
+      ["Vimeo", faVimeo],
+      ["Twitch", faTwitch],
+      ["Steam", faSteam],
+      ["SoundCloud", faSoundcloud],
+      ["DeviantArt", faDeviantart],
+      ["Mastodon", faMastodon],
+      ["Medium", faMedium],
+      ["DEV Community", faDev],
+
+      // Business and cloud platforms
+      ["Dropbox", faDropbox],
+      ["Google Drive", faGoogleDrive],
+      ["Google Play", faGooglePlay],
+      ["PayPal", faPaypal],
+      ["Stripe", faStripe],
+      ["Shopify", faShopify],
+      ["Wix", faWix],
+      ["Squarespace", faSquarespace],
+      ["Slack", faSlack],
+      ["Atlassian", faAtlassian],
+      ["Jira", faJira],
+      ["Trello", faTrello],
+      ["Salesforce", faSalesforce],
+      ["Amazon AWS", faAws],
     ] as [string, IconDefinition][]
   ).map(([name, definition]) => ({
     name,
@@ -160,6 +505,7 @@ const icons: IconItem[] = [
     category: "Brands" as const,
   })),
 ];
+
 
 function createSvg(definition: IconDefinition, color: string) {
   const [width, height, , , paths] = definition.icon;
