@@ -292,14 +292,15 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "chart-maker",
     "name": "Chart Maker",
-    "description": "Chart generation workspace integration point",
+    "description": "Create professional bar, line, area, pie, doughnut, scatter and radar charts. Import CSV data, customize designs and export charts as PNG, SVG and PDF.",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
-      "image/*"
+      ".csv",
+      "text/csv"
     ],
-    "method": "Specialized browser/server integration",
-    "status": "integration"
+    "method": "Recharts + Papa Parse + Browser Canvas Export",
+    "status": "browser"
   },
   {
     "slug": "view-metadata",

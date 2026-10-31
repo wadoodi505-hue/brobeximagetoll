@@ -1,4 +1,5 @@
 ﻿import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
+import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
@@ -177,7 +178,9 @@ export default async function ToolPage({
         </div>
       </div>
       <div className="page-content">
-        {tool.slug === "font-awesome-to-png" ? (
+        {tool.slug === "chart-maker" ? (
+          <ChartMakerWorkspace />
+        ) : tool.slug === "font-awesome-to-png" ? (
           <FontAwesomeToPngWorkspace />
         ) : tool.slug === "image-splitter" ? (
           <ImageSplitterWorkspace />
