@@ -21,6 +21,10 @@ export const metadata: Metadata = {
 
   applicationName: "BROBEX Image Tools",
 
+  other: {
+    "google-adsense-account": "ca-pub-2771980465268081",
+  },
+
   alternates: {
     canonical: "/",
   },
@@ -80,4 +84,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 
