@@ -49,14 +49,14 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "blur-background",
     "name": "Blur Background",
-    "description": "Blur a background; segmentation-based subject isolation requires a provider.",
+    "description": "Create a professional background blur with AI-powered subject isolation and adjustable blur strength.",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "AI provider / OCR integration",
-    "status": "integration"
+    "method": "Local AI subject segmentation and canvas background blur",
+    "status": "browser"
   },
   {
     "slug": "translate-image",
@@ -1066,6 +1066,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
