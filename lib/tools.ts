@@ -59,6 +59,18 @@ export const tools: ToolDefinition[] = [
     "status": "browser"
   },
   {
+    "slug": "blur-any-object",
+    "name": "Blur Any Object",
+    "description": "Paint over any object or area to apply adjustable blur with a brush and eraser.",
+    "category": "image",
+    "icon": "Brush",
+    "acceptedTypes": [
+      "image/*"
+    ],
+    "method": "Local canvas brush-based selective blur and erasing",
+    "status": "browser"
+  },
+  {
     "slug": "translate-image",
     "name": "Translate Image",
     "description": "Detect and translate image text using OCR and translation providers.",
@@ -1066,6 +1078,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
