@@ -1,25 +1,9 @@
-﻿import Link from "next/link";
-import {
+﻿import {
   ShieldCheck,
   Zap,
-  Download,
-  Image as ImageIcon,
-  FileText,
-  PenLine,
-  FileVideo,
-  FileCog,
-  ArrowUpRight
+  Download
 } from "lucide-react";
-import { categories } from "@/lib/tools";
 import { ImageToolDirectory } from "@/components/image-tool-directory";
-
-const categoryIcons: Record<string, typeof ImageIcon> = {
-  image: ImageIcon,
-  pdf: FileText,
-  write: PenLine,
-  video: FileVideo,
-  file: FileCog
-};
 
 export default function HomePage() {
   return (
@@ -41,45 +25,11 @@ export default function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">EXPLORE THE TOOLBOX</span>
-            <h2>One place for everyday work.</h2>
-            <p>Choose a category to find the tool you need.</p>
-          </div>
-        </div>
-
-        <div className="category-strip">
-          {categories.map((category) => {
-            const Icon = categoryIcons[category.id] ?? ImageIcon;
-
-            return (
-              <Link
-                className="category-tile"
-                key={category.id}
-                href={category.href}
-              >
-                <span className="tile-icon">
-                  <Icon size={19} />
-                </span>
-                <strong>
-                  {category.label} tools{" "}
-                  <ArrowUpRight
-                    size={14}
-                    style={{ display: "inline", verticalAlign: "middle" }}
-                  />
-                </strong>
-                <p>{category.description}</p>
-              </Link>
-            );
-          })}
-        </div>
-
         <div className="section-heading directory-main-heading">
           <div>
-            <span className="eyebrow">IMAGE TOOL DIRECTORY</span>
-            <h2>Find the right tool.</h2>
-            <p>Explore all tools by category or search by name.</p>
+            <span className="eyebrow">BROBEX IMAGE TOOLS</span>
+            <h2>Most Used Tools</h2>
+            <p>Find the right tool quickly. Search or explore the collection below.</p>
           </div>
         </div>
 
@@ -88,4 +38,3 @@ export default function HomePage() {
     </>
   );
 }
-
