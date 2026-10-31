@@ -9,12 +9,11 @@ export default function HomePage() {
   return (
     <>
       <section className="container hero">
-        <span className="eyebrow">A BETTER WAY TO GET IT DONE</span>
-        <h1>Image Tools</h1>
-        <p className="hero-subtitle">BROBEX free image tools website</p>
+        <h1>BROBEX IMAGE TOOLS</h1>
+        <p className="hero-subtitle">Free online image tools</p>
         <p className="hero-description">
-          Edit, resize, compress, convert, and enhance images with a focused
-          collection of practical tools. Start in your browser wherever supported.
+          Edit, resize, compress, convert, and enhance images with practical
+          tools designed to work directly in your browser wherever supported.
         </p>
 
         <div className="feature-pills">
@@ -25,14 +24,6 @@ export default function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="section-heading directory-main-heading">
-          <div>
-            <span className="eyebrow">BROBEX IMAGE TOOLS</span>
-            <h2>Most Used Tools</h2>
-            <p>Find the right tool quickly. Search or explore the collection below.</p>
-          </div>
-        </div>
-
         <ImageToolDirectory />
       </section>
     </>

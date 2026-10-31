@@ -2152,3 +2152,138 @@ button:disabled {
         height: 12px;
     }
 }
+
+/* BROBEX clean tool directory */
+.image-directory {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-top: 20px;
+}
+
+.directory-search {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.directory-results {
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.directory-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    width: 100%;
+    min-width: 0;
+    margin-top: 30px;
+}
+
+.directory-category {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.directory-category-heading {
+    display: flex;
+    align-items: center;
+    margin: 0 0 14px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.directory-category-heading h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(19px, 2vw, 23px);
+    font-weight: 750;
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+.directory-tool-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 28px;
+    width: 100%;
+    min-width: 0;
+}
+
+.directory-tool {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 10px 4px;
+    overflow-wrap: anywhere;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 550;
+    line-height: 1.45;
+    text-decoration: none;
+    transition: color .18s ease, padding-left .18s ease;
+}
+
+.directory-tool:hover {
+    padding-left: 9px;
+    background: transparent;
+    color: var(--accent);
+}
+
+.directory-tool span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.directory-empty {
+    margin-top: 24px;
+    padding: 24px 0;
+    color: var(--muted);
+    text-align: center;
+}
+
+@media (max-width: 520px) {
+    .directory-categories {
+        gap: 27px;
+        margin-top: 25px;
+    }
+
+    .directory-tool-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 14px;
+    }
+
+    .directory-tool {
+        min-height: 46px;
+        padding: 9px 2px;
+        font-size: 12px;
+    }
+
+    .directory-category-heading h2 {
+        font-size: 19px;
+    }
+}
+
+@media (max-width: 340px) {
+    .directory-tool-list {
+        column-gap: 9px;
+    }
+
+    .directory-tool {
+        font-size: 11px;
+    }
+}

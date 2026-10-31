@@ -120,7 +120,6 @@ export const imageToolCategories: DirectoryCategory[] = [
   {
     name: "Passport & ID Photo Sizes",
     tools: [
-      item("Passport Photo Maker", "passport-photo-maker"),
       item("Red Background Passport"),
       item("White Background Passport"),
       item("Resize Passport"),
@@ -227,4 +226,5 @@ export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
   if (!tool.slug || !registeredSlugs.has(tool.slug)) return undefined;
   return `/tools/${tool.slug}`;
 }
+
 

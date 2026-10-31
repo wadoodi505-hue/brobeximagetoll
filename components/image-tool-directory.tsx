@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search, ArrowUpRight } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   imageToolCategories,
   getDirectoryToolHref
@@ -17,8 +17,10 @@ export function ImageToolDirectory() {
     return imageToolCategories
       .map((category) => ({
         ...category,
-        tools: category.tools.filter((tool) =>
-          tool.name.toLowerCase().includes(search)
+        tools: category.tools.filter(
+          (tool) =>
+            getDirectoryToolHref(tool) &&
+            tool.name.toLowerCase().includes(search)
         )
       }))
       .filter((category) => category.tools.length > 0);
@@ -33,13 +35,15 @@ export function ImageToolDirectory() {
     <section className="image-directory" aria-label="Image tool directory">
       <div className="directory-search">
         <Search size={19} aria-hidden="true" />
+
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search all image tools..."
+          placeholder="Search image tools..."
           aria-label="Search image tools"
         />
+
         {query && (
           <button type="button" onClick={() => setQuery("")}>
             Clear
@@ -47,40 +51,34 @@ export function ImageToolDirectory() {
         )}
       </div>
 
-      <div className="directory-results">
-        {totalResults} {totalResults === 1 ? "tool" : "tools"} found
-      </div>
+      {query.trim() && (
+        <p className="directory-results" aria-live="polite">
+          {totalResults} {totalResults === 1 ? "tool" : "tools"} found
+        </p>
+      )}
 
       {filteredCategories.length > 0 ? (
         <div className="directory-categories">
           {filteredCategories.map((category) => (
             <section className="directory-category" key={category.name}>
               <div className="directory-category-heading">
-                <h3>{category.name}</h3>
-                <span>{category.tools.length}</span>
+                <h2>{category.name}</h2>
               </div>
 
               <div className="directory-tool-list">
                 {category.tools.map((tool, index) => {
                   const href = getDirectoryToolHref(tool);
-                  const key = `${category.name}-${tool.name}-${index}`;
 
-                  return href ? (
+                  if (!href) return null;
+
+                  return (
                     <Link
                       className="directory-tool"
                       href={href}
-                      key={key}
+                      key={`${category.name}-${tool.name}-${index}`}
                     >
                       <span>{tool.name}</span>
-                      <ArrowUpRight size={15} aria-hidden="true" />
                     </Link>
-                  ) : (
-                    <span
-                      className="directory-tool directory-tool-unavailable"
-                      key={key}
-                    >
-                      {tool.name}
-                    </span>
                   );
                 })}
               </div>
@@ -89,7 +87,7 @@ export function ImageToolDirectory() {
         </div>
       ) : (
         <div className="directory-empty">
-          No tools found. Try another search.
+          No matching tools found. Try another search.
         </div>
       )}
     </section>

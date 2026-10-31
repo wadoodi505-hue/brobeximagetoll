@@ -34,7 +34,7 @@ export default function HomePage() {
         </p>
 
         <div className="feature-pills">
-          <span><ShieldCheck size={14} /> Browser-based processing</span>
+          <span><ShieldCheck size={14} /> </span>
           <span><Zap size={14} /> Lightweight by design</span>
           <span><Download size={14} /> Easy downloads</span>
         </div>
