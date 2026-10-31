@@ -267,14 +267,14 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "image-splitter",
     "name": "Image Splitter",
-    "description": "Split images into tiles (requires tile export workflow)",
+    "description": "Split images into custom rows and columns, preview tiles, and download individual PNG files or a ZIP archive.",
     "category": "image",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Specialized browser/server integration",
-    "status": "integration"
+    "method": "Browser Canvas API + JSZip",
+    "status": "browser"
   },
   {
     "slug": "collage-maker",

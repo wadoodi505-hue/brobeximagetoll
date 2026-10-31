@@ -1,4 +1,4 @@
-﻿
+﻿import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import type { Metadata } from "next";
@@ -174,9 +174,10 @@ export default async function ToolPage({
           </div>
         </div>
       </div>
-
       <div className="page-content">
-        {tool.slug === "tiff-to-text" ? (
+        {tool.slug === "image-splitter" ? (
+          <ImageSplitterWorkspace />
+        ) : tool.slug === "tiff-to-text" ? (
           <TiffToTextWorkspace />
         ) : tool.slug === "image-to-text" ? (
           <ImageToTextWorkspace />
