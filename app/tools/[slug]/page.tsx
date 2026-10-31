@@ -1,4 +1,4 @@
-﻿import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
+import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
 import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
@@ -101,13 +101,13 @@ export default async function ToolPage({
     );
 
     return (
-      <div className="container">
-        <div className="page-title">
-          <div className="breadcrumb">
+      <div className="container category-page">
+        <div className="page-title category-page-title">
+          <div className="breadcrumb category-breadcrumb">
             <Link href="/">Home</Link> / {category.label} tools
           </div>
 
-          <span className="eyebrow">BROBEX TOOL DIRECTORY</span>
+          <span className="eyebrow category-eyebrow">BROBEX TOOL DIRECTORY</span>
 
           <h1>
             {category.id === "image"
@@ -121,7 +121,7 @@ export default async function ToolPage({
           </p>
         </div>
 
-        <div className="page-content">
+        <div className="page-content category-page-content">
           
           <ToolSearch
             tools={listing}
