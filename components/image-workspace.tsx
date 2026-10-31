@@ -66,7 +66,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [width, setWidth] = useState(800);
   const [height, setHeight] = useState(600);
   const [lock, setLock] = useState(true);
-  const [quality, setQuality] = useState(tool.slug === "compress-image-size" ? 50 : 82);
+  const [quality, setQuality] = useState(tool.slug === "compress-image-size" ? 75 : 82);
   const [format, setFormat] = useState(tool.slug === "compress-image-size" ? "image/webp" : tool.outputMime || "image/webp");
 
   const [cropX, setCropX] = useState(0);
@@ -1363,6 +1363,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 function WandIcon() {
   return <span aria-hidden="true">âœ³</span>;
 }
+
 
 
 

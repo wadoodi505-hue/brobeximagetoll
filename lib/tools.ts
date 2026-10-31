@@ -124,7 +124,7 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "compress-image-size",
     "name": "Compress Image Size",
-    "description": "Reduce image file size by choosing an output format and quality",
+    "description": "Automatically compress images into optimized WebP files with one upload. No settings required.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
@@ -1134,6 +1134,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
