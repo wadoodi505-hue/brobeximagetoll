@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -6,12 +6,9 @@ import {
   ImagePlus,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Printer,
-  RefreshCw,
   FileImage,
 } from "lucide-react";
-import { removeImageBackground } from "@/lib/ai/remove-background";
 
 type Preset = {
   id: string;
@@ -75,21 +72,16 @@ export function PassportPhotoWorkspace() {
   const inputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [ready, setReady] = useState(false);
   const [presetId, setPresetId] = useState("pk-passport");
-  const [background, setBackground] = useState("#ffffff");
+  const background: string = "#ffffff";
   const [zoom, setZoom] = useState(1);
   const [horizontal, setHorizontal] = useState(0);
   const [vertical, setVertical] = useState(0);
   const [targetKB, setTargetKB] = useState("0");
-  const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [aiRemoved, setAiRemoved] = useState(false);
   const [revision, setRevision] = useState(0);
 
   const preset =
@@ -177,7 +169,6 @@ export function PassportPhotoWorkspace() {
     setError("");
     setMessage("");
     setReady(false);
-    setAiRemoved(false);
 
     if (!selected.type.startsWith("image/")) {
       setError("Please choose a valid image file.");
@@ -205,7 +196,6 @@ export function PassportPhotoWorkspace() {
       }
 
       imageRef.current = image;
-      setFile(selected);
       setFileName(selected.name);
       resetPosition();
       setReady(true);
@@ -218,56 +208,6 @@ export function PassportPhotoWorkspace() {
     };
 
     image.src = url;
-  }
-
-  async function removeBackground() {
-    if (!file || processing) return;
-
-    setProcessing(true);
-    setProgress(0);
-    setError("");
-    setMessage("");
-    setStatus("Starting local AI engine...");
-
-    try {
-      const result = await removeImageBackground(file, {
-        onProgress: ({ stage, current }) => {
-          setProgress(current);
-          setStatus(stage);
-        },
-      });
-
-      const url = URL.createObjectURL(result);
-      const image = new Image();
-
-      image.onload = () => {
-        URL.revokeObjectURL(url);
-        imageRef.current = image;
-        setAiRemoved(true);
-        setBackground("#ffffff");
-        setReady(true);
-        setRevision((value) => value + 1);
-        setMessage("AI background removal completed.");
-        setStatus("Completed");
-        setProcessing(false);
-      };
-
-      image.onerror = () => {
-        URL.revokeObjectURL(url);
-        setError("The AI result could not be opened.");
-        setProcessing(false);
-      };
-
-      image.src = url;
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "AI background removal failed.",
-      );
-      setProcessing(false);
-      setStatus("");
-    }
   }
 
   async function downloadPhoto() {
@@ -407,7 +347,7 @@ export function PassportPhotoWorkspace() {
 
       <div className="passport-pro-trust">
         <span><ShieldCheck size={15} /> No photo upload to our server</span>
-        <span><Sparkles size={15} /> AI-assisted background removal</span>
+        <span><RotateCcw size={15} /> Precision image framing</span>
         <span><FileImage size={15} /> Exact output pixels</span>
       </div>
 
@@ -433,7 +373,6 @@ export function PassportPhotoWorkspace() {
               type="button"
               className="passport-upload"
               onClick={() => inputRef.current?.click()}
-              disabled={processing}
             >
               <ImagePlus size={36} />
               <strong>Upload your portrait</strong>
@@ -487,19 +426,6 @@ export function PassportPhotoWorkspace() {
               <span>Document: {preset.country}</span>
               <span>Output: JPG</span>
               <span>{preset.width} × {preset.height} pixels</span>
-              {aiRemoved && <span>AI background processed</span>}
-            </div>
-          )}
-
-          {processing && (
-            <div className="passport-progress">
-              <div className="passport-progress-heading">
-                <span>{status}</span>
-                <strong>{progress}%</strong>
-              </div>
-              <div className="passport-progress-track">
-                <div style={{ width: `${progress}%` }} />
-              </div>
             </div>
           )}
 
@@ -599,54 +525,6 @@ export function PassportPhotoWorkspace() {
           </button>
 
           <div className="passport-pro-section-heading">
-            <span>03 / AI BACKGROUND</span>
-            <h3>Background studio</h3>
-          </div>
-
-          <button
-            type="button"
-            className="passport-ai-button"
-            onClick={removeBackground}
-            disabled={!ready || processing}
-          >
-            {processing ? (
-              <RefreshCw size={17} className="passport-spin" />
-            ) : (
-              <Sparkles size={17} />
-            )}
-            {processing ? "Processing AI..." : "Remove background with AI"}
-          </button>
-
-          <span className="passport-help">
-            Uses your existing open-source AI engine. The first run
-            may download model resources. Processing requires a
-            compatible browser and sufficient memory.
-          </span>
-
-          <div className="passport-setting-group">
-            <label htmlFor="passport-background">Background colour</label>
-
-            <select
-              id="passport-background"
-              value={background}
-              onChange={(event) => setBackground(event.target.value)}
-              disabled={!ready}
-            >
-              <option value="#ffffff">Pure white</option>
-              <option value="#f5f5f0">Off-white</option>
-              <option value="#e8f0ff">Light blue</option>
-              <option value="#e8e8e8">Light grey</option>
-              <option value="transparent">Transparent</option>
-            </select>
-          </div>
-
-          <span className="passport-help">
-            Background colours replace transparent pixels after AI
-            removal. They cannot replace an ordinary photographic
-            background without segmentation.
-          </span>
-
-          <div className="passport-pro-section-heading">
             <span>04 / EXPORT CONTROL</span>
             <h3>Image quality & size</h3>
           </div>
@@ -671,7 +549,7 @@ export function PassportPhotoWorkspace() {
             <button
               type="button"
               className="button-dark"
-              disabled={!ready || processing}
+              disabled={!ready}
               onClick={downloadPhoto}
             >
               <Download size={16} /> Download JPG
@@ -686,7 +564,7 @@ export function PassportPhotoWorkspace() {
           <div className="passport-print-actions">
             <button
               type="button"
-              disabled={!ready || processing}
+              disabled={!ready}
               onClick={() => downloadPrintSheet("4x6")}
             >
               <Printer size={16} />
@@ -695,7 +573,7 @@ export function PassportPhotoWorkspace() {
 
             <button
               type="button"
-              disabled={!ready || processing}
+              disabled={!ready}
               onClick={() => downloadPrintSheet("a4")}
             >
               <FileImage size={16} />
