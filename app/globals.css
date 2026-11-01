@@ -4929,3 +4929,67 @@ button:disabled {
     font-size: max(14px, 1em);
   }
 }
+
+/* BROBEX PASSPORT STICKY LIVE PREVIEW */
+@media (max-width: 760px) {
+  .passport-pro {
+    overflow: visible !important;
+  }
+
+  .passport-pro .passport-layout {
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .passport-pro .passport-preview-panel {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 8px;
+    z-index: 40;
+    width: 100%;
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-bottom: 18px;
+    background: var(--card, #111);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  }
+
+  .passport-pro .passport-canvas-wrap {
+    max-height: 30vh;
+    min-height: 0;
+  }
+
+  .passport-pro .passport-canvas-stage {
+    max-height: 28vh;
+    min-height: 0;
+  }
+
+  .passport-pro .passport-canvas-wrap canvas {
+    max-height: 26vh !important;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .passport-pro .passport-settings {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .passport-pro .passport-preview-panel {
+    top: 5px;
+    max-height: 38vh;
+  }
+
+  .passport-pro .passport-canvas-wrap canvas {
+    max-height: 23vh !important;
+  }
+}
+/* END BROBEX PASSPORT STICKY LIVE PREVIEW */
+
