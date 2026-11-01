@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowRight, Image, ScanText, Scaling, UserRound, WandSparkles, FileImage, Layers3 } from "lucide-react";
 import { ImageToolDirectory } from "@/components/image-tool-directory";
 
@@ -70,6 +70,6 @@ export default function HomePage() {
           <Link href="/privacy">Privacy details <ArrowRight size={15} /></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

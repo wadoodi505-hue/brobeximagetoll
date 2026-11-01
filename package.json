@@ -45,5 +45,12 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
+  },
+  "allowScripts": {
+    "core-js@3.51.0": true,
+    "protobufjs@7.6.6": true,
+    "sharp@0.34.5": true,
+    "tesseract.js@6.0.1": true,
+    "unrs-resolver@1.12.2": true
   }
 }
