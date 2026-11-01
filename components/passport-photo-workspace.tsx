@@ -1,40 +1,99 @@
 ﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, ImagePlus, RotateCcw, ShieldCheck } from "lucide-react";
+import {
+  Download,
+  ImagePlus,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Printer,
+  RefreshCw,
+  FileImage,
+} from "lucide-react";
+import { removeImageBackground } from "@/lib/ai/remove-background";
 
 type Preset = {
   id: string;
   label: string;
+  country: string;
   width: number;
   height: number;
   detail: string;
 };
 
-const presets: Preset[] = [
-  { id: "35x45", label: "35 × 45 mm", width: 413, height: 531, detail: "Standard portrait · 300 DPI" },
-  { id: "2x2", label: "2 × 2 inch", width: 600, height: 600, detail: "Square ID photo · 300 DPI" },
-  { id: "35x35", label: "35 × 35 mm", width: 413, height: 413, detail: "Square photo · 300 DPI" },
-  { id: "600", label: "600 × 600 px", width: 600, height: 600, detail: "Digital square photo" },
+const PRESETS: Preset[] = [
+  { id: "pk-passport", country: "Pakistan", label: "Pakistan Passport / CNIC", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "pk-visa", country: "Pakistan", label: "Pakistan eVisa / 2×2", width: 600, height: 600, detail: "51 × 51 mm · Square format" },
+  { id: "us-passport", country: "United States", label: "US Passport / Visa", width: 600, height: 600, detail: "2 × 2 inches · Square format" },
+  { id: "uk-passport", country: "United Kingdom", label: "UK Passport", width: 413, height: 531, detail: "35 × 45 mm · Portrait format" },
+  { id: "schengen", country: "Schengen", label: "Schengen Visa", width: 413, height: 531, detail: "35 × 45 mm · Portrait format" },
+  { id: "canada", country: "Canada", label: "Canada Passport", width: 591, height: 827, detail: "50 × 70 mm · Portrait format" },
+  { id: "australia", country: "Australia", label: "Australia Passport", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "india", country: "India", label: "India Passport Photo", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "square", country: "Custom", label: "Square ID Photo", width: 600, height: 600, detail: "600 × 600 pixels" },
 ];
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
+function canvasBlob(
+  canvas: HTMLCanvasElement,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Image export failed."));
+      },
+      "image/jpeg",
+      quality,
+    );
+  });
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function formatSize(bytes: number) {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(2)} MB`
+    : `${(bytes / 1024).toFixed(1)} KB`;
+}
+
 export function PassportPhotoWorkspace() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
 
+  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
-  const [presetId, setPresetId] = useState("35x45");
+  const [ready, setReady] = useState(false);
+  const [presetId, setPresetId] = useState("pk-passport");
   const [background, setBackground] = useState("#ffffff");
   const [zoom, setZoom] = useState(1);
   const [horizontal, setHorizontal] = useState(0);
   const [vertical, setVertical] = useState(0);
+  const [targetKB, setTargetKB] = useState("0");
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-  const [ready, setReady] = useState(false);
+  const [message, setMessage] = useState("");
+  const [aiRemoved, setAiRemoved] = useState(false);
+  const [revision, setRevision] = useState(0);
 
-  const preset = presets.find((item) => item.id === presetId) || presets[0];
+  const preset =
+    PRESETS.find((item) => item.id === presetId) || PRESETS[0];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,29 +102,34 @@ export function PassportPhotoWorkspace() {
     if (!canvas || !image || !ready) return;
 
     const context = canvas.getContext("2d");
+
     if (!context) {
-      setError("Your browser could not initialize image processing.");
+      setError("Your browser cannot initialize the image editor.");
       return;
     }
 
     canvas.width = preset.width;
     canvas.height = preset.height;
 
-    context.fillStyle = background;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-    const ratio = preset.width / preset.height;
-    const imageRatio = image.naturalWidth / image.naturalHeight;
+    if (background !== "transparent") {
+      context.fillStyle = background;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const outputRatio = preset.width / preset.height;
+    const sourceRatio = image.naturalWidth / image.naturalHeight;
 
     let baseWidth: number;
     let baseHeight: number;
 
-    if (imageRatio > ratio) {
+    if (sourceRatio > outputRatio) {
       baseHeight = image.naturalHeight;
-      baseWidth = baseHeight * ratio;
+      baseWidth = baseHeight * outputRatio;
     } else {
       baseWidth = image.naturalWidth;
-      baseHeight = baseWidth / ratio;
+      baseHeight = baseWidth / outputRatio;
     }
 
     const cropWidth = baseWidth / zoom;
@@ -74,8 +138,8 @@ export function PassportPhotoWorkspace() {
     const maxX = Math.max(0, image.naturalWidth - cropWidth);
     const maxY = Math.max(0, image.naturalHeight - cropHeight);
 
-    const sourceX = Math.min(maxX, Math.max(0, maxX / 2 + horizontal * maxX / 2));
-    const sourceY = Math.min(maxY, Math.max(0, maxY / 2 + vertical * maxY / 2));
+    const sourceX = maxX * (0.5 + horizontal / 2);
+    const sourceY = maxY * (0.5 + vertical / 2);
 
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
@@ -91,44 +155,15 @@ export function PassportPhotoWorkspace() {
       preset.width,
       preset.height,
     );
-  }, [ready, preset, background, zoom, horizontal, vertical]);
-
-  function handleFile(file: File | undefined) {
-    if (!file) return;
-
-    setError("");
-    setReady(false);
-
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file.");
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      setError("Please choose an image smaller than 20 MB.");
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      imageRef.current = image;
-      setFileName(file.name);
-      setZoom(1);
-      setHorizontal(0);
-      setVertical(0);
-      setReady(true);
-      URL.revokeObjectURL(objectUrl);
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      setError("This image could not be opened. Try a JPG, PNG, or WebP file.");
-    };
-
-    image.src = objectUrl;
-  }
+  }, [
+    ready,
+    preset,
+    background,
+    zoom,
+    horizontal,
+    vertical,
+    revision,
+  ]);
 
   function resetPosition() {
     setZoom(1);
@@ -136,47 +171,256 @@ export function PassportPhotoWorkspace() {
     setVertical(0);
   }
 
-  function downloadPhoto() {
-    const canvas = canvasRef.current;
-    if (!canvas || !ready) return;
+  function handleFile(selected?: File) {
+    if (!selected) return;
 
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        setError("Could not export this image. Please try again.");
+    setError("");
+    setMessage("");
+    setReady(false);
+    setAiRemoved(false);
+
+    if (!selected.type.startsWith("image/")) {
+      setError("Please choose a valid image file.");
+      return;
+    }
+
+    if (selected.size > MAX_FILE_SIZE) {
+      setError("Maximum upload size is 20 MB.");
+      return;
+    }
+
+    const url = URL.createObjectURL(selected);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+
+      if (
+        image.naturalWidth > 12000 ||
+        image.naturalHeight > 12000 ||
+        image.naturalWidth * image.naturalHeight > 40000000
+      ) {
+        setError("This image is too large for reliable browser processing.");
         return;
       }
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `brobex-passport-photo-${preset.width}x${preset.height}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      imageRef.current = image;
+      setFile(selected);
+      setFileName(selected.name);
+      resetPosition();
+      setReady(true);
+      setRevision((value) => value + 1);
+    };
+
+    image.onerror = () => {
       URL.revokeObjectURL(url);
-    }, "image/jpeg", 0.95);
+      setError("Unable to open this image. Try JPG, PNG or WebP.");
+    };
+
+    image.src = url;
+  }
+
+  async function removeBackground() {
+    if (!file || processing) return;
+
+    setProcessing(true);
+    setProgress(0);
+    setError("");
+    setMessage("");
+    setStatus("Starting local AI engine...");
+
+    try {
+      const result = await removeImageBackground(file, {
+        onProgress: ({ stage, current }) => {
+          setProgress(current);
+          setStatus(stage);
+        },
+      });
+
+      const url = URL.createObjectURL(result);
+      const image = new Image();
+
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        imageRef.current = image;
+        setAiRemoved(true);
+        setBackground("#ffffff");
+        setReady(true);
+        setRevision((value) => value + 1);
+        setMessage("AI background removal completed.");
+        setStatus("Completed");
+        setProcessing(false);
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        setError("The AI result could not be opened.");
+        setProcessing(false);
+      };
+
+      image.src = url;
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "AI background removal failed.",
+      );
+      setProcessing(false);
+      setStatus("");
+    }
+  }
+
+  async function downloadPhoto() {
+    const canvas = canvasRef.current;
+
+    if (!canvas || !ready) return;
+
+    try {
+      setError("");
+      setMessage("Preparing your export...");
+
+      let blob = await canvasBlob(canvas, 0.94);
+
+      const limit = Number(targetKB);
+
+      if (limit > 0) {
+        let quality = 0.90;
+
+        while (blob.size > limit * 1024 && quality >= 0.30) {
+          blob = await canvasBlob(canvas, quality);
+          quality -= 0.10;
+        }
+
+        if (blob.size > limit * 1024) {
+          setMessage(
+            `Best available size: ${formatSize(blob.size)}. The selected limit could not be reached at these dimensions.`,
+          );
+        } else {
+          setMessage(`Export ready: ${formatSize(blob.size)}.`);
+        }
+      } else {
+        setMessage(`Export ready: ${formatSize(blob.size)}.`);
+      }
+
+      saveBlob(
+        blob,
+        `brobex-${preset.id}-${preset.width}x${preset.height}.jpg`,
+      );
+    } catch {
+      setError("Could not export the photo. Please try again.");
+    }
+  }
+
+  async function downloadPrintSheet(format: "4x6" | "a4") {
+    const source = canvasRef.current;
+
+    if (!source || !ready) return;
+
+    try {
+      setError("");
+      setMessage("Building print sheet...");
+
+      const sheet = document.createElement("canvas");
+
+      sheet.width = format === "4x6" ? 1200 : 2480;
+      sheet.height = format === "4x6" ? 1800 : 3508;
+
+      const context = sheet.getContext("2d");
+
+      if (!context) throw new Error("Canvas unavailable.");
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, sheet.width, sheet.height);
+
+      const gap = 30;
+      const photoWidth = preset.width;
+      const photoHeight = preset.height;
+
+      const columns = Math.floor(
+        (sheet.width + gap) / (photoWidth + gap),
+      );
+
+      const rows = Math.floor(
+        (sheet.height + gap) / (photoHeight + gap),
+      );
+
+      if (columns < 1 || rows < 1) {
+        throw new Error("The selected photo dimensions are too large for this sheet.");
+      }
+
+      const totalWidth = columns * photoWidth + (columns - 1) * gap;
+      const totalHeight = rows * photoHeight + (rows - 1) * gap;
+
+      const startX = Math.floor((sheet.width - totalWidth) / 2);
+      const startY = Math.floor((sheet.height - totalHeight) / 2);
+
+      for (let row = 0; row < rows; row++) {
+        for (let column = 0; column < columns; column++) {
+          const x = startX + column * (photoWidth + gap);
+          const y = startY + row * (photoHeight + gap);
+
+          context.drawImage(source, x, y);
+
+          context.strokeStyle = "#bdbdbd";
+          context.lineWidth = 2;
+          context.strokeRect(x, y, photoWidth, photoHeight);
+        }
+      }
+
+      const blob = await canvasBlob(sheet, 0.94);
+
+      saveBlob(
+        blob,
+        `brobex-passport-print-sheet-${format}.jpg`,
+      );
+
+      setMessage(
+        `${columns * rows} copies prepared on a ${format === "4x6" ? "4 × 6 inch" : "A4"} pixel-size sheet. Print at actual size without scaling.`,
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Print sheet generation failed.",
+      );
+    }
   }
 
   return (
-    <section className="workspace passport-workspace">
-      <div className="workspace-top">
+    <section className="workspace passport-workspace passport-pro">
+
+      <div className="workspace-top passport-pro-header">
         <div>
-          <span className="eyebrow">BROBEX IMAGE STUDIO</span>
-          <h2>Passport Photo Maker</h2>
-          <p>Prepare a correctly sized photo with adjustable framing and a clean background.</p>
+          <span className="eyebrow">BROBEX DOCUMENT STUDIO / 01</span>
+          <h2>Passport & ID Photo Studio</h2>
+          <p>
+            Professional document photo preparation, intelligent
+            background removal and precision image export.
+          </p>
         </div>
+
         <span className="passport-local-badge">
-          <ShieldCheck size={15} /> Local processing
+          <ShieldCheck size={16} />
+          Private browser processing
         </span>
       </div>
 
+      <div className="passport-pro-trust">
+        <span><ShieldCheck size={15} /> No photo upload to our server</span>
+        <span><Sparkles size={15} /> AI-assisted background removal</span>
+        <span><FileImage size={15} /> Exact output pixels</span>
+      </div>
+
       <div className="passport-layout">
+
         <div className="passport-preview-panel">
+
           <div className="passport-panel-heading">
             <div>
-              <strong>Photo preview</strong>
-              <p>Your output updates as you adjust the settings.</p>
+              <strong>Live document preview</strong>
+              <p>Review your crop before exporting.</p>
             </div>
+
             {ready && (
               <span className="passport-dimensions">
                 {preset.width} × {preset.height} px
@@ -189,14 +433,29 @@ export function PassportPhotoWorkspace() {
               type="button"
               className="passport-upload"
               onClick={() => inputRef.current?.click()}
+              disabled={processing}
             >
-              <ImagePlus size={30} />
-              <strong>Upload your photo</strong>
-              <span>Choose JPG, PNG or WebP · Maximum 20 MB</span>
+              <ImagePlus size={36} />
+              <strong>Upload your portrait</strong>
+              <span>Drag-free upload · JPG, PNG or WebP · Up to 20 MB</span>
+              <span className="passport-upload-action">
+                Select an image
+              </span>
             </button>
           ) : (
             <div className="passport-canvas-wrap">
-              <canvas ref={canvasRef} aria-label="Passport photo preview" />
+              <div className="passport-canvas-stage">
+                <canvas
+                  ref={canvasRef}
+                  aria-label="Passport photo live preview"
+                />
+
+                <div className="passport-guide" aria-hidden="true">
+                  <div className="passport-guide-oval" />
+                  <div className="passport-guide-eye-line" />
+                  <div className="passport-guide-center-line" />
+                </div>
+              </div>
             </div>
           )}
 
@@ -205,74 +464,90 @@ export function PassportPhotoWorkspace() {
             type="file"
             accept="image/jpeg,image/png,image/webp"
             hidden
-            onChange={(event) => handleFile(event.target.files?.[0])}
+            onChange={(event) => {
+              handleFile(event.target.files?.[0]);
+              event.target.value = "";
+            }}
           />
 
-          {fileName && (
+          {fileName && ready && (
             <div className="passport-file-row">
               <span>{fileName}</span>
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
               >
-                Change photo
+                Replace photo
               </button>
             </div>
           )}
 
+          {ready && (
+            <div className="passport-photo-information">
+              <span>Document: {preset.country}</span>
+              <span>Output: JPG</span>
+              <span>{preset.width} × {preset.height} pixels</span>
+              {aiRemoved && <span>AI background processed</span>}
+            </div>
+          )}
+
+          {processing && (
+            <div className="passport-progress">
+              <div className="passport-progress-heading">
+                <span>{status}</span>
+                <strong>{progress}%</strong>
+              </div>
+              <div className="passport-progress-track">
+                <div style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          )}
+
           {error && <p className="notice error">{error}</p>}
+          {message && <p className="notice success">{message}</p>}
+
         </div>
 
         <div className="passport-settings">
+
+          <div className="passport-pro-section-heading">
+            <span>01 / DOCUMENT SETTINGS</span>
+            <h3>Photo requirements</h3>
+          </div>
+
           <div className="passport-setting-group">
-            <label htmlFor="passport-size">Photo size</label>
+            <label htmlFor="passport-size">Country & document format</label>
+
             <select
               id="passport-size"
               value={presetId}
               onChange={(event) => setPresetId(event.target.value)}
             >
-              {presets.map((item) => (
+              {PRESETS.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.label}
+                  {item.country} — {item.label}
                 </option>
               ))}
             </select>
+
             <span className="passport-help">{preset.detail}</span>
           </div>
 
-          <div className="passport-setting-group">
-            <label htmlFor="passport-background">Canvas background</label>
-            <div className="passport-color-row">
-              <input
-                id="passport-background"
-                type="color"
-                value={background}
-                onChange={(event) => setBackground(event.target.value)}
-              />
-              <span>{background.toUpperCase()}</span>
-            </div>
-            <div className="passport-swatches">
-              {["#ffffff", "#e8f0ff", "#dcebdc", "#e8e8e8"].map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  aria-label={`Set background ${color}`}
-                  style={{ background: color }}
-                  onClick={() => setBackground(color)}
-                />
-              ))}
-            </div>
+          <div className="passport-pro-section-heading">
+            <span>02 / IMAGE ADJUSTMENTS</span>
+            <h3>Precision framing</h3>
           </div>
 
           <div className="passport-setting-group">
             <label htmlFor="passport-zoom">
               Zoom <strong>{zoom.toFixed(2)}×</strong>
             </label>
+
             <input
               id="passport-zoom"
               type="range"
               min="1"
-              max="2.5"
+              max="3"
               step="0.05"
               value={zoom}
               disabled={!ready}
@@ -281,7 +556,10 @@ export function PassportPhotoWorkspace() {
           </div>
 
           <div className="passport-setting-group">
-            <label htmlFor="passport-horizontal">Horizontal position</label>
+            <label htmlFor="passport-horizontal">
+              Horizontal position
+            </label>
+
             <input
               id="passport-horizontal"
               type="range"
@@ -295,7 +573,10 @@ export function PassportPhotoWorkspace() {
           </div>
 
           <div className="passport-setting-group">
-            <label htmlFor="passport-vertical">Vertical position</label>
+            <label htmlFor="passport-vertical">
+              Vertical position
+            </label>
+
             <input
               id="passport-vertical"
               type="range"
@@ -308,31 +589,138 @@ export function PassportPhotoWorkspace() {
             />
           </div>
 
+          <button
+            type="button"
+            className="button-light passport-reset-button"
+            onClick={resetPosition}
+            disabled={!ready}
+          >
+            <RotateCcw size={15} /> Reset framing
+          </button>
+
+          <div className="passport-pro-section-heading">
+            <span>03 / AI BACKGROUND</span>
+            <h3>Background studio</h3>
+          </div>
+
+          <button
+            type="button"
+            className="passport-ai-button"
+            onClick={removeBackground}
+            disabled={!ready || processing}
+          >
+            {processing ? (
+              <RefreshCw size={17} className="passport-spin" />
+            ) : (
+              <Sparkles size={17} />
+            )}
+            {processing ? "Processing AI..." : "Remove background with AI"}
+          </button>
+
+          <span className="passport-help">
+            Uses your existing open-source AI engine. The first run
+            may download model resources. Processing requires a
+            compatible browser and sufficient memory.
+          </span>
+
+          <div className="passport-setting-group">
+            <label htmlFor="passport-background">Background colour</label>
+
+            <select
+              id="passport-background"
+              value={background}
+              onChange={(event) => setBackground(event.target.value)}
+              disabled={!ready}
+            >
+              <option value="#ffffff">Pure white</option>
+              <option value="#f5f5f0">Off-white</option>
+              <option value="#e8f0ff">Light blue</option>
+              <option value="#e8e8e8">Light grey</option>
+              <option value="transparent">Transparent</option>
+            </select>
+          </div>
+
+          <span className="passport-help">
+            Background colours replace transparent pixels after AI
+            removal. They cannot replace an ordinary photographic
+            background without segmentation.
+          </span>
+
+          <div className="passport-pro-section-heading">
+            <span>04 / EXPORT CONTROL</span>
+            <h3>Image quality & size</h3>
+          </div>
+
+          <div className="passport-setting-group">
+            <label htmlFor="passport-kb">Maximum JPG file size</label>
+
+            <select
+              id="passport-kb"
+              value={targetKB}
+              onChange={(event) => setTargetKB(event.target.value)}
+            >
+              <option value="0">Best quality · No limit</option>
+              <option value="50">Up to 50 KB</option>
+              <option value="100">Up to 100 KB</option>
+              <option value="200">Up to 200 KB</option>
+              <option value="500">Up to 500 KB</option>
+            </select>
+          </div>
+
           <div className="passport-actions">
             <button
               type="button"
-              className="button-light"
-              disabled={!ready}
-              onClick={resetPosition}
-            >
-              <RotateCcw size={16} /> Reset crop
-            </button>
-            <button
-              type="button"
               className="button-dark"
-              disabled={!ready}
+              disabled={!ready || processing}
               onClick={downloadPhoto}
             >
               <Download size={16} /> Download JPG
             </button>
           </div>
 
+          <div className="passport-pro-section-heading">
+            <span>05 / PRINT STUDIO</span>
+            <h3>Multiple photo sheets</h3>
+          </div>
+
+          <div className="passport-print-actions">
+            <button
+              type="button"
+              disabled={!ready || processing}
+              onClick={() => downloadPrintSheet("4x6")}
+            >
+              <Printer size={16} />
+              4 × 6 inch sheet
+            </button>
+
+            <button
+              type="button"
+              disabled={!ready || processing}
+              onClick={() => downloadPrintSheet("a4")}
+            >
+              <FileImage size={16} />
+              A4 print sheet
+            </button>
+          </div>
+
           <p className="passport-help">
-            Your photo is processed in your browser. Background color changes
-            fill the photo canvas; they do not remove the original background.
+            Print at actual size without scaling. The sheet is a
+            pixel-based layout; verify physical measurements after
+            printing.
           </p>
+
         </div>
       </div>
+
+      <div className="passport-disclaimer">
+        <ShieldCheck size={17} />
+        <p>
+          BROBEX helps prepare document photos. Dimensions are common
+          presets, not a certification of government compliance.
+          Always verify the latest requirements of the issuing authority.
+        </p>
+      </div>
+
     </section>
   );
 }
