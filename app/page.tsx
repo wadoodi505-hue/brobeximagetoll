@@ -1,17 +1,39 @@
-﻿import Link from "next/link";
-import { ArrowRight, Image, ScanText, Scaling, UserRound, WandSparkles, FileImage, Layers3 } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Clock3,
+  FileImage,
+  Grid3X3,
+  Image,
+  ImagePlus,
+  PenLine,
+  PenTool,
+  Ruler,
+  ScanText,
+  Scaling,
+  UserRound,
+  WandSparkles,
+} from "lucide-react";
 import { ImageToolDirectory } from "@/components/image-tool-directory";
+import { imageToolCategories, getDirectoryToolState } from "@/lib/image-tool-directory";
 
-const popularTools = [
-  { name: "Passport Photo Maker", description: "Prepare passport and ID photos with custom document sizes.", href: "/tools/passport-photo-maker", icon: UserRound },
-  { name: "Compress Image", description: "Reduce image file size for websites, forms, and sharing.", href: "/tools/compress-image-size", icon: Image },
-  { name: "Resize Image", description: "Set exact pixel dimensions while keeping proportions.", href: "/tools/resize-image-dimensions", icon: Scaling },
-  { name: "Remove Background", description: "Create a transparent background with the configured remover.", href: "/tools/remove-background-from-image", icon: WandSparkles },
-  { name: "Image to Text", description: "Extract editable text from an image with OCR.", href: "/tools/image-to-text", icon: ScanText },
-  { name: "Image Splitter", description: "Divide an image into a grid and export the tiles.", href: "/tools/image-splitter", icon: Layers3 },
-  { name: "Convert Image", description: "Convert supported image formats in your browser.", href: "/tools/jpg-to-png", icon: FileImage },
-  { name: "Upscale Image", description: "Increase image dimensions with browser resampling.", href: "/tools/upscale-image", icon: WandSparkles },
+const popularIcons = [
+  UserRound,
+  FileImage,
+  Scaling,
+  PenLine,
+  ScanText,
+  Grid3X3,
+  PenTool,
+  ImagePlus,
+  WandSparkles,
+  PenTool,
+  Ruler,
+  Image,
 ];
+
+const popularTools = imageToolCategories[0].tools;
 
 export default function HomePage() {
   return (
@@ -41,17 +63,38 @@ export default function HomePage() {
 
       <section className="container home-popular" aria-labelledby="popular-heading">
         <div className="home-section-heading">
-          <div><span className="home-overline">START HERE</span><h2 id="popular-heading">Most used tools</h2><p>Jump straight into the tools people reach for most.</p></div>
+          <div>
+            <span className="home-overline">START HERE</span>
+            <h2 id="popular-heading">Most used tools</h2>
+            <p>Jump straight into the tools people reach for most.</p>
+          </div>
           <a href="#all-tools" className="home-text-link">View full directory <ArrowRight size={15} /></a>
         </div>
-        <div className="popular-tool-grid">
-          {popularTools.map((tool) => {
-            const Icon = tool.icon;
-            return <Link href={tool.href} className="popular-tool-card" key={tool.href}>
-              <span className="popular-tool-icon"><Icon size={20} strokeWidth={1.8} /></span>
-              <span className="popular-tool-content"><strong>{tool.name}</strong><small>{tool.description}</small></span>
-              <ArrowRight className="popular-tool-arrow" size={17} />
-            </Link>;
+        <div className="popular-tool-grid popular-tool-grid--twelve">
+          {popularTools.map((tool, index) => {
+            const Icon = popularIcons[index] ?? Image;
+            const state = getDirectoryToolState(tool);
+            const content = (
+              <>
+                <span className="popular-tool-icon"><Icon size={19} strokeWidth={1.8} /></span>
+                <span className="popular-tool-content">
+                  <strong>{tool.name}</strong>
+                  <small>{tool.description}</small>
+                  {!state.available && <span className="popular-tool-coming"><Clock3 size={11} /> Coming Soon</span>}
+                </span>
+                {state.available ? <ArrowUpRight className="popular-tool-arrow" size={17} /> : <span className="popular-tool-soon-mark">Soon</span>}
+              </>
+            );
+
+            return state.available && state.href ? (
+              <Link href={state.href} className="popular-tool-card" key={`${tool.name}-${index}`}>
+                {content}
+              </Link>
+            ) : (
+              <div className="popular-tool-card popular-tool-card--soon" key={`${tool.name}-${index}`} aria-label={`${tool.name}, coming soon`}>
+                {content}
+              </div>
+            );
           })}
         </div>
       </section>

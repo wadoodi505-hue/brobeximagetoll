@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -85,8 +85,9 @@ export function ImageToolDirectory() {
                         {String(index + 1).padStart(2, "0")}
                       </span>
 
-                      <span className="directory-tool-name">
-                        {tool.name}
+                      <span className={`directory-tool-name${tool.description ? " directory-tool-name--described" : ""}`}>
+                        <strong>{tool.name}</strong>
+                        {tool.description && <small>{tool.description}</small>}
                       </span>
 
                       {state.available ? (
@@ -104,7 +105,7 @@ export function ImageToolDirectory() {
 
                   return state.available && state.href ? (
                     <Link
-                      className="directory-tool"
+                      className={`directory-tool${tool.description ? " directory-tool--described" : ""}`}
                       href={state.href}
                       key={`${category.name}-${tool.name}-${index}`}
                     >
@@ -112,7 +113,7 @@ export function ImageToolDirectory() {
                     </Link>
                   ) : (
                     <div
-                      className="directory-tool directory-tool--unavailable"
+                      className={`directory-tool directory-tool--unavailable${tool.description ? " directory-tool--described" : ""}`}
                       key={`${category.name}-${tool.name}-${index}`}
                       aria-label={`${tool.name}, coming soon`}
                     >

@@ -3,6 +3,7 @@ import { tools } from "@/lib/tools";
 export type DirectoryTool = {
   name: string;
   slug?: string;
+  description?: string;
 };
 
 export type DirectoryCategory = {
@@ -10,24 +11,24 @@ export type DirectoryCategory = {
   tools: DirectoryTool[];
 };
 
-const item = (name: string, slug?: string): DirectoryTool => ({ name, slug });
+const item = (name: string, slug?: string, description?: string): DirectoryTool => ({ name, slug, description });
 
 export const imageToolCategories: DirectoryCategory[] = [
   {
     name: "Most Used Tools",
     tools: [
-      item("Passport & ID Photo Maker", "passport-photo-maker"),
-      item("Compress Image to Target KB", "compress-image-size"),
-      item("Resize Image Dimensions", "resize-image-dimensions"),
-      item("Text to Handwriting Converter"),
-      item("Extract Text from Image (OCR)", "image-to-text"),
-      item("Create Photo Collages", "collage-maker"),
-      item("Signature Generator"),
-      item("Increase Image File Size"),
-      item("Manual Photo Enhancement", "upscale-image"),
-      item("Signature Image Resizer"),
-      item("Resize Image in Centimeters"),
-      item("Resize Photo to 3.5 × 4.5 cm")
+      item("Passport & ID Photo Maker", "passport-photo-maker", "Prepare passport and ID photos with common document dimensions."),
+      item("Compress Image to Target KB", "compress-image-size", "Reduce file size to meet upload limits and sharing requirements."),
+      item("Resize Image Dimensions", "resize-image-dimensions", "Set exact pixel width and height for your image."),
+      item("Text to Handwriting Converter", undefined, "Turn typed text into a handwriting-style image."),
+      item("Extract Text from Image (OCR)", "image-to-text", "Recognize text in photos and make it editable."),
+      item("Create Photo Collages", "collage-maker", "Arrange multiple photos into one collage layout."),
+      item("Signature Generator", undefined, "Create a clean digital signature for documents."),
+      item("Increase Image File Size", undefined, "Adjust image output size for a required file limit."),
+      item("Manual Photo Enhancement", "upscale-image", "Improve image dimensions with browser-based resampling."),
+      item("Signature Image Resizer", undefined, "Resize a signature image to specified dimensions."),
+      item("Resize Image in Centimeters", undefined, "Prepare images using physical dimensions in centimeters."),
+      item("Resize Photo to 3.5 × 4.5 cm", undefined, "Create a photo at the common 3.5 × 4.5 cm size.")
     ]
   },
   {

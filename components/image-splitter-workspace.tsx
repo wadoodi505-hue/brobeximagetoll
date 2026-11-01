@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
@@ -8,7 +8,7 @@ import {
     Download,
     Grid3X3,
     RotateCcw,
-    ShieldCheck,
+    
     AlertCircle,
     CheckCircle2,
     Loader2,
@@ -321,48 +321,9 @@ export function ImageSplitterWorkspace() {
     const busy = processing || packing;
 
     return (
-        <main className="min-h-screen overflow-hidden bg-[#080a0a] text-white">
-            <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(183,103,60,0.13),transparent_48%)]" />
-            <div className="pointer-events-none fixed inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] [background-size:52px_52px]" />
-
-            <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-                <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-                    <span className="text-lg font-black tracking-[0.2em] text-white">
-                        BROBEX<span className="text-[#c77b53]">.</span>
-                    </span>
-
-                    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        Free · Browser processing
-                    </div>
-                </header>
-
-                <section className="mx-auto max-w-3xl text-center">
-                    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c77b53]/25 bg-[#c77b53]/[0.08] px-3 py-1.5 text-xs font-medium tracking-wide text-[#e4a17d]">
-                        <Grid3X3 size={15} />
-                        IMAGE SPLITTER STUDIO
-                    </div>
-
-                    <h1 className="text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">
-                        Split images with
-                        <span className="mt-2 block bg-gradient-to-r from-[#f0c3a7] via-[#c77b53] to-[#e6a17b] bg-clip-text text-transparent">
-                            precision.
-                        </span>
-                    </h1>
-
-                    <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/55 sm:text-base">
-                        Divide an image into perfectly aligned tiles. Choose your grid,
-                        preview every section, and export individual images or one ZIP archive.
-                    </p>
-
-                    <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-white/45">
-                        <span>PNG tile export</span>
-                        <span>Custom grid layouts</span>
-                        <span>Local processing</span>
-                    </div>
-                </section>
-
-                <section className="mx-auto mt-10 max-w-5xl rounded-3xl border border-white/10 bg-[#101313]/90 p-4 shadow-2xl shadow-black/30 sm:mt-14 sm:p-7">
+        <main className="image-splitter-workspace">
+            <div className="image-splitter-shell">
+                <section className={`image-splitter-card${file ? " has-image" : ""}`}>
                     {!file ? (
                         <div
                             onDragOver={(event) => {
@@ -371,34 +332,34 @@ export function ImageSplitterWorkspace() {
                             }}
                             onDragLeave={() => setDragging(false)}
                             onDrop={handleDrop}
-                            className={`flex min-h-[310px] flex-col items-center justify-center rounded-2xl border border-dashed px-5 py-12 text-center transition sm:min-h-[360px] ${dragging
+                            className={`image-splitter-dropzone flex min-h-[310px] flex-col items-center justify-center rounded-2xl border border-dashed px-5 py-12 text-center transition sm:min-h-[360px] ${dragging
                                     ? "border-[#dfa17e] bg-[#c77b53]/10"
                                     : "border-white/20 bg-white/[0.02]"
                                 }`}
                         >
-                            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c77b53]/25 bg-[#c77b53]/10 text-[#e4a17d]">
+                            <div className="image-splitter-upload-icon mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c77b53]/25 bg-[#c77b53]/10 text-[#e4a17d]">
                                 <UploadIcon />
                             </div>
 
-                            <h2 className="text-xl font-semibold tracking-tight">
+                            <h2 className="image-splitter-upload-title text-xl font-semibold tracking-tight">
                                 Drop your image here
                             </h2>
 
-                            <p className="mt-2 max-w-sm text-sm leading-6 text-white/50">
+                            <p className="image-splitter-upload-description mt-2 max-w-sm text-sm leading-6 text-white/50">
                                 Upload an image from your device to create a custom tile grid.
                             </p>
 
                             <button
                                 type="button"
                                 onClick={() => inputRef.current?.click()}
-                                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#c77b53] px-6 py-3 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] focus:outline-none focus:ring-2 focus:ring-[#dfa17e] focus:ring-offset-2 focus:ring-offset-[#101313]"
+                                className="image-splitter-upload-button mt-7 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition focus:outline-none"
                             >
                                 <UploadIcon />
                                 Choose Image
                             </button>
 
-                            <p className="mt-4 text-xs text-white/35">
-                                JPG · PNG · WEBP · Up to 12 MB
+                            <p className="image-splitter-file-note mt-4 text-xs text-white/35">
+                                JPG Â· PNG Â· WEBP Â· Up to 12 MB
                             </p>
                         </div>
                     ) : (
@@ -411,7 +372,7 @@ export function ImageSplitterWorkspace() {
                                     <p className="mt-1 break-all text-xs text-white/45">
                                         {file.name}
                                         {dimensions.width > 0 &&
-                                            ` · ${dimensions.width} × ${dimensions.height}px`}
+                                            ` Â· ${dimensions.width} Ã— ${dimensions.height}px`}
                                     </p>
                                 </div>
 
@@ -451,7 +412,7 @@ export function ImageSplitterWorkspace() {
                                             Live grid preview
                                         </span>
                                         <span className="rounded-md bg-[#c77b53]/10 px-2 py-1 text-[10px] text-[#e4a17d]">
-                                            {rows} × {columns}
+                                            {rows} Ã— {columns}
                                         </span>
                                     </div>
 
@@ -543,7 +504,7 @@ export function ImageSplitterWorkspace() {
                                             }}
                                             className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/65 transition hover:border-[#c77b53]/60 hover:text-white disabled:opacity-40"
                                         >
-                                            {size} × {size}
+                                            {size} Ã— {size}
                                         </button>
                                     ))}
                                 </div>
@@ -616,7 +577,7 @@ export function ImageSplitterWorkspace() {
                                 <div>
                                     <h3 className="text-lg font-semibold">Your image tiles</h3>
                                     <p className="mt-1 text-xs text-white/45">
-                                        {tiles.length} PNG files · Original image dimensions preserved
+                                        {tiles.length} PNG files Â· Original image dimensions preserved
                                     </p>
                                 </div>
 
@@ -650,7 +611,7 @@ export function ImageSplitterWorkspace() {
                                         </div>
 
                                         <span className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-xs text-emerald-300">
-                                            {rows} Rows × {columns} Columns
+                                            {rows} Rows Ã— {columns} Columns
                                         </span>
                                     </div>
 
@@ -720,11 +681,11 @@ export function ImageSplitterWorkspace() {
 
                                                     <div className="p-3">
                                                         <p className="truncate text-xs font-semibold text-white/85">
-                                                            Row {tile.row} · Column {tile.column}
+                                                            Row {tile.row} Â· Column {tile.column}
                                                         </p>
 
                                                         <p className="mt-1 text-[10px] text-white/40">
-                                                            {tile.width} × {tile.height}px
+                                                            {tile.width} Ã— {tile.height}px
                                                         </p>
 
                                                         <button
@@ -746,49 +707,8 @@ export function ImageSplitterWorkspace() {
                     )}
                 </section>
 
-                <section className="mx-auto mt-8 grid max-w-5xl gap-3 sm:grid-cols-3">
-                    {[
-                        {
-                            title: "Upload",
-                            description: "Choose an image from your device.",
-                        },
-                        {
-                            title: "Configure",
-                            description: "Set the exact rows and columns you need.",
-                        },
-                        {
-                            title: "Export",
-                            description: "Download each tile or all tiles in a ZIP.",
-                        },
-                    ].map((step, index) => (
-                        <div
-                            key={step.title}
-                            className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5"
-                        >
-                            <p className="text-xs tracking-[0.18em] text-[#d99a75]">
-                                STEP 0{index + 1}
-                            </p>
-                            <h3 className="mt-3 text-sm font-semibold">{step.title}</h3>
-                            <p className="mt-2 text-xs leading-5 text-white/45">
-                                {step.description}
-                            </p>
-                        </div>
-                    ))}
-                </section>
-
-                <div className="mx-auto mt-8 flex max-w-5xl items-start gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 text-xs leading-6 text-white/45">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-                    <p>
-                        <strong className="text-white/75">Private browser processing.</strong>{" "}
-                        Your image is processed locally using your browser&apos;s image canvas.
-                        No image-processing API or account is required.
-                    </p>
-                </div>
-
-                <footer className="mt-12 text-center text-xs text-white/30">
-                    BROBEX Image Tools · Image Splitter
-                </footer>
             </div>
         </main>
     );
 }
+
