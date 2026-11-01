@@ -4993,3 +4993,152 @@ button:disabled {
 }
 /* END BROBEX PASSPORT STICKY LIVE PREVIEW */
 
+
+/* BROBEX PASSPORT TWO COLUMN ALL DEVICES */
+
+/* Keep the preview on the LEFT and all editing controls on the RIGHT */
+.passport-pro,
+.passport-pro * {
+  box-sizing: border-box;
+}
+
+.passport-pro,
+.passport-pro .passport-layout {
+  overflow: visible !important;
+}
+
+.passport-pro .passport-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 0.40fr) minmax(0, 0.60fr) !important;
+  align-items: start !important;
+  gap: clamp(10px, 2vw, 24px) !important;
+  width: 100%;
+}
+
+.passport-pro .passport-preview-panel {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  position: sticky !important;
+  top: 12px;
+  align-self: start;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.passport-pro .passport-settings {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  position: relative;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.passport-pro .passport-preview-panel *,
+.passport-pro .passport-settings * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.passport-pro .passport-canvas-wrap,
+.passport-pro .passport-canvas-stage {
+  width: 100%;
+  min-width: 0;
+}
+
+.passport-pro .passport-canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: contain;
+}
+
+.passport-pro .passport-preview-panel img {
+  max-width: 100%;
+  height: auto;
+}
+
+.passport-pro .passport-settings button,
+.passport-pro .passport-settings select,
+.passport-pro .passport-settings input {
+  max-width: 100%;
+}
+
+/* Tablet and mobile: preserve the same left/right layout */
+@media (max-width: 760px) {
+  .passport-pro .passport-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.36fr) minmax(0, 0.64fr) !important;
+    gap: 9px !important;
+  }
+
+  .passport-pro .passport-preview-panel {
+    position: sticky !important;
+    top: 8px;
+    max-height: 72vh;
+    padding: 9px !important;
+    border-radius: 13px;
+  }
+
+  .passport-pro .passport-settings {
+    padding: 10px !important;
+  }
+
+  .passport-pro .passport-canvas-wrap canvas {
+    max-height: 42vh !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain;
+  }
+
+  .passport-pro .passport-setting-group {
+    min-width: 0;
+  }
+
+  .passport-pro .passport-actions,
+  .passport-pro .passport-print-actions {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .passport-pro .passport-settings button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+  .passport-pro {
+    padding-inline: 5px !important;
+  }
+
+  .passport-pro .passport-layout {
+    grid-template-columns: minmax(0, 0.34fr) minmax(0, 0.66fr) !important;
+    gap: 7px !important;
+  }
+
+  .passport-pro .passport-preview-panel {
+    top: 5px;
+    padding: 7px !important;
+  }
+
+  .passport-pro .passport-settings {
+    padding: 8px !important;
+  }
+
+  .passport-pro .passport-canvas-wrap canvas {
+    max-height: 35vh !important;
+  }
+
+  .passport-pro .passport-preview-panel h3,
+  .passport-pro .passport-settings h3 {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* END BROBEX PASSPORT TWO COLUMN ALL DEVICES */
+
