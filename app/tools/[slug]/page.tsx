@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -211,11 +211,14 @@ export default async function ToolPage({
   const isWritingTool = tool.category === "write";
 
   return (
-    <div className="container">
-      <div className="breadcrumb">
-        <Link href="/">Home</Link> /{" "}
-        <Link href={cat.href}>{cat.label} tools</Link> / {tool.name}
-      </div>
+    <div className="container tool-page-shell">
+      <nav className="breadcrumb tool-breadcrumb" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span aria-hidden="true">/</span>
+        <Link href={cat.href}>{cat.label}</Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{tool.name}</span>
+      </nav>
 
       <ToolStudioBrand
         title={tool.name}
@@ -223,62 +226,69 @@ export default async function ToolPage({
         category={cat.label}
         status={tool.status === "browser" ? "browser" : "integration"}
       >
-        <div className="page-content">
-          {workspace}
+        <div className="page-content tool-detail-content">
+          <div className="tool-workspace-shell">
+            {workspace}
+          </div>
 
           <div className="privacy-line">
+            <span className="privacy-line-mark" aria-hidden="true" />
             {tool.status === "browser"
-              ? "Processing takes place in your browser when supported by the selected tool. Check the individual tool's compatibility before using large files."
+              ? "Processing takes place in your browser when supported by the selected tool. Your original file stays under your control."
               : "This tool requires an additional processing integration. Its availability is clearly identified; no completed result is simulated."}
           </div>
 
-          {tool.status === "browser" && (
-            <>
-              <h2>
-                {isWritingTool
-                  ? `How to use ${tool.name}`
-                  : `How to use ${tool.name}`}
-              </h2>
+          <div className="tool-info-grid">
+            {tool.status === "browser" && (
+              <section className="tool-info-card">
+                <span className="tool-info-eyebrow">01 / QUICK GUIDE</span>
+                <h2>How to use {tool.name}</h2>
+                {isWritingTool ? (
+                  <ol>
+                    <li>Enter or paste text into the writing workspace.</li>
+                    <li>Choose the available writing options.</li>
+                    <li>Review the result and copy it when you are satisfied.</li>
+                  </ol>
+                ) : (
+                  <ol>
+                    <li>Select a supported file in the workspace.</li>
+                    <li>Review the preview and adjust the available settings.</li>
+                    <li>Run the operation, check the result, and download your file.</li>
+                  </ol>
+                )}
+              </section>
+            )}
 
-              {isWritingTool ? (
-                <ol>
-                  <li>Enter or paste text into the writing workspace.</li>
-                  <li>Choose the available writing options.</li>
-                  <li>Review the result and copy it when you are satisfied.</li>
-                </ol>
-              ) : (
-                <ol>
-                  <li>Select a supported file in the workspace.</li>
-                  <li>Review the preview and adjust available settings.</li>
-                  <li>Run the operation and review the result before downloading.</li>
-                </ol>
-              )}
-            </>
-          )}
-
-          <h2>Compatibility and limitations</h2>
-
-          <p>
-            This tool uses the processing method listed as{" "}
-            <strong>{tool.method}</strong>. Browser and device support
-            can vary by file format and available memory. Unsupported
-            formats and external providers are not silently substituted.
-            Integration-required tools show their actual setup state
-            instead of presenting a simulated result.
-          </p>
+            <section className="tool-info-card">
+              <span className="tool-info-eyebrow">
+                {tool.status === "browser" ? "02 / TECHNICAL DETAILS" : "01 / TECHNICAL DETAILS"}
+              </span>
+              <h2>Compatibility and limitations</h2>
+              <p>
+                This tool uses <strong>{tool.method}</strong>. Browser and device
+                support can vary by file format and available memory. Unsupported
+                formats and external providers are not silently substituted.
+                Integration-required tools show their actual setup state instead
+                of presenting a simulated result.
+              </p>
+            </section>
+          </div>
 
           {related.length > 0 && (
-            <>
-              <div className="divider" />
-
-              <h2>Related tools</h2>
-
+            <section className="tool-related-section">
+              <div className="tool-related-heading">
+                <div>
+                  <span className="tool-info-eyebrow">KEEP CREATING</span>
+                  <h2>Related tools</h2>
+                </div>
+                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools ↗</Link>
+              </div>
               <div className="tool-grid">
                 {related.map((item) => (
                   <ToolCard key={item.slug} tool={item} />
                 ))}
               </div>
-            </>
+            </section>
           )}
         </div>
       </ToolStudioBrand>

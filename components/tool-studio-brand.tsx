@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 type ToolStudioBrandProps = {
@@ -18,64 +18,58 @@ export function ToolStudioBrand({
 }: ToolStudioBrandProps) {
   const normalizedCategory = category.toLowerCase();
 
-  const workflow =
-    normalizedCategory.includes("write")
-      ? [
-          ["01", "INPUT"],
-          ["02", "REFINE"],
-          ["03", "COPY"],
-        ]
-      : [
-          ["01", "SELECT"],
-          ["02", "PROCESS"],
-          ["03", "EXPORT"],
-        ];
+  const workflow = normalizedCategory.includes("write")
+    ? [
+        ["01", "INPUT"],
+        ["02", "REFINE"],
+        ["03", "COPY"],
+      ]
+    : [
+        ["01", "SELECT"],
+        ["02", "PROCESS"],
+        ["03", "EXPORT"],
+      ];
 
   return (
     <section className="brobex-studio">
-      <div className="brobex-studio-glow" aria-hidden="true" />
-
       <div className="brobex-studio-inner">
-        <div className="brobex-studio-brand">
-          <Link href="/" aria-label="BROBEX home">
-            BROBEX<span>.</span>
+        <div className="brobex-studio-topline">
+          <Link href="/" className="brobex-studio-brand" aria-label="BROBEX home">
+            <span className="brobex-studio-brand-mark">B</span>
+            <span className="brobex-studio-brand-name">
+              BROBEX<span>TOOLS</span>
+            </span>
           </Link>
-          <p>DIGITAL TOOL STUDIO</p>
+          <span className="brobex-studio-product-label">DIGITAL TOOL STUDIO</span>
+          <span className="brobex-studio-privacy-label">
+            <i aria-hidden="true" />
+            {status === "browser" ? "BROWSER WORKSPACE" : "INTEGRATION STATUS"}
+          </span>
         </div>
 
-        <div className="brobex-studio-heading">
-          <span className="brobex-studio-category">
-            {category.toUpperCase()} STUDIO
-          </span>
+        <header className="brobex-studio-heading">
+          <div className="brobex-studio-category">
+            <span>{category.toUpperCase()} STUDIO</span>
+            <span className="brobex-studio-category-divider">/</span>
+            <span>WORKSPACE</span>
+          </div>
 
-          <h1>
-            {title}<span>.</span>
-          </h1>
-
+          <h1>{title}<span>.</span></h1>
           <p>{description}</p>
 
           <div className="brobex-studio-status">
-            <span
-              className={
-                status === "browser" ? "is-ready" : "is-limited"
-              }
-            />
-            {status === "browser"
-              ? "READY TO USE"
-              : "INTEGRATION REQUIRED"}
+            <span className={status === "browser" ? "is-ready" : "is-limited"} />
+            {status === "browser" ? "READY TO USE" : "INTEGRATION REQUIRED"}
           </div>
-        </div>
+        </header>
 
-        {children}
+        <div className="brobex-studio-content">{children}</div>
 
         {status === "browser" && (
-          <div
-            className="brobex-studio-steps"
-            aria-label="Typical tool workflow"
-          >
+          <div className="brobex-studio-steps" aria-label="Typical tool workflow">
             {workflow.map(([number, label], index) => (
               <div className="brobex-studio-step-group" key={number}>
-                <div>
+                <div className="brobex-studio-step">
                   <span>{number}</span>
                   <p>{label}</p>
                 </div>
@@ -86,7 +80,8 @@ export function ToolStudioBrand({
         )}
 
         <footer className="brobex-studio-footer">
-          BROBEX DIGITAL STUDIO · PRACTICAL TOOLS, THOUGHTFULLY BUILT
+          <span>BROBEX DIGITAL STUDIO</span>
+          <span>Practical tools, thoughtfully built.</span>
         </footer>
       </div>
     </section>
