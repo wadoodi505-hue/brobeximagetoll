@@ -4206,3 +4206,266 @@ button:disabled {
   }
 }
 
+
+
+/* ==========================================================
+   BROBEX IMAGE SIZE COMPRESSOR — dedicated responsive studio
+   ========================================================== */
+
+.brobex-compressor {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  border-radius: 22px;
+  background: var(--card, rgba(20,20,20,.7));
+  box-shadow: 0 18px 55px rgba(0,0,0,.12);
+}
+
+.brobex-compressor-heading,
+.brobex-compressor-image-heading,
+.brobex-compressor-image-footer,
+.brobex-compressor-controls label > span,
+.brobex-compressor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brobex-compressor-heading h2 {
+  margin: 7px 0;
+  font-size: clamp(22px, 3vw, 32px);
+  letter-spacing: -.045em;
+}
+
+.brobex-compressor-heading p {
+  margin: 0;
+  color: var(--muted, #999);
+  line-height: 1.6;
+}
+
+.brobex-compressor-status {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.brobex-compressor-status > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a1a1aa;
+}
+
+.brobex-compressor-status.is-processing > span {
+  background: #eab308;
+  animation: brobex-compressor-pulse 1s infinite alternate;
+}
+
+.brobex-compressor-status.is-complete > span {
+  background: #22c55e;
+}
+
+@keyframes brobex-compressor-pulse {
+  to { opacity: .35; transform: scale(.75); }
+}
+
+.brobex-compressor-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  border-radius: 16px;
+}
+
+.brobex-compressor-controls label {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.brobex-compressor-controls select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  color: inherit;
+  border: 1px solid var(--border, rgba(255,255,255,.16));
+  border-radius: 10px;
+  background: var(--background, #151515);
+}
+
+.brobex-compressor-controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent, #c49a52);
+}
+
+.brobex-quality-control strong {
+  color: var(--accent, #c49a52);
+}
+
+.brobex-quality-control small {
+  color: var(--muted, #999);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.brobex-compressor-previews {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.brobex-compressor-image {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  border-radius: 16px;
+  background: var(--background, rgba(0,0,0,.12));
+}
+
+.brobex-compressor-image-heading,
+.brobex-compressor-image-footer {
+  padding: 13px 15px;
+  font-size: 12px;
+}
+
+.brobex-compressor-image-heading {
+  border-bottom: 1px solid var(--border, rgba(255,255,255,.1));
+}
+
+.brobex-compressor-image-heading > span {
+  color: var(--muted, #999);
+  font-weight: 700;
+  letter-spacing: .07em;
+}
+
+.brobex-compressor-image-heading strong {
+  font-size: 13px;
+}
+
+.brobex-compressor-image-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 210px;
+  max-height: 390px;
+  padding: 12px;
+  overflow: hidden;
+  background-color: #171717;
+  background-image: linear-gradient(45deg, #222 25%, transparent 25%),
+    linear-gradient(-45deg, #222 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #222 75%),
+    linear-gradient(-45deg, transparent 75%, #222 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+.brobex-compressor-image-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.brobex-compressor-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 12px;
+  color: #b7b7b7;
+  text-align: center;
+}
+
+.brobex-compressor-placeholder span {
+  font-size: 12px;
+  color: #888;
+}
+
+.brobex-compressor-image-footer {
+  border-top: 1px solid var(--border, rgba(255,255,255,.1));
+  color: var(--muted, #999);
+}
+
+.brobex-compressor-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.brobex-compressor-metrics > div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  border-radius: 14px;
+}
+
+.brobex-compressor-metrics span {
+  color: var(--muted, #999);
+  font-size: 12px;
+}
+
+.brobex-compressor-metrics strong {
+  overflow-wrap: anywhere;
+  font-size: clamp(16px, 2vw, 22px);
+}
+
+.brobex-compressor-actions {
+  flex-wrap: wrap;
+}
+
+.brobex-compressor-progress,
+.brobex-compressor-privacy {
+  color: var(--muted, #999);
+  font-size: 12px;
+}
+
+.brobex-compressor-privacy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .brobex-compressor-controls,
+  .brobex-compressor-previews {
+    grid-template-columns: 1fr;
+  }
+
+  .brobex-compressor-heading {
+    align-items: flex-start;
+  }
+
+  .brobex-compressor-status {
+    font-size: 10px;
+  }
+
+  .brobex-compressor-image-stage {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 420px) {
+  .brobex-compressor-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .brobex-compressor {
+    padding: 13px;
+  }
+}

@@ -1,4 +1,4 @@
-﻿
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -66,7 +66,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [width, setWidth] = useState(800);
   const [height, setHeight] = useState(600);
   const [lock, setLock] = useState(true);
-  const [quality, setQuality] = useState(tool.slug === "compress-image-size" ? 50 : 82);
+  const [quality, setQuality] = useState(tool.slug === "compress-image-size" ? 82 : 82);
   const [format, setFormat] = useState(tool.slug === "compress-image-size" ? "image/jpeg" : tool.outputMime || "image/webp");
 
   const [cropX, setCropX] = useState(0);
@@ -185,6 +185,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
   const operationId = useRef(0);
   const autoCompressFileRef = useRef<File | null>(null);
+  const compressionSettingsRef = useRef({ format, quality });
   const previewRef = useRef("");
   const resultRef = useRef("");
 
@@ -366,7 +367,83 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
         return;
       }
 
-      if (!canProcess || !op) {
+            // Dedicated image-size compressor. It preserves the
+      // original image dimensions and never crops or resizes.
+      if (tool.slug === "compress-image-size") {
+        const image = new Image();
+        image.src = preview;
+        await image.decode();
+
+        if (currentOperation !== operationId.current) return;
+
+        const naturalWidth = image.naturalWidth;
+        const naturalHeight = image.naturalHeight;
+
+        if (!naturalWidth || !naturalHeight) {
+          throw new Error("Could not read the original image dimensions.");
+        }
+
+        if (naturalWidth * naturalHeight > 40000000) {
+          throw new Error("This image is too large to process safely in your browser. Try an image under 40 megapixels.");
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = naturalWidth;
+        canvas.height = naturalHeight;
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          throw new Error("Your browser could not create an image processing canvas.");
+        }
+
+        // JPEG has no transparency. Use white behind transparent pixels.
+        if (format === "image/jpeg") {
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, naturalWidth, naturalHeight);
+        }
+
+        context.drawImage(image, 0, 0, naturalWidth, naturalHeight);
+
+        const outputBlob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Image export failed. Try another format."));
+                return;
+              }
+
+              if (blob.type !== format) {
+                reject(new Error("Your browser could not export the selected format. Try another browser or format."));
+                return;
+              }
+
+              resolve(blob);
+            },
+            format,
+            format === "image/jpeg" ? quality / 100 : undefined,
+          );
+        });
+
+        if (currentOperation !== operationId.current) return;
+
+        const nextUrl = URL.createObjectURL(outputBlob);
+
+        setResult(nextUrl);
+        setResultBlob(outputBlob);
+        setPreviewMode("compare");
+
+        const savedPercent = Math.round(
+          ((file.size - outputBlob.size) / file.size) * 100,
+        );
+
+        setMessage(
+          `${format === "image/jpeg" ? "JPG" : "PNG"} export complete. ${formatBytes(outputBlob.size)} output at ${naturalWidth} × ${naturalHeight}px. ${savedPercent >= 0 ? `${savedPercent}% smaller` : `${Math.abs(savedPercent)}% larger`}.`,
+        );
+
+        return;
+      }
+if (!canProcess || !op) {
         throw new Error(
           "This tool does not have a browser operation configured.",
         );
@@ -455,6 +532,19 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     autoCompressFileRef.current = file;
     void run();
   }, [file, op, tool.slug]);
+  // Re-run compression whenever the user changes JPG/PNG or quality.
+  useEffect(() => {
+    if (tool.slug !== "compress-image-size" || !file) return;
+
+    const previous = compressionSettingsRef.current;
+
+    if (previous.format === format && previous.quality === quality) return;
+
+    compressionSettingsRef.current = { format, quality };
+
+    clearOutput();
+    void run();
+  }, [format, quality]);
   const outputName = useMemo(() => {
     const mime = op === "unblur" ? "image/png" : resultBlob?.type || format;
 
@@ -472,8 +562,15 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     const baseName =
       file?.name.replace(/\.[^.]+$/, "") || "brobex-image";
 
-    return `${baseName}${op === "unblur" ? "-enhanced-4k" : "-processed"}.${extension}`;
-  }, [file, resultBlob, format, op]);
+    const suffix =
+      tool.slug === "compress-image-size"
+        ? "-compressed"
+        : op === "unblur"
+          ? "-enhanced-4k"
+          : "-processed";
+
+    return `${baseName}${suffix}.${extension}`;
+  }, [file, resultBlob, format, op, tool.slug]);
 
   const uhdDimensions = useMemo(
     () => (file ? getUhdDimensions(width, height) : null),
@@ -579,8 +676,146 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
           </span>
         </div>
       )}
+      {file && tool.slug === "compress-image-size" && (
+        <section className="brobex-compressor">
+          <div className="brobex-compressor-heading">
+            <div>
+              <span className="eyebrow">BROBEX IMAGE ENGINE</span>
+              <h2>Image compression studio</h2>
+              <p>Reduce image file size while preserving its original dimensions.</p>
+            </div>
+            <span className={`brobex-compressor-status ${busy ? "is-processing" : result ? "is-complete" : ""}`}>
+              <span />
+              {busy ? "Processing" : result ? "Completed" : "Ready"}
+            </span>
+          </div>
 
-      {file && (
+          <div className="brobex-compressor-controls">
+            <label>
+              <span>Output format</span>
+              <select
+                value={format}
+                disabled={busy}
+                onChange={(event) => setFormat(event.target.value)}
+              >
+                <option value="image/jpeg">JPG — Smaller file size</option>
+                <option value="image/png">PNG — Preserve transparency</option>
+              </select>
+            </label>
+
+            <label className="brobex-quality-control">
+              <span>
+                JPG quality
+                <strong>{format === "image/jpeg" ? `${quality}%` : "Lossless PNG"}</strong>
+              </span>
+              <input
+                type="range"
+                min="20"
+                max="100"
+                step="1"
+                value={quality}
+                disabled={busy || format !== "image/jpeg"}
+                onChange={(event) => setQuality(Number(event.target.value))}
+              />
+              <small>
+                Higher quality keeps more image detail. PNG uses lossless encoding.
+              </small>
+            </label>
+          </div>
+
+          <div className="brobex-compressor-previews">
+            <article className="brobex-compressor-image">
+              <div className="brobex-compressor-image-heading">
+                <span>ORIGINAL IMAGE</span>
+                <strong>{formatBytes(file.size)}</strong>
+              </div>
+              <div className="brobex-compressor-image-stage">
+                <img src={preview} alt="Original uploaded image" />
+              </div>
+              <div className="brobex-compressor-image-footer">
+                <span>{width} × {height} px</span>
+                <span>{file.type || "Original format"}</span>
+              </div>
+            </article>
+
+            <article className="brobex-compressor-image">
+              <div className="brobex-compressor-image-heading">
+                <span>COMPRESSED IMAGE</span>
+                <strong>{resultBlob ? formatBytes(resultBlob.size) : "Waiting..."}</strong>
+              </div>
+              <div className="brobex-compressor-image-stage">
+                {result ? (
+                  <img src={result} alt="Compressed image preview" />
+                ) : (
+                  <div className="brobex-compressor-placeholder">
+                    <ImageIcon size={34} />
+                    <strong>{busy ? "Compressing image..." : "Your result will appear here"}</strong>
+                    <span>Choose a format to generate your preview.</span>
+                  </div>
+                )}
+              </div>
+              <div className="brobex-compressor-image-footer">
+                <span>{resultBlob ? `${width} × ${height} px` : "Original dimensions preserved"}</span>
+                <span>{resultBlob ? (format === "image/jpeg" ? "JPG" : "PNG") : "No output yet"}</span>
+              </div>
+            </article>
+          </div>
+
+          <div className="brobex-compressor-metrics">
+            <div>
+              <span>Original size</span>
+              <strong>{formatBytes(file.size)}</strong>
+            </div>
+            <div>
+              <span>Compressed size</span>
+              <strong>{resultBlob ? formatBytes(resultBlob.size) : "—"}</strong>
+            </div>
+            <div>
+              <span>Space saved</span>
+              <strong>
+                {resultBlob
+                  ? `${Math.round(((file.size - resultBlob.size) / file.size) * 100)}%`
+                  : "—"}
+              </strong>
+            </div>
+          </div>
+
+          <div className="brobex-compressor-actions">
+            {resultBlob && result && (
+              <a
+                className="button button-dark download-button"
+                href={result}
+                download={outputName}
+              >
+                <Download size={16} />
+                Download {format === "image/jpeg" ? "JPG" : "PNG"}
+              </a>
+            )}
+            {busy && <span className="brobex-compressor-progress">Please keep this tab open while processing.</span>}
+          </div>
+
+          {message && (
+            <p className="notice success" role="status">
+              <CheckCircle2 size={16} />
+              {message}
+            </p>
+          )}
+
+          {error && (
+            <p className="notice error" role="alert">
+              <AlertCircle size={16} />
+              {error}
+            </p>
+          )}
+
+          <p className="brobex-compressor-privacy">
+            <ShieldCheck size={15} />
+            Processed locally in your browser. Your image is not uploaded to a server.
+          </p>
+        </section>
+      )}
+
+      {file && tool.slug !== "compress-image-size" && (
         <div className="workspace-columns">
           <div
             className={`preview-panel ${op === "unblur" ? "unblur-preview-panel" : ""}`}
