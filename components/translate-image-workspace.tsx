@@ -202,14 +202,18 @@ export function TranslateImageWorkspace() {
         <>
           <div className="translate-file-row"><div><FileImage size={17} /><span>{file.name}</span><small>{(file.size / 1024 / 1024).toFixed(2)} MB</small></div>
             <button type="button" className="translate-quiet-button" onClick={reset}><X size={15} /> Remove image</button></div>
-          <div className="translate-image-preview"><img src={preview} alt="Selected image for text extraction" /></div>
-          <div className="translate-settings">
-            <label>Text language (OCR)<select value={ocrLanguage} onChange={(event) => setOcrLanguage(event.target.value)}>{OCR_LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
-            <label>Translate into<select value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)}>{TARGET_LANGUAGES.map(([label, code]) => <option key={code} value={code}>{label}</option>)}</select></label>
-          </div>
-          <div className="translate-actions"><button type="button" className="translate-primary" onClick={extractText} disabled={ocrBusy || translationBusy}>{ocrBusy ? <><Loader2 className="translate-spin" size={16} /> Extracting…</> : <><Sparkles size={16} /> Extract text from image</>}</button>
-            <button type="button" className="translate-quiet-button" onClick={() => inputRef.current?.click()}>Change image</button>
-            <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onInput} hidden />
+          <div className="translate-mobile-workspace">
+            <div className="translate-image-preview"><img src={preview} alt="Selected image for text extraction" /></div>
+            <div className="translate-mobile-controls">
+              <div className="translate-settings">
+                <label>Text language (OCR)<select value={ocrLanguage} onChange={(event) => setOcrLanguage(event.target.value)}>{OCR_LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
+                <label>Translate into<select value={targetLanguage} onChange={(event) => setTargetLanguage(event.target.value)}>{TARGET_LANGUAGES.map(([label, code]) => <option key={code} value={code}>{label}</option>)}</select></label>
+              </div>
+              <div className="translate-actions"><button type="button" className="translate-primary" onClick={extractText} disabled={ocrBusy || translationBusy}>{ocrBusy ? <><Loader2 className="translate-spin" size={16} /> Extracting…</> : <><Sparkles size={16} /> Extract text from image</>}</button>
+                <button type="button" className="translate-quiet-button" onClick={() => inputRef.current?.click()}>Change image</button>
+                <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onInput} hidden />
+              </div>
+            </div>
           </div>
         </>
       )}

@@ -6237,3 +6237,580 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   background: var(--accent-soft) !important;
   color: var(--accent) !important;
 }
+
+
+/* ==========================================================================
+   BROBEX UNIVERSAL MOBILE WORKSPACE
+   Mobile-only layout layer. Desktop and tablet base layouts remain unchanged.
+   ========================================================================== */
+@media (max-width: 767px) {
+  .tool-workspace-shell,
+  .tool-workspace-shell *,
+  .workspace,
+  .workspace * {
+    min-width: 0;
+  }
+
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.43fr) minmax(0, 0.57fr) !important;
+    align-items: start;
+    gap: clamp(7px, 2vw, 12px) !important;
+    width: 100%;
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel,
+  .workspace .workspace-columns > .preview-panel {
+    grid-column: 1;
+    grid-row: 1;
+    position: sticky !important;
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
+    align-self: start;
+    max-height: calc(100svh - env(safe-area-inset-top, 0px) - 88px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: clamp(7px, 2vw, 11px);
+    z-index: 3;
+  }
+
+  .tool-workspace-shell .workspace-columns > .settings-panel,
+  .workspace .workspace-columns > .settings-panel {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    padding: clamp(8px, 2vw, 12px);
+  }
+
+  .tool-workspace-shell .workspace-columns .preview-canvas,
+  .workspace .workspace-columns .preview-canvas {
+    min-height: 110px;
+    max-height: min(48svh, 340px);
+    margin-bottom: 10px;
+  }
+
+  .tool-workspace-shell .workspace-columns .preview-canvas img,
+  .workspace .workspace-columns .preview-canvas img {
+    max-height: min(46svh, 320px);
+  }
+
+  .tool-workspace-shell .workspace-columns .panel-heading,
+  .workspace .workspace-columns .panel-heading {
+    font-size: clamp(10px, 2.7vw, 12px);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel h3,
+  .workspace .workspace-columns .settings-panel h3 {
+    font-size: clamp(13px, 3.5vw, 16px);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel label,
+  .workspace .workspace-columns .settings-panel label {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+  .tool-workspace-shell .workspace-columns .settings-panel select,
+  .workspace .workspace-columns .settings-panel input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+  .workspace .workspace-columns .settings-panel select {
+    max-width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 7px;
+    font-size: 12px;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel button,
+  .workspace .workspace-columns .settings-panel button {
+    max-width: 100%;
+    min-height: 40px;
+    padding: 8px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-grid,
+  .workspace .workspace-columns .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-workspace-shell .workspace-top,
+  .workspace .workspace-top {
+    gap: 9px;
+  }
+
+  .tool-workspace-shell .workspace-top h2,
+  .workspace .workspace-top h2 {
+    font-size: clamp(17px, 5vw, 22px);
+    overflow-wrap: anywhere;
+  }
+
+  /* Passport maker: preview remains the first/sticky column. */
+  .passport-pro .passport-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.43fr) minmax(0, 0.57fr) !important;
+    align-items: start !important;
+    gap: clamp(7px, 2vw, 12px) !important;
+    overflow: visible !important;
+  }
+
+  .passport-pro .passport-preview-panel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    position: sticky !important;
+    top: calc(env(safe-area-inset-top, 0px) + 76px) !important;
+    align-self: start !important;
+    width: 100% !important;
+    max-height: calc(100svh - env(safe-area-inset-top, 0px) - 88px) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
+    padding: clamp(7px, 2vw, 11px) !important;
+    z-index: 3;
+  }
+
+  .passport-pro .passport-settings {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    position: relative !important;
+    width: 100% !important;
+    padding: clamp(8px, 2vw, 12px) !important;
+  }
+
+  .passport-pro .passport-pro-trust {
+    display: none !important;
+  }
+
+  .passport-pro .passport-panel-heading {
+    display: block;
+    margin-bottom: 9px;
+  }
+
+  .passport-pro .passport-panel-heading strong {
+    display: block;
+    font-size: clamp(10px, 2.8vw, 12px);
+    line-height: 1.35;
+  }
+
+  .passport-pro .passport-panel-heading p,
+  .passport-pro .passport-dimensions,
+  .passport-pro .passport-photo-information {
+    font-size: 9px;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .passport-pro .passport-upload {
+    min-height: clamp(150px, 32svh, 250px) !important;
+    gap: 8px;
+    padding: 10px !important;
+  }
+
+  .passport-pro .passport-upload strong {
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .passport-pro .passport-upload span {
+    font-size: 9px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .passport-pro .passport-canvas-wrap {
+    min-height: 120px;
+    max-height: min(48svh, 340px);
+    padding: 7px;
+    overflow: hidden;
+  }
+
+  .passport-pro .passport-canvas-stage {
+    max-width: 100%;
+  }
+
+  .passport-pro .passport-canvas-wrap canvas {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    height: auto !important;
+    max-height: min(45svh, 320px) !important;
+    object-fit: contain;
+  }
+
+  .passport-pro .passport-setting-group {
+    min-width: 0;
+    margin: 10px 0;
+  }
+
+  .passport-pro .passport-setting-group label,
+  .passport-pro .passport-help {
+    font-size: 10px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .passport-pro .passport-settings select,
+  .passport-pro .passport-settings input:not([type="range"]) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    font-size: 11px;
+  }
+
+  .passport-pro .passport-settings button {
+    max-width: 100%;
+    min-height: 39px;
+    padding: 7px;
+    font-size: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .passport-pro .passport-pro-section-heading {
+    gap: 3px;
+    padding-bottom: 8px;
+  }
+
+  .passport-pro .passport-pro-section-heading span {
+    font-size: 8px;
+    letter-spacing: .07em;
+  }
+
+  .passport-pro .passport-pro-section-heading h3 {
+    font-size: clamp(12px, 3.3vw, 15px);
+    line-height: 1.3;
+  }
+
+  /* OCR preview and controls become adjacent columns after an image is chosen. */
+  .image-text-file-panel {
+    display: grid;
+    grid-template-columns: minmax(0, .43fr) minmax(0, .57fr);
+    align-items: start;
+    gap: 9px;
+  }
+
+  .image-text-filebar {
+    grid-column: 1 / -1;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .image-text-preview {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
+    align-self: start;
+    min-height: 120px;
+    max-height: calc(100svh - 100px);
+    padding: 6px;
+  }
+
+  .image-text-preview img {
+    max-height: min(48svh, 330px);
+  }
+
+  .image-text-controls {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    margin: 0;
+  }
+
+  .image-text-controls label,
+  .image-text-controls select,
+  .image-text-controls button {
+    width: 100%;
+    min-width: 0;
+    font-size: 10px;
+  }
+
+  .image-text-primary {
+    padding: 8px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Translation tool: preview on the left, settings/actions on the right. */
+  .translate-file-row {
+    flex-wrap: wrap;
+  }
+
+  .translate-mobile-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, .43fr) minmax(0, .57fr);
+    align-items: start;
+    gap: 9px;
+  }
+
+  .translate-image-preview {
+    width: 100%;
+    min-width: 0;
+    min-height: 120px;
+    max-height: min(52svh, 350px);
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
+    align-self: start;
+    padding: 6px;
+  }
+
+  .translate-image-preview img {
+    max-height: min(48svh, 330px);
+  }
+
+  .translate-mobile-controls,
+  .translate-settings,
+  .translate-actions {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .translate-settings label,
+  .translate-settings select,
+  .translate-actions button {
+    width: 100%;
+    min-width: 0;
+    font-size: 10px;
+  }
+
+  .translate-settings select {
+    min-height: 39px;
+    padding: 7px;
+  }
+
+  .translate-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Custom AI editors with an explicit preview + control grid. */
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .43fr) minmax(0, .57fr) !important;
+    align-items: start;
+    gap: 8px !important;
+  }
+
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] > :first-child {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
+    align-self: start;
+    max-height: calc(100svh - 90px);
+    overflow: auto;
+  }
+
+  .brobex-editor-layout {
+    grid-template-columns: minmax(0, .43fr) minmax(0, .57fr) !important;
+    gap: 8px !important;
+  }
+
+  .brobex-editor-layout > :first-child {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
+    align-self: start;
+    max-height: calc(100svh - 90px);
+    overflow: auto;
+  }
+
+  .image-splitter-card {
+    padding: 10px;
+  }
+
+  .image-splitter-dropzone {
+    min-height: 160px;
+    padding: 14px 8px;
+  }
+
+  .image-splitter-upload-title {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .image-splitter-upload-description,
+  .image-splitter-file-note {
+    font-size: 9px;
+    overflow-wrap: anywhere;
+  }
+
+  .image-splitter-upload-button {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  .brobex-compressor {
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .brobex-compressor-controls {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .brobex-compressor-previews {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .brobex-compressor-image-stage {
+    min-height: 110px;
+  }
+
+  .brobex-compressor-image-stage img {
+    max-width: 100%;
+    max-height: 34svh;
+    object-fit: contain;
+  }
+
+  .brobex-compressor-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .brobex-compressor-heading h2 {
+    font-size: 17px;
+    overflow-wrap: anywhere;
+  }
+
+  .brobex-compressor-actions {
+    flex-wrap: wrap;
+  }
+
+  .brobex-compressor-actions > * {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .tool-workspace-shell .workspace,
+  .workspace {
+    overflow: visible;
+  }
+
+  .tool-workspace-shell .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout {
+    min-width: 0;
+  }
+
+  .tool-workspace-shell button,
+  .workspace button,
+  .passport-pro button,
+  .image-text-studio button,
+  .translate-studio button {
+    min-height: 40px;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .brobex-studio-topline {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .brobex-studio-heading h1 {
+    font-size: clamp(27px, 8vw, 42px);
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .brobex-studio-heading p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .brobex-studio-category,
+  .brobex-studio-product-label,
+  .brobex-studio-privacy-label {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 359px) {
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout,
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .46fr) minmax(0, .54fr) !important;
+    gap: 6px !important;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 399px) {
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout,
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .45fr) minmax(0, .55fr) !important;
+  }
+}
+
+@media (min-width: 400px) and (max-width: 480px) {
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout,
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .44fr) minmax(0, .56fr) !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 640px) {
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout,
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .43fr) minmax(0, .57fr) !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 767px) {
+  .tool-workspace-shell .workspace-columns,
+  .workspace .workspace-columns,
+  .passport-pro .passport-layout,
+  .image-text-file-panel,
+  .translate-mobile-workspace,
+  .brobex-editor-layout,
+  .grid-cols-\[minmax\(0\,1fr\)_300px\] {
+    grid-template-columns: minmax(0, .42fr) minmax(0, .58fr) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-workspace-shell *,
+  .workspace *,
+  .passport-pro *,
+  .image-text-studio *,
+  .translate-studio * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+/* END BROBEX UNIVERSAL MOBILE WORKSPACE */
