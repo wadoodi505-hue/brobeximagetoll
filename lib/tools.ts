@@ -1,4 +1,4 @@
-﻿import type { ToolDefinition, Category } from "@/types/tools";
+import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase image resolution by 2â€”, 3â€”, or 4â€” with high-quality browser resampling and downloadable PNG, JPEG, or WebP output.",
+      "Increase pixel dimensions by 2×, 3×, or 4× using browser resampling. This enlarges the image but does not recreate missing detail.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],

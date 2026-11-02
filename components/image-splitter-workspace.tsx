@@ -1,4 +1,4 @@
-﻿
+
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
@@ -359,7 +359,7 @@ export function ImageSplitterWorkspace() {
                             </button>
 
                             <p className="image-splitter-file-note mt-4 text-xs text-white/35">
-                                JPG Â· PNG Â· WEBP Â· Up to 12 MB
+                                JPG · PNG · WEBP · Up to 12 MB
                             </p>
                         </div>
                     ) : (
@@ -372,7 +372,7 @@ export function ImageSplitterWorkspace() {
                                     <p className="mt-1 break-all text-xs text-white/45">
                                         {file.name}
                                         {dimensions.width > 0 &&
-                                            ` Â· ${dimensions.width} Ã— ${dimensions.height}px`}
+                                            ` · ${dimensions.width} × ${dimensions.height}px`}
                                     </p>
                                 </div>
 
@@ -412,7 +412,7 @@ export function ImageSplitterWorkspace() {
                                             Live grid preview
                                         </span>
                                         <span className="rounded-md bg-[#c77b53]/10 px-2 py-1 text-[10px] text-[#e4a17d]">
-                                            {rows} Ã— {columns}
+                                            {rows} × {columns}
                                         </span>
                                     </div>
 
@@ -504,7 +504,7 @@ export function ImageSplitterWorkspace() {
                                             }}
                                             className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/65 transition hover:border-[#c77b53]/60 hover:text-white disabled:opacity-40"
                                         >
-                                            {size} Ã— {size}
+                                            {size} × {size}
                                         </button>
                                     ))}
                                 </div>
@@ -577,7 +577,7 @@ export function ImageSplitterWorkspace() {
                                 <div>
                                     <h3 className="text-lg font-semibold">Your image tiles</h3>
                                     <p className="mt-1 text-xs text-white/45">
-                                        {tiles.length} PNG files Â· Original image dimensions preserved
+                                        {tiles.length} PNG files · Original image dimensions preserved
                                     </p>
                                 </div>
 
@@ -611,7 +611,7 @@ export function ImageSplitterWorkspace() {
                                         </div>
 
                                         <span className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-xs text-emerald-300">
-                                            {rows} Rows Ã— {columns} Columns
+                                            {rows} Rows × {columns} Columns
                                         </span>
                                     </div>
 
@@ -681,11 +681,11 @@ export function ImageSplitterWorkspace() {
 
                                                     <div className="p-3">
                                                         <p className="truncate text-xs font-semibold text-white/85">
-                                                            Row {tile.row} Â· Column {tile.column}
+                                                            Row {tile.row} · Column {tile.column}
                                                         </p>
 
                                                         <p className="mt-1 text-[10px] text-white/40">
-                                                            {tile.width} Ã— {tile.height}px
+                                                            {tile.width} × {tile.height}px
                                                         </p>
 
                                                         <button

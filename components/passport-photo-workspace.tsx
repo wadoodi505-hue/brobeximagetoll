@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,15 +20,15 @@ type Preset = {
 };
 
 const PRESETS: Preset[] = [
-  { id: "pk-passport", country: "Pakistan", label: "Pakistan Passport / CNIC", width: 413, height: 531, detail: "35 Ã— 45 mm Â· Common portrait format" },
-  { id: "pk-visa", country: "Pakistan", label: "Pakistan eVisa / 2Ã—2", width: 600, height: 600, detail: "51 Ã— 51 mm Â· Square format" },
-  { id: "us-passport", country: "United States", label: "US Passport / Visa", width: 600, height: 600, detail: "2 Ã— 2 inches Â· Square format" },
-  { id: "uk-passport", country: "United Kingdom", label: "UK Passport", width: 413, height: 531, detail: "35 Ã— 45 mm Â· Portrait format" },
-  { id: "schengen", country: "Schengen", label: "Schengen Visa", width: 413, height: 531, detail: "35 Ã— 45 mm Â· Portrait format" },
-  { id: "canada", country: "Canada", label: "Canada Passport", width: 591, height: 827, detail: "50 Ã— 70 mm Â· Portrait format" },
-  { id: "australia", country: "Australia", label: "Australia Passport", width: 413, height: 531, detail: "35 Ã— 45 mm Â· Common portrait format" },
-  { id: "india", country: "India", label: "India Passport Photo", width: 413, height: 531, detail: "35 Ã— 45 mm Â· Common portrait format" },
-  { id: "square", country: "Custom", label: "Square ID Photo", width: 600, height: 600, detail: "600 Ã— 600 pixels" },
+  { id: "pk-passport", country: "Pakistan", label: "Pakistan Passport / CNIC", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "pk-visa", country: "Pakistan", label: "Pakistan eVisa / 2×2", width: 600, height: 600, detail: "51 × 51 mm · Square format" },
+  { id: "us-passport", country: "United States", label: "US Passport / Visa", width: 600, height: 600, detail: "2 × 2 inches · Square format" },
+  { id: "uk-passport", country: "United Kingdom", label: "UK Passport", width: 413, height: 531, detail: "35 × 45 mm · Portrait format" },
+  { id: "schengen", country: "Schengen", label: "Schengen Visa", width: 413, height: 531, detail: "35 × 45 mm · Portrait format" },
+  { id: "canada", country: "Canada", label: "Canada Passport", width: 591, height: 827, detail: "50 × 70 mm · Portrait format" },
+  { id: "australia", country: "Australia", label: "Australia Passport", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "india", country: "India", label: "India Passport Photo", width: 413, height: 531, detail: "35 × 45 mm · Common portrait format" },
+  { id: "square", country: "Custom", label: "Square ID Photo", width: 600, height: 600, detail: "600 × 600 pixels" },
 ];
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -315,7 +315,7 @@ export function PassportPhotoWorkspace() {
       );
 
       setMessage(
-        `${columns * rows} copies prepared on a ${format === "4x6" ? "4 Ã— 6 inch" : "A4"} pixel-size sheet. Print at actual size without scaling.`,
+        `${columns * rows} copies prepared on a ${format === "4x6" ? "4 × 6 inch" : "A4"} pixel-size sheet. Print at actual size without scaling.`,
       );
     } catch (cause) {
       setError(
@@ -362,7 +362,7 @@ export function PassportPhotoWorkspace() {
 
             {ready && (
               <span className="passport-dimensions">
-                {preset.width} Ã— {preset.height} px
+                {preset.width} × {preset.height} px
               </span>
             )}
           </div>
@@ -375,7 +375,7 @@ export function PassportPhotoWorkspace() {
             >
               <ImagePlus size={36} />
               <strong>Upload your portrait</strong>
-              <span>Drag-free upload Â· JPG, PNG or WebP Â· Up to 20 MB</span>
+              <span>Drag-free upload · JPG, PNG or WebP · Up to 20 MB</span>
               <span className="passport-upload-action">
                 Select an image
               </span>
@@ -424,7 +424,7 @@ export function PassportPhotoWorkspace() {
             <div className="passport-photo-information">
               <span>Document: {preset.country}</span>
               <span>Output: JPG</span>
-              <span>{preset.width} Ã— {preset.height} pixels</span>
+              <span>{preset.width} × {preset.height} pixels</span>
             </div>
           )}
 
@@ -450,7 +450,7 @@ export function PassportPhotoWorkspace() {
             >
               {PRESETS.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.country} â€” {item.label}
+                  {item.country} — {item.label}
                 </option>
               ))}
             </select>
@@ -465,7 +465,7 @@ export function PassportPhotoWorkspace() {
 
           <div className="passport-setting-group">
             <label htmlFor="passport-zoom">
-              Zoom <strong>{zoom.toFixed(2)}Ã—</strong>
+              Zoom <strong>{zoom.toFixed(2)}×</strong>
             </label>
 
             <input
@@ -536,7 +536,7 @@ export function PassportPhotoWorkspace() {
               value={targetKB}
               onChange={(event) => setTargetKB(event.target.value)}
             >
-              <option value="0">Best quality Â· No limit</option>
+              <option value="0">Best quality · No limit</option>
               <option value="50">Up to 50 KB</option>
               <option value="100">Up to 100 KB</option>
               <option value="200">Up to 200 KB</option>
@@ -567,7 +567,7 @@ export function PassportPhotoWorkspace() {
               onClick={() => downloadPrintSheet("4x6")}
             >
               <Printer size={16} />
-              4 Ã— 6 inch sheet
+              4 × 6 inch sheet
             </button>
 
             <button

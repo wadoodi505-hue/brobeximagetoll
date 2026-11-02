@@ -344,7 +344,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
         setResult(nextUrl);
         setResultBlob(output.blob);
         setMessage(
-          `Combined ${files.length} images into ${output.width} Ã— ${output.height} pixels.`,
+          `Combined ${files.length} images into ${output.width} × ${output.height} pixels.`,
         );
         return;
       }
@@ -495,11 +495,11 @@ if (!canProcess || !op) {
 
       if (op === "unblur") {
         setMessage(
-          `Enhancement complete: ${output.width} Ã— ${output.height} pixels. PNG output Â· ${formatBytes(output.blob.size)}. Your image was processed locally.`,
+          `Enhancement complete: ${output.width} × ${output.height} pixels. PNG output · ${formatBytes(output.blob.size)}. Your image was processed locally.`,
         );
       } else {
         setMessage(
-          `Processed ${output.width} Ã— ${output.height} pixels. Output: ${formatBytes(output.blob.size)}.`,
+          `Processed ${output.width} × ${output.height} pixels. Output: ${formatBytes(output.blob.size)}.`,
         );
       }
     } catch (e) {
@@ -648,8 +648,8 @@ if (!canProcess || !op) {
             </strong>
             <span>
               {op === "combine"
-                ? files.map((item) => item.name).join(" Â· ")
-                : `${formatBytes(file.size)} Â· ${file.type || "Unknown MIME type"}`}
+                ? files.map((item) => item.name).join(" · ")
+                : `${formatBytes(file.size)} · ${file.type || "Unknown MIME type"}`}
             </span>
             <small>Click to choose another image</small>
           </>
@@ -657,7 +657,7 @@ if (!canProcess || !op) {
           <>
             <UploadCloud size={30} />
             <strong>Drop an image here or browse files</strong>
-            <span>Supported image formats Â· 20 MB maximum per image</span>
+            <span>Supported image formats · 20 MB maximum per image</span>
             <small>Your image is not uploaded to a server.</small>
           </>
         )}
@@ -885,7 +885,7 @@ if (!canProcess || !op) {
                         style={{ left: `${comparison}%` }}
                         aria-hidden="true"
                       >
-                        <span>â†”</span>
+                        <span>↔</span>
                       </div>
                     </>
                   )}
@@ -904,7 +904,7 @@ if (!canProcess || !op) {
                   {busy && (
                     <div className="unblur-processing-overlay" role="status">
                       <span className="unblur-spinner" />
-                      <strong>Enhancing imageâ€¦</strong>
+                      <strong>Enhancing image…</strong>
                       <span>Keep this tab open until processing finishes.</span>
                     </div>
                   )}
@@ -941,7 +941,7 @@ if (!canProcess || !op) {
                       <Maximize2 size={16} />
                       <span>
                         <strong>
-                          {uhdDimensions.width} Ã— {uhdDimensions.height}
+                          {uhdDimensions.width} × {uhdDimensions.height}
                         </strong>
                         <small>UHD-frame output dimensions</small>
                       </span>
@@ -1005,7 +1005,7 @@ if (!canProcess || !op) {
 
                       <div className="crop-dimensions">
                         <span>Selected area</span>
-                        <strong>{cropW} Ã— {cropH} px</strong>
+                        <strong>{cropW} × {cropH} px</strong>
                         <span>
                           Position: {cropX}, {cropY}
                         </span>
@@ -1107,7 +1107,7 @@ if (!canProcess || !op) {
                         </button>
 
                         <span>
-                          {cropW} Ã— {cropH} px
+                          {cropW} × {cropH} px
                         </span>
                       </div>
                     </div>
@@ -1134,7 +1134,7 @@ if (!canProcess || !op) {
 
                 <div className="unblur-quick-preset">
                   <span>Processing preset</span>
-                  <strong>Balanced Â· UHD frame</strong>
+                  <strong>Balanced · UHD frame</strong>
                   <small>
                     Sharpening and noise reduction run together in one action.
                   </small>
@@ -1195,11 +1195,11 @@ if (!canProcess || !op) {
                   <div className="unblur-target">
                     <span>Target output</span>
                     <strong>
-                      {uhdDimensions.width} Ã— {uhdDimensions.height} px
+                      {uhdDimensions.width} × {uhdDimensions.height} px
                     </strong>
                     <small>
-                      Aspect ratio preserved Â· Maximum 3840 Ã— 2160 landscape
-                      frame or 2160 Ã— 3840 portrait frame
+                      Aspect ratio preserved · Maximum 3840 × 2160 landscape
+                      frame or 2160 × 3840 portrait frame
                     </small>
                   </div>
                 )}
@@ -1346,7 +1346,7 @@ if (!canProcess || !op) {
                     Reset crop
                   </button>
                   <span>
-                    Output: {cropW} Ã— {cropH} px
+                    Output: {cropW} × {cropH} px
                   </span>
                 </div>
               </div>
@@ -1384,9 +1384,9 @@ if (!canProcess || !op) {
                     setRotation(Number(event.target.value))
                   }
                 >
-                  <option value={90}>90Â° clockwise</option>
-                  <option value={180}>180Â°</option>
-                  <option value={270}>270Â° clockwise</option>
+                  <option value={90}>90° clockwise</option>
+                  <option value={180}>180°</option>
+                  <option value={270}>270° clockwise</option>
                 </select>
               </label>
             )}
@@ -1508,7 +1508,7 @@ if (!canProcess || !op) {
                 }
               >
                 {busy ? (
-                  "Processingâ€¦"
+                  "Processing…"
                 ) : op === "metadata" ? (
                   "Read metadata"
                 ) : op === "combine" ? (
@@ -1563,7 +1563,7 @@ if (!canProcess || !op) {
               <div className="metadata-card">
                 <h4>Image properties</h4>
                 <p>
-                  Dimensions: {metadata.width} Ã— {metadata.height}px
+                  Dimensions: {metadata.width} × {metadata.height}px
                 </p>
                 <p>MIME type: {metadata.type}</p>
                 <p>File size: {formatBytes(metadata.size)}</p>
@@ -1596,7 +1596,7 @@ if (!canProcess || !op) {
 }
 
 function WandIcon() {
-  return <span aria-hidden="true">âœ³</span>;
+  return <span aria-hidden="true">✳</span>;
 }
 
 
