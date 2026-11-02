@@ -1124,6 +1124,226 @@ export const tools: ToolDefinition[] = [
     "method": "Browser Canvas API",
     "status": "browser"
   },
+  {
+    slug: "compress-image-to-5kb",
+    name: "Compress to 5KB",
+    description: "Compress an image to 5 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-10kb",
+    name: "JPEG to 10KB",
+    description: "Compress an image to 10 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-15kb",
+    name: "Compress to 15KB",
+    description: "Compress an image to 15 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-20kb",
+    name: "Compress to 20KB",
+    description: "Compress an image to 20 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-between-20kb-to-50kb",
+    name: "Compress 20KB–50KB",
+    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-25kb",
+    name: "JPEG to 25KB",
+    description: "Compress an image to 25 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-30kb",
+    name: "JPEG to 30KB",
+    description: "Compress an image to 30 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-40kb",
+    name: "JPEG to 40KB",
+    description: "Compress an image to 40 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-50kb",
+    name: "Compress to 50KB",
+    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-60kb",
+    name: "Compress to 60KB",
+    description: "Compress an image to 60 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-70kb",
+    name: "Compress to 70KB",
+    description: "Compress an image to 70 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-80kb",
+    name: "Compress to 80KB",
+    description: "Compress an image to 80 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-90kb",
+    name: "Compress to 90KB",
+    description: "Compress an image to 90 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "resize-image-to-50kb",
+    name: "Resize to 50KB",
+    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-100kb",
+    name: "Compress to 100KB",
+    description: "Compress an image to 100 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-150kb",
+    name: "JPEG to 150KB",
+    description: "Compress an image to 150 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-200kb",
+    name: "Compress to 200KB",
+    description: "Compress an image to 200 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "resize-image-to-200kb",
+    name: "Resize to 200KB",
+    description: "Compress an image to 200 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-300kb",
+    name: "JPEG to 300KB",
+    description: "Compress an image to 300 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-jpeg-to-500kb",
+    name: "JPEG to 500KB",
+    description: "Compress an image to 500 KB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-1mb",
+    name: "Compress to 1MB",
+    description: "Compress an image to 1 MB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  },
+  {
+    slug: "compress-image-to-2mb",
+    name: "Compress to 2MB",
+    description: "Compress an image to 2 MB or less while preserving its original pixel dimensions.",
+    category: "image",
+    icon: "FileImage",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
+    method: "Local browser Canvas API with fixed-target JPEG quality search",
+    status: "browser"
+  }
 ] as ToolDefinition[];
 
 export const categories: { id: Category; label: string; href: string; description: string }[] = [

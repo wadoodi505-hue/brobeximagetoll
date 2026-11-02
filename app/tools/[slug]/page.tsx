@@ -9,6 +9,8 @@ import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
+import { ExactTargetCompressionWorkspace } from "@/components/exact-target-compression-workspace";
+import { getExactTargetTool } from "@/lib/exact-targets";
 import { PassportPhotoWorkspace } from "@/components/passport-photo-workspace";
 import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
 import { PhotoCleanupWorkspace } from "@/components/photo-cleanup-workspace";
@@ -158,8 +160,12 @@ export default async function ToolPage({
     .slice(0, 3);
 
   // Preserve the existing real workspace for each supported tool.
+  const exactTargetTool = getExactTargetTool(tool.slug);
+
   const workspace =
-    tool.slug === "passport-photo-maker" ? (
+    exactTargetTool ? (
+      <ExactTargetCompressionWorkspace targetKb={exactTargetTool.targetKb} title={exactTargetTool.name} />
+    ) : tool.slug === "passport-photo-maker" ? (
       <PassportPhotoWorkspace />
     ) : tool.slug === "chart-maker" ? (
       <ChartMakerWorkspace />

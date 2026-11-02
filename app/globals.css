@@ -6814,3 +6814,108 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   }
 }
 /* END BROBEX UNIVERSAL MOBILE WORKSPACE */
+
+
+/* BROBEX fixed-target compression workspace */
+.exact-compress {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.exact-upload {
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 48px);
+  text-align: center;
+  border: 1.5px dashed var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.exact-upload.is-dragging {
+  border-color: var(--ink);
+  background: var(--soft);
+  transform: translateY(-2px);
+}
+.exact-upload-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin-bottom: 17px;
+  border-radius: 17px;
+  background: var(--soft);
+  color: var(--ink);
+}
+.exact-upload h2 { margin: 0; font-size: clamp(21px, 3vw, 27px); letter-spacing: -.04em; }
+.exact-upload p { margin: 8px 0 20px; color: var(--muted); font-size: 14px; }
+.exact-primary-button, .exact-download-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 700;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.exact-primary-button:hover, .exact-download-button:hover { opacity: .86; transform: translateY(-1px); }
+.exact-primary-button:disabled { opacity: .5; cursor: wait; }
+.exact-upload-meta { margin-top: 15px; color: var(--muted); font-size: 11px; }
+.exact-error, .exact-warning {
+  padding: 13px 15px;
+  border: 1px solid #d69b45;
+  border-radius: 12px;
+  background: color-mix(in srgb, #d69b45 10%, var(--surface));
+  color: var(--ink);
+  font-size: 13px;
+}
+.exact-processing {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.exact-processing div, .exact-result-heading > div { display: grid; gap: 3px; min-width: 0; }
+.exact-processing span, .exact-result-heading span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.exact-spinner { animation: exact-spin 1s linear infinite; }
+@keyframes exact-spin { to { transform: rotate(360deg); } }
+.exact-result {
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.exact-result-heading { display: flex; align-items: center; gap: 11px; margin-bottom: 20px; }
+.exact-success-icon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 12px; background: var(--soft); }
+.exact-reset-button { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; margin-left: auto; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ink); }
+.exact-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--line); }
+.exact-stats > div { display: grid; min-width: 0; gap: 5px; padding: 15px; background: var(--surface); }
+.exact-stats span { color: var(--muted); font-size: 11px; }
+.exact-stats strong { font-size: 15px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.exact-warning { margin: 16px 0 0; }
+.exact-download-button { width: 100%; margin-top: 18px; }
+.exact-download-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 12px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
+.exact-tool-note { display: flex; align-items: flex-start; gap: 9px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 13px; color: var(--muted); font-size: 12px; }
+.exact-tool-note svg { flex: 0 0 auto; margin-top: 2px; }
+.exact-tool-note strong { color: var(--ink); }
+@media (max-width: 600px) {
+  .exact-upload { min-height: 265px; border-radius: 17px; }
+  .exact-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exact-stats > div { padding: 12px; }
+  .exact-stats strong { font-size: 14px; }
+  .exact-download-button { min-height: 50px; }
+}
