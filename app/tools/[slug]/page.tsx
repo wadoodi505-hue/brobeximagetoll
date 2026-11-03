@@ -22,6 +22,8 @@ import { ToolStudioBrand } from "@/components/tool-studio-brand";
 import { ToolCard } from "@/components/tool-card";
 import { ToolSearch } from "@/components/tool-search";
 import { getTool, tools, categories } from "@/lib/tools";
+import { getToolGuide } from "@/content/tool-guides";
+import { ToolGuide } from "@/components/tool-guide";
 
 export function generateStaticParams() {
   const toolParams = tools
@@ -73,9 +75,12 @@ export async function generateMetadata({
     return {};
   }
 
+  const guide = getToolGuide(tool.slug);
+
   return {
-    title: tool.name,
-    description: tool.description,
+    title: `${tool.name} | BROBEX Image Studio`,
+    description: guide?.about ?? tool.description,
+    keywords: guide?.keywords ?? [tool.name, "BROBEX Image Studio"],
     alternates: {
       canonical: `/tools/${tool.slug}`,
     },
@@ -142,6 +147,8 @@ export default async function ToolPage({
   if (!tool) {
     notFound();
   }
+
+  const guide = getToolGuide(tool.slug);
 
   const cat = categories.find(
     (item) => item.id === tool.category
@@ -243,6 +250,8 @@ export default async function ToolPage({
               ? "Processing takes place in your browser when supported by the selected tool. Your original file stays under your control."
               : "This tool requires an additional processing integration. Its availability is clearly identified; no completed result is simulated."}
           </div>
+
+          {guide && <ToolGuide guide={guide} />}
 
           <div className="tool-info-grid">
             {tool.status === "browser" && (

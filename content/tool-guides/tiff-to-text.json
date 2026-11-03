@@ -1,0 +1,42 @@
+{
+  "slug": "tiff-to-text",
+  "title": "TIFF to Text",
+  "keywords": [
+    "tiff to text",
+    "text extraction and writing",
+    "BROBEX Image Studio"
+  ],
+  "about": "TIFF to Text is a focused BROBEX Image Studio tool for text extraction and writing. Extract editable text from single-page and supported multi-page TIFF documents using local browser OCR. It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+  "steps": [
+    "Open the tool and review the input format it accepts. For OCR tools, choose a clear image or supported document; for writing tools, enter or paste the text requested by the workspace.",
+    "Add the source content using the visible upload or text-entry control. Check that the selected file or text is the intended source before continuing.",
+    "Choose only the language, output, or editing options that are actually shown in this workspace. Options vary by tool and are not assumed to exist when they are absent.",
+    "Start the available operation and allow the browser or connected service to finish. If an integration notice appears, processing is not available until that provider is configured.",
+    "Review the extracted, translated, or generated text for recognition mistakes, names, numbers, punctuation, and formatting. Copy or download only when the workspace offers that action."
+  ],
+  "capabilities": "The registered processing method for this tool is UTIF2 TIFF decoder + local Tesseract.js OCR. The tool accepts the formats listed in the workspace. Its intended task is extract editable text from single-page and supported multi-page tiff documents using local browser ocr. Only controls and output choices visible in the current workspace should be treated as supported. The tool does not silently add unrelated editing features, and an operation that needs a provider cannot be considered available until that integration is configured and tested.",
+  "benefits": "This workflow can make a repetitive text extraction and writing task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
+  "limitations": "Supported input types are the formats listed in the workspace. Browser processing can be affected by device memory, browser version, image dimensions, and file complexity. This tool is registered as browser-based, but its provider-dependent behavior must still be checked against the actual workspace before relying on it. Conversion and compression can change quality, metadata, transparency, color handling, or layout. Always verify the exported file in its intended destination. BROBEX cannot guarantee acceptance by third-party services or official application portals.",
+  "faqs": [
+    {
+      "question": "What does TIFF to Text do?",
+      "answer": "Extract editable text from single-page and supported multi-page TIFF documents using local browser OCR."
+    },
+    {
+      "question": "Which files can I use?",
+      "answer": "Use only supported files. The registered accepted types are the formats listed in the workspace; the workspace may also show additional upload limits or browser restrictions."
+    },
+    {
+      "question": "How do I get the best result?",
+      "answer": "Start with a clear, correctly oriented source file and review the available settings before processing. Inspect the actual output rather than relying only on the preview or filename."
+    },
+    {
+      "question": "Will the result always match the original quality?",
+      "answer": "Not necessarily. Editing, conversion, resizing, and compression can affect detail, color, transparency, metadata, or layout. Keep an untouched copy of important source files."
+    },
+    {
+      "question": "Is processing available right now?",
+      "answer": "The registry identifies this tool as browser-based. Availability still depends on the controls and processing path currently present in its workspace; do not treat a result as complete unless the tool produces it."
+    }
+  ]
+}

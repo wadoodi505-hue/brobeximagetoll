@@ -1,0 +1,42 @@
+{
+  "slug": "blur-background",
+  "title": "Blur Background",
+  "keywords": [
+    "blur background",
+    "background and object editing",
+    "BROBEX Image Studio"
+  ],
+  "about": "Blur Background is a focused BROBEX Image Studio tool for background and object editing. Create a professional background blur with AI-powered subject isolation and adjustable blur strength. It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+  "steps": [
+    "Read the accepted file types and upload limits displayed in the workspace before starting.",
+    "Select a source file using the file picker or drag-and-drop area when supported. Confirm the preview matches the file you intended to edit.",
+    "Review the controls provided by this exact tool. Adjust only the settings that are available; other BROBEX tools may have different controls.",
+    "Start the operation and wait for the actual processing result. Browser-based operations depend on device memory and supported browser APIs; integration-dependent operations require their configured service.",
+    "Inspect the output preview and check edges, colors, transparency, dimensions, or layout as relevant to this operation. Download the result when the workspace provides a working download action."
+  ],
+  "capabilities": "The registered processing method for this tool is Local AI subject segmentation and canvas background blur. The tool accepts the formats listed in the workspace. Its intended task is create a professional background blur with ai-powered subject isolation and adjustable blur strength. Only controls and output choices visible in the current workspace should be treated as supported. The tool does not silently add unrelated editing features, and an operation that needs a provider cannot be considered available until that integration is configured and tested.",
+  "benefits": "This workflow can make a repetitive background and object editing task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
+  "limitations": "Supported input types are the formats listed in the workspace. Browser processing can be affected by device memory, browser version, image dimensions, and file complexity. This tool is registered as browser-based, but its provider-dependent behavior must still be checked against the actual workspace before relying on it. Conversion and compression can change quality, metadata, transparency, color handling, or layout. Always verify the exported file in its intended destination. BROBEX cannot guarantee acceptance by third-party services or official application portals.",
+  "faqs": [
+    {
+      "question": "What does Blur Background do?",
+      "answer": "Create a professional background blur with AI-powered subject isolation and adjustable blur strength."
+    },
+    {
+      "question": "Which files can I use?",
+      "answer": "Use only supported files. The registered accepted types are the formats listed in the workspace; the workspace may also show additional upload limits or browser restrictions."
+    },
+    {
+      "question": "How do I get the best result?",
+      "answer": "Start with a clear, correctly oriented source file and review the available settings before processing. Inspect the actual output rather than relying only on the preview or filename."
+    },
+    {
+      "question": "Will the result always match the original quality?",
+      "answer": "Not necessarily. Editing, conversion, resizing, and compression can affect detail, color, transparency, metadata, or layout. Keep an untouched copy of important source files."
+    },
+    {
+      "question": "Is processing available right now?",
+      "answer": "The registry identifies this tool as browser-based. Availability still depends on the controls and processing path currently present in its workspace; do not treat a result as complete unless the tool produces it."
+    }
+  ]
+}

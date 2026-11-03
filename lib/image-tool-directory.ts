@@ -13,7 +13,7 @@ export type DirectoryCategory = {
 
 const item = (name: string, slug?: string, description?: string): DirectoryTool => ({ name, slug, description });
 
-export const imageToolCategories: DirectoryCategory[] = [
+const curatedToolCategories: DirectoryCategory[] = [
   {
     name: "Most Used Tools",
     tools: [
@@ -221,6 +221,67 @@ export const imageToolCategories: DirectoryCategory[] = [
   }
 ];
 
+
+// Build one canonical directory with exactly ten categories. Curated entries
+// retain useful preset labels; every registered route is added if not already
+// represented. Duplicate name/route pairs are removed without losing presets.
+const categoryNames = [
+  "Image Editing",
+  "Image Compression",
+  "Image Resizing",
+  "Background & Object Tools",
+  "Photo Enhancement",
+  "Passport & ID Photos",
+  "Image Converters",
+  "PDF & Documents",
+  "OCR & Text Tools",
+  "Creative & Media Tools"
+] as const;
+
+function classifyDirectoryTool(tool: DirectoryTool): (typeof categoryNames)[number] {
+  const value = `${tool.name} ${tool.slug ?? ""} ${tool.description ?? ""}`.toLowerCase();
+  if (/passport|\bid photo\b|3\.5|35mm|45mm|2 ?x ?2|3 ?x ?4|4 ?x ?6|600 ?x ?600|ssc photo|pan card|upsc|psc photo|signature.*(cm|mm)|a4 photo/.test(value)) return "Passport & ID Photos";
+  if (/compress|\bkb\b|\bmb\b|target size/.test(value)) return "Image Compression";
+  if (/pdf|word to jpg|image to word|merge pdf|split pdf/.test(value)) return "PDF & Documents";
+  if (/ocr|extract text|translate image|handwriting|essay|paragraph|content improver|tiff to text/.test(value)) return "OCR & Text Tools";
+  if (/background|remove object|remove logo|remove text|transparent/.test(value)) return "Background & Object Tools";
+  if (/beautify|enhanc|unblur|blur|pixelat|retouch|face|deep fry|colorize|upscale|quality/.test(value)) return "Photo Enhancement";
+  if (/convert|\.png|png to|jpg to|jpeg to|webp|heic|avif|tiff|svg|ico|gif|eps|psd/.test(value)) return "Image Converters";
+  if (/resize|dimension|centimeter|social media|bulk resiz|dpi/.test(value)) return "Image Resizing";
+  if (/video|mp4|slideshow|collage|signature generator|font awesome|chart maker|icon.*png/.test(value)) return "Creative & Media Tools";
+  return "Image Editing";
+}
+
+const allDirectoryTools: DirectoryTool[] = [];
+const seenDirectoryEntries = new Set<string>();
+const representedSlugs = new Set<string>();
+
+for (const category of curatedToolCategories) {
+  for (const entry of category.tools) {
+    const key = `${entry.slug ?? "no-route"}::${entry.name.trim().toLowerCase()}`;
+    if (seenDirectoryEntries.has(key)) continue;
+    seenDirectoryEntries.add(key);
+    allDirectoryTools.push(entry);
+    if (entry.slug) representedSlugs.add(entry.slug);
+  }
+}
+
+for (const registeredTool of tools) {
+  if (representedSlugs.has(registeredTool.slug)) continue;
+  const entry = item(registeredTool.name, registeredTool.slug, registeredTool.description);
+  const key = `${entry.slug}::${entry.name.trim().toLowerCase()}`;
+  if (!seenDirectoryEntries.has(key)) {
+    seenDirectoryEntries.add(key);
+    allDirectoryTools.push(entry);
+  }
+  representedSlugs.add(registeredTool.slug);
+}
+
+export const imageToolCategories: DirectoryCategory[] = categoryNames.map((name) => ({
+  name,
+  tools: allDirectoryTools.filter((entry) => classifyDirectoryTool(entry) === name)
+}));
+
 const registeredSlugs = new Set(tools.map((tool) => tool.slug));
 
 export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
@@ -228,24 +289,17 @@ export function getDirectoryToolHref(tool: DirectoryTool): string | undefined {
   return `/tools/${tool.slug}`;
 }
 
-
-
 export function getDirectoryToolState(tool: DirectoryTool): {
   href: string | null;
   available: boolean;
 } {
-  if (!tool.slug) {
-    return { href: null, available: false };
-  }
+  if (!tool.slug) return { href: null, available: false };
 
   const registeredTool = tools.find((entry) => entry.slug === tool.slug);
-
-  if (!registeredTool || registeredTool.status !== "browser") {
-    return { href: null, available: false };
-  }
+  if (!registeredTool) return { href: null, available: false };
 
   return {
     href: `/tools/${registeredTool.slug}`,
-    available: true
+    available: registeredTool.status === "browser"
   };
 }
