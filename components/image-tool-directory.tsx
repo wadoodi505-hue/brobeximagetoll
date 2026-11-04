@@ -103,7 +103,7 @@ export function DirectorySidebar() {
       <section className="sidebar-note">
         <strong>More tools, one workspace.</strong>
         <p>Browse the complete BROBEX collection. Tools that need an external provider are still listed and clearly identified.</p>
-        <a href="#all-tools">Explore directory <ArrowUpRight size={14} /></a>
+        <a href="#all-tools"><ArrowUpRight size={14} /></a>
       </section>
     </aside>
   );
