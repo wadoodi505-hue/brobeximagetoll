@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search, CheckCircle2, PlugZap, ArrowUpRight } from "lucide-react";
+import { Search, ArrowUpRight } from "lucide-react";
 import { imageToolCategories, getDirectoryToolState } from "@/lib/image-tool-directory";
 
 export function ImageToolDirectory() {
@@ -49,12 +49,7 @@ export function ImageToolDirectory() {
                   const content = (
                     <>
                       <span className="directory-tool-name"><strong>{tool.name}</strong></span>
-                      {state.href ? (
-                        <span className={`directory-tool-status ${state.available ? "is-ready" : "is-integration"}`}>
-                          {state.available ? <CheckCircle2 size={12} /> : <PlugZap size={12} />}
-                          {state.available ? "Ready" : "Integration"}
-                        </span>
-                      ) : null}
+
                     </>
                   );
                   return state.href ? (

@@ -298,8 +298,11 @@ export function getDirectoryToolState(tool: DirectoryTool): {
   const registeredTool = tools.find((entry) => entry.slug === tool.slug);
   if (!registeredTool) return { href: null, available: false };
 
+  const available = registeredTool.status === "browser";
+
   return {
-    href: `/tools/${registeredTool.slug}`,
-    available: registeredTool.status === "browser"
+    // An integration-only item must not expose a navigable destination.
+    href: available ? `/tools/${registeredTool.slug}` : null,
+    available
   };
 }

@@ -1,4 +1,4 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -72,6 +72,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try { var savedTheme = localStorage.getItem("brobex-theme"); var preferredTheme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.dataset.theme = preferredTheme; } catch (e) { document.documentElement.dataset.theme = "light"; }`,
+          }}
+        />
+      </head>
       <body>
         <ThemeProvider>
           <Header />

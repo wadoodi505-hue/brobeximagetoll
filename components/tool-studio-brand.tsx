@@ -43,7 +43,7 @@ export function ToolStudioBrand({
           <span className="brobex-studio-product-label">DIGITAL TOOL STUDIO</span>
           <span className="brobex-studio-privacy-label">
             <i aria-hidden="true" />
-            {status === "browser" ? "BROWSER WORKSPACE" : "INTEGRATION STATUS"}
+            PRIVATE WORKSPACE
           </span>
         </div>
 
@@ -57,10 +57,6 @@ export function ToolStudioBrand({
           <h1>{title}<span>.</span></h1>
           <p>{description}</p>
 
-          <div className="brobex-studio-status">
-            <span className={status === "browser" ? "is-ready" : "is-limited"} />
-            {status === "browser" ? "READY TO USE" : "INTEGRATION REQUIRED"}
-          </div>
         </header>
 
         <div className="brobex-studio-content">{children}</div>
