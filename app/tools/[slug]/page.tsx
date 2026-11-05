@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -75,20 +76,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const guide = getToolGuide(tool.slug);
-
-  return {
-    title: `${tool.name} | BROBEX Image Studio`,
-    description: guide?.about ?? tool.description,
-    keywords: guide?.keywords ?? [tool.name, "BROBEX Image Studio"],
-    alternates: {
-      canonical: `/tools/${tool.slug}`,
-    },
-    openGraph: {
-      title: `${tool.name} | BROBEX Image Tools`,
-      description: tool.description,
-    },
-  };
+  return getToolMetadata(tool);
 }
 
 export default async function ToolPage({

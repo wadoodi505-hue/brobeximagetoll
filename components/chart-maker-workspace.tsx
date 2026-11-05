@@ -64,14 +64,14 @@ type DataRow = Record<string, string | number>;
 type ChartDataRow = Record<string, string | number | null>;
 
 const COLORS = [
-    "#C77B53",
-    "#65A8A0",
-    "#8C83D6",
-    "#D9A441",
-    "#6C9ED1",
-    "#D47791",
-    "#8BA66B",
-    "#A78BFA",
+    "#000000",
+    "#333333",
+    "#666666",
+    "#999999",
+    "#bdbdbd",
+    "#d6d6d6",
+    "#808080",
+    "#4d4d4d",
 ];
 
 const INITIAL_ROWS: DataRow[] = [
@@ -786,7 +786,7 @@ export function ChartMakerWorkspace() {
             return (
                 <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                     <div>
-                        <BarChart3 className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+                        <BarChart3 className="mx-auto mb-4 h-10 w-10 text-[#000000]" />
 
                         <p className="font-semibold text-white">
                             Your chart will appear here
@@ -809,7 +809,7 @@ export function ChartMakerWorkspace() {
                 return (
                     <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                         <div>
-                            <PieChartIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+                            <PieChartIcon className="mx-auto mb-4 h-10 w-10 text-[#000000]" />
 
                             <p className="font-semibold text-white">
                                 Pie chart data is not valid
@@ -905,7 +905,7 @@ export function ChartMakerWorkspace() {
                 return (
                     <div className="flex h-full min-h-[300px] items-center justify-center px-4 text-center">
                         <div>
-                            <ScatterIcon className="mx-auto mb-4 h-10 w-10 text-[#C77B53]" />
+                            <ScatterIcon className="mx-auto mb-4 h-10 w-10 text-[#000000]" />
 
                             <p className="font-semibold text-white">
                                 Two numeric columns are required
@@ -1097,7 +1097,7 @@ export function ChartMakerWorkspace() {
 
                         <Tooltip
                             cursor={{
-                                stroke: "#C77B53",
+                                stroke: "#000000",
                                 strokeDasharray: "4 4",
                             }}
                             contentStyle={{
@@ -1258,10 +1258,10 @@ export function ChartMakerWorkspace() {
         "rounded-2xl border border-white/[0.09] bg-[#141918] p-4 sm:p-5";
 
     const field =
-        "w-full rounded-lg border border-white/10 bg-[#0D1210] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#C77B53]";
+        "w-full rounded-lg border border-white/10 bg-[#0D1210] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#000000]";
 
     const button =
-        "inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-semibold text-white/80 transition hover:border-[#C77B53]/60 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50";
+        "inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-semibold text-white/80 transition hover:border-[#000000]/60 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50";
 
     const displayOptions = [
         {
@@ -1287,7 +1287,7 @@ export function ChartMakerWorkspace() {
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-2">
-                        <div className="rounded-xl border border-[#C77B53]/30 bg-[#C77B53]/10 p-2">
+                        <div className="rounded-xl border border-[#000000]/30 bg-[#000000]/10 p-2">
                             <BarChart3 className="h-5 w-5 text-[#D99770]" />
                         </div>
 
@@ -1458,7 +1458,7 @@ export function ChartMakerWorkspace() {
                                                                 event.target.value
                                                             )
                                                         }
-                                                        className="w-full min-w-[85px] rounded-md border border-transparent bg-transparent px-2 py-2 text-white outline-none focus:border-[#C77B53]/50 focus:bg-[#0D1210]"
+                                                        className="w-full min-w-[85px] rounded-md border border-transparent bg-transparent px-2 py-2 text-white outline-none focus:border-[#000000]/50 focus:bg-[#0D1210]"
                                                     />
                                                 </td>
                                             ))}
@@ -1528,7 +1528,7 @@ export function ChartMakerWorkspace() {
                                             setChartType(option.type)
                                         }
                                         className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition ${active
-                                                ? "border-[#C77B53]/70 bg-[#C77B53]/10 text-[#E3A47F]"
+                                                ? "border-[#000000]/70 bg-[#000000]/10 text-[#000000]"
                                                 : "border-white/[0.08] bg-[#0D1210] text-white/55 hover:border-white/20 hover:text-white"
                                             }`}
                                     >
@@ -1642,7 +1642,7 @@ export function ChartMakerWorkspace() {
                                             onChange={(event) =>
                                                 setter(event.target.checked)
                                             }
-                                            className="accent-[#C77B53]"
+                                            className="accent-[#000000]"
                                         />
 
                                         {label}

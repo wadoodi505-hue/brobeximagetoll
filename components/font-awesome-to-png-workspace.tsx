@@ -580,7 +580,7 @@ export function FontAwesomeToPngWorkspace() {
   const [copiedEmoji, setCopiedEmoji] = useState("");
 
   const [iconColor, setIconColor] = useState("#FFFFFF");
-  const [backgroundColor, setBackgroundColor] = useState("#C77B53");
+  const [backgroundColor, setBackgroundColor] = useState("#000000");
   const [transparent, setTransparent] = useState(true);
 
   const [size, setSize] = useState(512);
@@ -748,11 +748,11 @@ export function FontAwesomeToPngWorkspace() {
     "min-w-0 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#101313]/95 p-4 sm:p-6";
 
   const fieldClass =
-    "min-h-11 w-full min-w-0 rounded-xl border border-white/10 bg-[#090B0B] px-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#C77B53]";
+    "min-h-11 w-full min-w-0 rounded-xl border border-white/10 bg-[#090B0B] px-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#000000]";
 
   const tabClass = (active: boolean) =>
     `min-h-11 rounded-xl border px-4 py-3 text-xs font-semibold transition ${active
-      ? "border-[#C77B53] bg-[#C77B53] text-[#160D09]"
+      ? "border-[#000000] bg-[#000000] text-[#160D09]"
       : "border-white/10 bg-white/[0.02] text-white/60 hover:border-white/20 hover:text-white"
     }`;
 
@@ -764,7 +764,7 @@ export function FontAwesomeToPngWorkspace() {
       <div className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
         <header className="mb-10 flex flex-wrap items-center justify-between gap-4 sm:mb-14">
           <span className="text-lg font-black tracking-[0.2em] sm:text-xl">
-            BROBEX<span className="text-[#C77B53]">.</span>
+            BROBEX<span className="text-[#000000]">.</span>
           </span>
           <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] text-white/65 sm:text-xs">
             <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
@@ -773,12 +773,12 @@ export function FontAwesomeToPngWorkspace() {
         </header>
 
         <section className="mx-auto max-w-3xl text-center">
-          <div className="mb-5 inline-flex max-w-full rounded-full border border-[#C77B53]/25 bg-[#C77B53]/[0.08] px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[#E4A17D] sm:text-xs">
+          <div className="mb-5 inline-flex max-w-full rounded-full border border-[#000000]/25 bg-[#000000]/[0.08] px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[#000000] sm:text-xs">
             BROBEX ICON & EMOJI STUDIO
           </div>
           <h1 className="text-3xl font-semibold leading-tight tracking-[-0.055em] sm:text-5xl md:text-6xl">
             Creative assets,
-            <span className="mt-1 block bg-gradient-to-r from-[#F0C3A7] via-[#C77B53] to-[#E6A17B] bg-clip-text text-transparent sm:mt-2">
+            <span className="mt-1 block bg-gradient-to-r from-[#000000] via-[#000000] to-[#000000] bg-clip-text text-transparent sm:mt-2">
               ready to use.
             </span>
           </h1>
@@ -849,15 +849,15 @@ export function FontAwesomeToPngWorkspace() {
                         clearMessages();
                       }}
                       className={`group flex min-h-[92px] min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border p-2 transition sm:min-h-[108px] sm:gap-3 sm:p-3 ${active
-                          ? "border-[#C77B53] bg-[#C77B53]/10 shadow-[0_0_20px_rgba(199,123,83,0.08)]"
+                          ? "border-[#000000] bg-[#000000]/10 shadow-[0_0_20px_rgba(199,123,83,0.08)]"
                           : "border-white/[0.07] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
                         }`}
                     >
                       <span
                         aria-hidden="true"
-                        className="flex h-7 w-7 max-w-full shrink-0 items-center justify-center text-[#E4A17D] transition group-hover:scale-110 sm:h-8 sm:w-8 [&>svg]:h-full [&>svg]:w-full"
+                        className="flex h-7 w-7 max-w-full shrink-0 items-center justify-center text-[#000000] transition group-hover:scale-110 sm:h-8 sm:w-8 [&>svg]:h-full [&>svg]:w-full"
                         dangerouslySetInnerHTML={{
-                          __html: createSvg(item.definition, active ? "#F0C3A7" : "#E4A17D"),
+                          __html: createSvg(item.definition, active ? "#000000" : "#000000"),
                         }}
                       />
                       <span className="w-full truncate text-center text-[10px] font-medium text-white/65 sm:text-xs">
@@ -874,7 +874,7 @@ export function FontAwesomeToPngWorkspace() {
                   <p className="mt-2 text-xs leading-5 text-white/40">
                     Try another search term or select a different category.
                   </p>
-                  <button type="button" onClick={() => setSearch("")} className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-[#E4A17D] transition hover:bg-white/[0.05]">
+                  <button type="button" onClick={() => setSearch("")} className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-[#000000] transition hover:bg-white/[0.05]">
                     Clear search
                   </button>
                 </div>
@@ -889,7 +889,7 @@ export function FontAwesomeToPngWorkspace() {
                     {selectedIcon.name} · {selectedIcon.category}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-lg border border-[#C77B53]/20 bg-[#C77B53]/10 px-2 py-1 text-[9px] font-semibold text-[#E4A17D]">
+                <span className="shrink-0 rounded-lg border border-[#000000]/20 bg-[#000000]/10 px-2 py-1 text-[9px] font-semibold text-[#000000]">
                   {format}
                 </span>
               </div>
@@ -928,7 +928,7 @@ export function FontAwesomeToPngWorkspace() {
                     type="checkbox"
                     checked={transparent}
                     onChange={(event) => setTransparent(event.target.checked)}
-                    className="h-4 w-4 shrink-0 accent-[#C77B53]"
+                    className="h-4 w-4 shrink-0 accent-[#000000]"
                   />
                   Transparent background
                 </label>
@@ -1013,7 +1013,7 @@ export function FontAwesomeToPngWorkspace() {
                   type="button"
                   onClick={downloadIcon}
                   disabled={exporting}
-                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#C77B53] px-4 py-3 text-sm font-semibold text-[#160D09] transition hover:bg-[#DFA17E] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#000000] px-4 py-3 text-sm font-semibold text-[#160D09] transition hover:bg-[#000000] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {exporting ? "Preparing export..." : `Download ${format} · ${size}px`}
                 </button>
@@ -1039,7 +1039,7 @@ export function FontAwesomeToPngWorkspace() {
                   <h2 className="text-base font-semibold">Emoji Library</h2>
                   <p className="mt-1 text-xs text-white/40">Select any emoji to copy it instantly.</p>
                 </div>
-                <span className="rounded-full border border-[#C77B53]/20 bg-[#C77B53]/10 px-3 py-2 text-xs text-[#E4A17D]">
+                <span className="rounded-full border border-[#000000]/20 bg-[#000000]/10 px-3 py-2 text-xs text-[#000000]">
                   {filteredEmojis.length} emojis
                 </span>
               </div>
@@ -1063,7 +1063,7 @@ export function FontAwesomeToPngWorkspace() {
                     type="button"
                     onClick={() => setEmojiCategory(item)}
                     className={`shrink-0 rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${emojiCategory === item
-                        ? "border-[#C77B53] bg-[#C77B53] text-[#160D09]"
+                        ? "border-[#000000] bg-[#000000] text-[#160D09]"
                         : "border-white/10 bg-white/[0.02] text-white/60 hover:border-white/20"
                       }`}
                   >
@@ -1092,7 +1092,7 @@ export function FontAwesomeToPngWorkspace() {
                     title={`${item.name} · Click to copy`}
                     aria-label={`Copy ${item.name} emoji`}
                     onClick={() => copyEmoji(item)}
-                    className={`group flex min-h-[82px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border p-2 transition hover:-translate-y-0.5 hover:border-[#C77B53]/60 hover:bg-[#C77B53]/10 ${copiedEmoji === item.emoji
+                    className={`group flex min-h-[82px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border p-2 transition hover:-translate-y-0.5 hover:border-[#000000]/60 hover:bg-[#000000]/10 ${copiedEmoji === item.emoji
                         ? "border-emerald-400/40 bg-emerald-400/[0.08]"
                         : "border-white/[0.07] bg-white/[0.02]"
                       }`}
@@ -1112,7 +1112,7 @@ export function FontAwesomeToPngWorkspace() {
                   <button
                     type="button"
                     onClick={() => { setEmojiSearch(""); setEmojiCategory("All"); }}
-                    className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-[#E4A17D]"
+                    className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-[#000000]"
                   >
                     Clear filters
                   </button>

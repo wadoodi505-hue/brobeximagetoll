@@ -505,7 +505,7 @@ button:disabled {
 }
 
 .status.browser {
-  background: #e8eee8;
+  background: #000000;
   color: #31543b
 }
 
@@ -815,7 +815,7 @@ button:disabled {
 }
 
 .notice.success {
-  background: #e8eee8;
+  background: #000000;
   color: #31543b
 }
 
@@ -1872,11 +1872,11 @@ button:disabled {
 }
 
 .passport-upload:hover {
-  border-color: #70b85c;
+  border-color: #000000;
 }
 
 .passport-upload svg {
-  color: #70b85c;
+  color: #000000;
 }
 
 .passport-upload strong {
@@ -1971,7 +1971,7 @@ button:disabled {
 
 .passport-setting-group input[type="range"] {
   width: 100%;
-  accent-color: #70b85c;
+  accent-color: #000000;
 }
 
 .passport-color-row {
@@ -2844,7 +2844,7 @@ button:disabled {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--line) 75%, #c77b53 25%);
+  border: 1px solid color-mix(in srgb, var(--line) 75%, #000000 25%);
   border-radius: 24px;
   background:
     radial-gradient(ellipse at 0% 0%,
@@ -2858,7 +2858,7 @@ button:disabled {
 }
 
 .workspace:focus-within {
-  border-color: color-mix(in srgb, var(--line) 55%, #c77b53 45%);
+  border-color: color-mix(in srgb, var(--line) 55%, #000000 45%);
 }
 
 .workspace-top {
@@ -2880,13 +2880,13 @@ button:disabled {
   justify-content: center;
   gap: 12px;
   padding: 28px 20px;
-  border: 1.5px dashed color-mix(in srgb, var(--line) 55%, #c77b53 45%);
+  border: 1.5px dashed color-mix(in srgb, var(--line) 55%, #000000 45%);
   border-radius: 19px;
   background:
     linear-gradient(145deg,
       rgba(199, 123, 83, 0.075),
       transparent 65%),
-    color-mix(in srgb, var(--surface) 94%, #c77b53 6%);
+    color-mix(in srgb, var(--surface) 94%, #000000 6%);
   text-align: center;
   cursor: pointer;
   transition:
@@ -2897,13 +2897,13 @@ button:disabled {
 }
 
 .workspace .dropzone:hover {
-  border-color: #c77b53;
-  background-color: color-mix(in srgb, var(--surface) 88%, #c77b53 12%);
+  border-color: #000000;
+  background-color: color-mix(in srgb, var(--surface) 88%, #000000 12%);
   box-shadow: 0 10px 30px rgba(199, 123, 83, 0.09);
 }
 
 .workspace .dropzone:focus-within {
-  outline: 2px solid #c77b53;
+  outline: 2px solid #000000;
   outline-offset: 4px;
 }
 
@@ -2919,7 +2919,7 @@ button:disabled {
   padding: 10px 16px;
   border: 1px solid rgba(199, 123, 83, 0.45);
   border-radius: 10px;
-  background: linear-gradient(135deg, #c77b53, #a95e3c);
+  background: linear-gradient(135deg, #000000, #000000);
   color: #fff;
   font: inherit;
   font-size: 13px;
@@ -2963,7 +2963,7 @@ button:disabled {
 .workspace input:focus-visible,
 .workspace select:focus-visible,
 .workspace textarea:focus-visible {
-  outline: 2px solid #c77b53;
+  outline: 2px solid #000000;
   outline-offset: 3px;
 }
 
@@ -2984,14 +2984,14 @@ button:disabled {
 .workspace input:not([type="file"]):focus,
 .workspace select:focus,
 .workspace textarea:focus {
-  border-color: #c77b53;
+  border-color: #000000;
   box-shadow: 0 0 0 3px rgba(199, 123, 83, 0.12);
 }
 
 .workspace .preview-panel,
 .workspace .settings-panel {
   border-radius: 18px;
-  border-color: color-mix(in srgb, var(--line) 80%, #c77b53 20%);
+  border-color: color-mix(in srgb, var(--line) 80%, #000000 20%);
 }
 
 .workspace .preview-panel {
@@ -3019,7 +3019,7 @@ button:disabled {
 
 .integration-notice {
   border-radius: 20px;
-  border-color: color-mix(in srgb, var(--line) 75%, #c77b53 25%);
+  border-color: color-mix(in srgb, var(--line) 75%, #000000 25%);
   background:
     radial-gradient(ellipse at top left,
       rgba(199, 123, 83, 0.09),
@@ -3121,7 +3121,7 @@ button:disabled {
 .image-text-upload:focus-visible,
 .translate-upload:focus-visible,
 [role="button"][aria-label="Upload an image"]:focus-visible {
-  outline: 2px solid #c77b53;
+  outline: 2px solid #000000;
   outline-offset: 4px;
 }
 
@@ -3144,7 +3144,7 @@ button:disabled {
 .workspace input[type="file"]::file-selector-button {
   border: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, #c77b53, #a95e3c);
+  background: linear-gradient(135deg, #000000, #000000);
   color: #fff;
   font-weight: 700;
   padding: 10px 15px;
@@ -3161,7 +3161,7 @@ button:disabled {
   padding: 0 20px;
   border: 1px solid rgba(199, 123, 83, 0.5);
   border-radius: 11px;
-  background: linear-gradient(135deg, #c77b53, #a95e3c);
+  background: linear-gradient(135deg, #000000, #000000);
   color: #fff;
   font-size: 13px;
   font-weight: 750;
@@ -3213,7 +3213,7 @@ button:disabled {
 .image-text-filebar button:hover,
 .image-text-result-head button:hover,
 .translate-result-card button:hover {
-  border-color: #c77b53;
+  border-color: #000000;
 }
 
 /* Settings and action areas */
@@ -3271,7 +3271,7 @@ button:disabled {
 
 .workspace button:focus-visible,
 .workspace a:focus-visible {
-  outline: 2px solid #c77b53;
+  outline: 2px solid #000000;
   outline-offset: 3px;
 }
 
@@ -3482,7 +3482,7 @@ button:disabled {
    ========================================== */
 
 .passport-pro {
-  --passport-pro-accent: #b99a62;
+  --passport-pro-accent: #000000;
   --passport-pro-border: var(--line);
 }
 
@@ -3850,7 +3850,7 @@ button:disabled {
    ========================================== */
 
 .passport-pro {
-  --passport-pro-accent: #b99a62;
+  --passport-pro-accent: #000000;
   --passport-pro-border: var(--line);
 }
 
@@ -5170,7 +5170,7 @@ button:disabled {
   --line: #e5e8ed;
   --soft: #f1f4f8;
   --dark: #20242c;
-  --accent: #C77B53;
+  --accent: #000000;
   --accent-soft: rgba(199, 123, 83, .10);
   --shadow: 0 10px 32px rgba(28, 43, 67, .055);
 }
@@ -5178,11 +5178,11 @@ button:disabled {
 :root[data-theme="dark"] {
   --bg: #11151c;
   --surface: #191f29;
-  --ink: #eef2f8;
+  --ink: #000000;
   --muted: #a0aaba;
   --line: #2b3442;
   --soft: #222b38;
-  --dark: #eef2f8;
+  --dark: #000000;
   --accent: #83aaff;
   --accent-soft: #202f4b;
   --shadow: 0 10px 32px rgba(0, 0, 0, .2);
@@ -7475,9 +7475,9 @@ body {
 .exact-error,
 .exact-warning {
   padding: 13px 15px;
-  border: 1px solid #d69b45;
+  border: 1px solid #000000;
   border-radius: 12px;
-  background: color-mix(in srgb, #d69b45 10%, var(--surface));
+  background: color-mix(in srgb, #000000 10%, var(--surface));
   color: var(--ink);
   font-size: 13px;
 }
@@ -7664,7 +7664,7 @@ body {
 
 .directory-main-panel {
   background: var(--surface);
-  border: 1px solid #e7e9f5;
+  border: 1px solid #000000;
   padding: 24px 22px 20px;
 }
 
@@ -7725,7 +7725,7 @@ body {
   border-radius: 5px;
   background: #fff;
   color: #565d77;
-  box-shadow: 0 0 0 5px #f0f1fb;
+  box-shadow: 0 0 0 5px #000000;
   margin: 13px 5px 23px;
 }
 
@@ -7922,7 +7922,7 @@ body {
 .sidebar-advertisement,
 .sidebar-note {
   background: #fff;
-  border: 1px solid #e7e9f5;
+  border: 1px solid #000000;
   padding: 13px;
 }
 
@@ -8142,7 +8142,7 @@ body {
   margin-top: 13px;
   margin-bottom: 23px;
   background: var(--surface, #fff);
-  box-shadow: 0 5px 14px rgba(34, 39, 95, .08), 0 0 0 5px #f0f1fb;
+  box-shadow: 0 5px 14px rgba(34, 39, 95, .08), 0 0 0 5px #000000;
 }
 
 .directory-sidebar {
@@ -8153,7 +8153,7 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #d5d8eb transparent;
+  scrollbar-color: #000000 transparent;
 }
 
 .directory-sidebar::-webkit-scrollbar {
@@ -8161,7 +8161,7 @@ body {
 }
 
 .directory-sidebar::-webkit-scrollbar-thumb {
-  background: #d5d8eb;
+  background: #000000;
   border-radius: 10px;
 }
 
@@ -8281,7 +8281,7 @@ body {
   --line: rgba(20, 25, 22, 0.085);
   --soft: #f1f2ef;
   --dark: #171a18;
-  --accent: #C77B53;
+  --accent: #000000;
   --accent-soft: rgba(199, 123, 83, .10);
   --shadow: 0 12px 34px rgba(25, 32, 27, 0.055);
   --shadow-raised: 0 18px 48px rgba(25, 32, 27, 0.085);
@@ -8620,3 +8620,143 @@ hr {
     backdrop-filter: blur(14px);
   }
 }
+/* BROBEX MONOCHROME SYSTEM — final theme overrides */
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --ink: #000000;
+  --muted: #555555;
+  --line: #dedede;
+  --soft: #f3f3f3;
+  --dark: #000000;
+  --accent: #000000;
+  --accent-soft: #f1f1f1;
+  --shadow: 0 5px 18px rgba(0, 0, 0, .07);
+  --shadow-raised: 0 10px 28px rgba(0, 0, 0, .11);
+  --page-gradient: #ffffff;
+  --surface-gradient: #ffffff;
+  --surface-raised: #f7f7f7;
+  --header-background: #ffffff;
+  --focus-ring: #000000;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #111111;
+  --ink: #ffffff;
+  --muted: #c2c2c2;
+  --line: #343434;
+  --soft: #1a1a1a;
+  --dark: #ffffff;
+  --accent: #ffffff;
+  --accent-soft: #202020;
+  --shadow: 0 5px 18px rgba(255, 255, 255, .045);
+  --shadow-raised: 0 10px 28px rgba(255, 255, 255, .09);
+  --page-gradient: #000000;
+  --surface-gradient: #111111;
+  --surface-raised: #1b1b1b;
+  --header-background: #000000;
+  --focus-ring: #ffffff;
+}
+
+html, body { background: var(--bg); color: var(--ink); }
+body {
+  background-attachment: scroll;
+  text-rendering: auto;
+  transition: background-color .12s linear, color .12s linear;
+}
+body::before { display: none; }
+.site-header {
+  background: var(--header-background);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.directory-search { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-theme="dark"] .site-header { box-shadow: none; }
+
+/* Opaque surfaces and monochrome hover feedback. */
+.tool-card, .directory-tool, .directory-main-panel, .tool-info-card,
+.tool-workspace-shell, .tool-guide, .tool-guide-section, .sidebar-quick-access,
+.sidebar-advertisement, .sidebar-note, .hero-art-window, .search-box,
+.directory-search, .icon-button, .mobile-menu-button {
+  color: var(--ink);
+  background-color: var(--surface);
+  border-color: var(--line);
+}
+.tool-card:hover, .directory-tool:hover, .directory-tool:focus-visible,
+.icon-button:hover, .mobile-menu-button:hover, .sidebar-quick-grid a:hover {
+  color: var(--ink);
+  background: var(--surface-raised);
+  border-color: var(--ink);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+  transform: translateY(-1px);
+}
+:root[data-theme="dark"] .tool-card:hover,
+:root[data-theme="dark"] .directory-tool:hover,
+:root[data-theme="dark"] .directory-tool:focus-visible,
+:root[data-theme="dark"] .icon-button:hover,
+:root[data-theme="dark"] .mobile-menu-button:hover,
+:root[data-theme="dark"] .sidebar-quick-grid a:hover {
+  color: #ffffff;
+  background: #1b1b1b;
+  border-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, .12);
+}
+:root[data-theme="dark"] .tool-card,
+:root[data-theme="dark"] .directory-tool,
+:root[data-theme="dark"] .directory-main-panel,
+:root[data-theme="dark"] .tool-info-card,
+:root[data-theme="dark"] .tool-workspace-shell,
+:root[data-theme="dark"] .tool-guide,
+:root[data-theme="dark"] .tool-guide-section,
+:root[data-theme="dark"] .sidebar-quick-access,
+:root[data-theme="dark"] .sidebar-advertisement,
+:root[data-theme="dark"] .sidebar-note,
+:root[data-theme="dark"] .hero-art-window,
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] .directory-search,
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  color: #ffffff;
+  background-color: #111111;
+}
+:root[data-theme="dark"] .footer { background: #080808; }
+:root[data-theme="light"] .footer { background: #ffffff; }
+:root[data-theme="dark"] .footer,
+:root[data-theme="dark"] .footer a,
+:root[data-theme="dark"] .footer p,
+:root[data-theme="dark"] .tool-page-shell,
+:root[data-theme="dark"] .tool-page-shell h1,
+:root[data-theme="dark"] .tool-page-shell h2,
+:root[data-theme="dark"] .tool-page-shell h3 { color: #ffffff; }
+:root[data-theme="light"] .tool-page-shell,
+:root[data-theme="light"] .tool-page-shell h1,
+:root[data-theme="light"] .tool-page-shell h2,
+:root[data-theme="light"] .tool-page-shell h3 { color: #000000; }
+
+/* Keep transitions inexpensive and respect the user's motion preference. */
+.tool-card, .directory-tool, .home-primary-link, .icon-button,
+.mobile-menu-button, .desktop-nav a, .mobile-nav a {
+  transition: color .12s ease, background-color .12s ease, border-color .12s ease,
+    box-shadow .12s ease, transform .12s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+:root[data-theme="light"] .tool-workspace-shell .text-white,
+:root[data-theme="light"] .tool-workspace-shell [class*="text-white/"] { color: #000000 !important; }
+:root[data-theme="light"] .tool-workspace-shell [class*="bg-[#171a"],
+:root[data-theme="light"] .tool-workspace-shell [class*="bg-[#101"],
+:root[data-theme="light"] .tool-workspace-shell [class*="bg-[#0"] { background-color: #ffffff !important; }
+:root[data-theme="light"] .tool-workspace-shell [class*="border-white"] { border-color: #d8d8d8 !important; }
+:root[data-theme="light"] .tool-workspace-shell button { color: #000000; }
+:root[data-theme="dark"] .tool-workspace-shell { color: #ffffff; }

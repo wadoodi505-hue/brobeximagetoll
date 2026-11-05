@@ -170,15 +170,15 @@ export default function BlurBackground() {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(183,103,60,0.13),transparent_48%)]" />
       <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
         <header className="mb-10 flex items-center justify-between gap-4">
-          <Link href="/" className="text-lg font-black tracking-[0.2em]">BROBEX<span className="text-[#c77b53]">.</span></Link>
+          <Link href="/" className="text-lg font-black tracking-[0.2em]">BROBEX<span className="text-white">.</span></Link>
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65">Browser-based AI</span>
         </header>
 
         <section className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex rounded-full border border-[#c77b53]/25 bg-[#c77b53]/[0.08] px-3 py-1.5 text-xs tracking-wide text-[#e4a17d]">BROBEX IMAGE STUDIO</span>
+          <span className="inline-flex rounded-full border border-white/25 bg-white/[0.08] px-3 py-1.5 text-xs tracking-wide text-white">BROBEX IMAGE STUDIO</span>
           <h1 className="mt-5 text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">
             Blur the background.
-            <span className="mt-2 block bg-gradient-to-r from-[#f0c3a7] via-[#c77b53] to-[#e6a17b] bg-clip-text text-transparent">Keep the focus.</span>
+            <span className="mt-2 block bg-gradient-to-r from-[#000000] via-[#000000] to-[#000000] bg-clip-text text-transparent">Keep the focus.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/55 sm:text-base">
             Isolate your subject with AI, soften the background, and control the blur strength. Export a high-quality PNG.
@@ -190,12 +190,12 @@ export default function BlurBackground() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="flex min-h-[310px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.015] px-5 py-12 text-center transition hover:border-[#d99a75] hover:bg-[#c77b53]/[0.06] sm:min-h-[360px]"
+              className="flex min-h-[310px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.015] px-5 py-12 text-center transition hover:border-white hover:bg-white/[0.06] sm:min-h-[360px]"
             >
-              <span className="text-4xl text-[#d99a75]">＋</span>
+              <span className="text-4xl text-[#000000]">＋</span>
               <span className="mt-4 text-xl font-semibold">Upload your image</span>
               <span className="mt-2 text-sm text-white/50">Choose a photo to create a professional depth-of-field effect.</span>
-              <span className="mt-6 rounded-xl bg-[#c77b53] px-6 py-3 text-sm font-semibold text-[#160d09]">Choose image</span>
+              <span className="mt-6 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black">Choose image</span>
               <span className="mt-4 text-xs text-white/35">JPG, PNG or WebP · Maximum 12 MB</span>
             </button>
           ) : (
@@ -223,7 +223,7 @@ export default function BlurBackground() {
                     ) : (
                       <div className="max-w-xs text-center text-sm text-white/40">
                         {processing ? `${status || "Processing image"} (${progress}%)` : "Your blurred result will appear here."}
-                        {processing && <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-[#c77b53] transition-all" style={{ width: `${progress}%` }} /></div>}
+                        {processing && <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-white transition-all" style={{ width: `${progress}%` }} /></div>}
                       </div>
                     )}
                   </div>
@@ -233,7 +233,7 @@ export default function BlurBackground() {
               {error && <p role="alert" className="mt-5 rounded-xl border border-red-400/20 bg-red-400/[0.07] px-4 py-3 text-sm text-red-200">{error}</p>}
 
               {!foreground ? (
-                <button type="button" onClick={processImage} disabled={processing} className="mt-5 w-full rounded-xl bg-[#c77b53] px-5 py-3.5 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+                <button type="button" onClick={processImage} disabled={processing} className="mt-5 w-full rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 disabled:cursor-wait disabled:opacity-60 sm:w-auto">
                   {processing ? "Isolating subject…" : "AI blur background"}
                 </button>
               ) : (
@@ -243,11 +243,11 @@ export default function BlurBackground() {
                       <h2 className="text-sm font-semibold">Blur strength</h2>
                       <p className="mt-1 text-xs text-white/45">Adjust the background softness.</p>
                     </div>
-                    <span className="rounded-lg border border-[#c77b53]/30 px-3 py-2 text-sm tabular-nums text-[#e4a17d]">{blur}px</span>
+                    <span className="rounded-lg border border-white/30 px-3 py-2 text-sm tabular-nums text-white">{blur}px</span>
                   </div>
-                  <input type="range" min="0" max="40" step="1" value={blur} onChange={(event) => setBlur(Number(event.target.value))} className="mt-5 w-full accent-[#c77b53]" aria-label="Background blur strength" />
+                  <input type="range" min="0" max="40" step="1" value={blur} onChange={(event) => setBlur(Number(event.target.value))} className="mt-5 w-full accent-white" aria-label="Background blur strength" />
                   <div className="mt-2 flex justify-between text-xs text-white/35"><span>Subtle</span><span>Strong</span></div>
-                  <button type="button" onClick={download} disabled={!output || rendering} className="mt-6 w-full rounded-xl bg-[#c77b53] px-5 py-3.5 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] disabled:opacity-50 sm:w-auto">
+                  <button type="button" onClick={download} disabled={!output || rendering} className="mt-6 w-full rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 disabled:opacity-50 sm:w-auto">
                     {rendering ? "Updating preview…" : "Download blurred PNG"}
                   </button>
                 </div>
@@ -264,7 +264,7 @@ export default function BlurBackground() {
             ["03", "Adjust & export", "Set your blur strength and save the PNG."],
           ].map(([number, title, description]) => (
             <div key={number} className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
-              <p className="text-xs tracking-[0.18em] text-[#d99a75]">{number}</p>
+              <p className="text-xs tracking-[0.18em] text-[#000000]">{number}</p>
               <h3 className="mt-3 text-sm font-semibold">{title}</h3>
               <p className="mt-2 text-xs leading-5 text-white/45">{description}</p>
             </div>

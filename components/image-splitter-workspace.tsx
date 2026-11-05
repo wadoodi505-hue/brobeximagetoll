@@ -333,11 +333,11 @@ export function ImageSplitterWorkspace() {
                             onDragLeave={() => setDragging(false)}
                             onDrop={handleDrop}
                             className={`image-splitter-dropzone flex min-h-[310px] flex-col items-center justify-center rounded-2xl border border-dashed px-5 py-12 text-center transition sm:min-h-[360px] ${dragging
-                                    ? "border-[#dfa17e] bg-[#c77b53]/10"
+                                    ? "border-white bg-white/10"
                                     : "border-white/20 bg-white/[0.02]"
                                 }`}
                         >
-                            <div className="image-splitter-upload-icon mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c77b53]/25 bg-[#c77b53]/10 text-[#e4a17d]">
+                            <div className="image-splitter-upload-icon mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white">
                                 <UploadIcon />
                             </div>
 
@@ -411,7 +411,7 @@ export function ImageSplitterWorkspace() {
                                         <span className="text-xs font-medium text-white/70">
                                             Live grid preview
                                         </span>
-                                        <span className="rounded-md bg-[#c77b53]/10 px-2 py-1 text-[10px] text-[#e4a17d]">
+                                        <span className="rounded-md bg-white/10 px-2 py-1 text-[10px] text-white">
                                             {rows} × {columns}
                                         </span>
                                     </div>
@@ -433,7 +433,7 @@ export function ImageSplitterWorkspace() {
                                                 {Array.from({ length: tileCount }).map((_, index) => (
                                                     <div
                                                         key={index}
-                                                        className="border border-[#f0b18e]/90 bg-[#c77b53]/[0.06]"
+                                                        className="border border-white/90 bg-white/[0.06]"
                                                     />
                                                 ))}
                                             </div>
@@ -470,7 +470,7 @@ export function ImageSplitterWorkspace() {
                                             onChange={(event) =>
                                                 setRows(Math.max(1, Math.min(100, Number(event.target.value) || 1)))
                                             }
-                                            className="min-h-11 rounded-xl border border-white/15 bg-[#171a1a] px-3 text-sm text-white outline-none focus:border-[#c77b53] disabled:opacity-50"
+                                            className="min-h-11 rounded-xl border border-white/15 bg-[#171a1a] px-3 text-sm text-white outline-none focus:border-white disabled:opacity-50"
                                         />
                                     </label>
 
@@ -485,7 +485,7 @@ export function ImageSplitterWorkspace() {
                                             onChange={(event) =>
                                                 setColumns(Math.max(1, Math.min(100, Number(event.target.value) || 1)))
                                             }
-                                            className="min-h-11 rounded-xl border border-white/15 bg-[#171a1a] px-3 text-sm text-white outline-none focus:border-[#c77b53] disabled:opacity-50"
+                                            className="min-h-11 rounded-xl border border-white/15 bg-[#171a1a] px-3 text-sm text-white outline-none focus:border-white disabled:opacity-50"
                                         />
                                     </label>
                                 </div>
@@ -502,7 +502,7 @@ export function ImageSplitterWorkspace() {
                                                 clearTiles();
                                                 setMessage("");
                                             }}
-                                            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/65 transition hover:border-[#c77b53]/60 hover:text-white disabled:opacity-40"
+                                            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/65 transition hover:border-white/60 hover:text-white disabled:opacity-40"
                                         >
                                             {size} × {size}
                                         </button>
@@ -519,7 +519,7 @@ export function ImageSplitterWorkspace() {
                                     type="button"
                                     onClick={splitImage}
                                     disabled={busy || tileCount > MAX_TILES || dimensions.width === 0}
-                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c77b53] px-5 py-3.5 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] focus:outline-none focus:ring-2 focus:ring-[#dfa17e] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white disabled:cursor-wait disabled:opacity-60 sm:w-auto"
                                 >
                                     {processing ? (
                                         <>
@@ -537,7 +537,7 @@ export function ImageSplitterWorkspace() {
                                 {processing && (
                                     <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
                                         <div
-                                            className="h-full rounded-full bg-gradient-to-r from-[#a95835] via-[#d99a75] to-[#f0c3a7] transition-[width] duration-300"
+                                            className="h-full rounded-full bg-gradient-to-r from-[#a95835] via-[#000000] to-[#000000] transition-[width] duration-300"
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>
@@ -585,7 +585,7 @@ export function ImageSplitterWorkspace() {
                                     type="button"
                                     onClick={downloadAll}
                                     disabled={packing}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#c77b53] px-4 py-3 text-xs font-semibold text-[#160d09] transition hover:bg-[#dfa17e] disabled:opacity-60"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-semibold text-black transition hover:bg-neutral-200 disabled:opacity-60"
                                 >
                                     {packing ? (
                                         <Loader2 size={16} className="animate-spin" />
@@ -634,7 +634,7 @@ export function ImageSplitterWorkspace() {
                                                 .map((tile) => (
                                                     <div
                                                         key={tile.name}
-                                                        className="relative min-h-0 min-w-0 overflow-hidden border-[0.5px] border-[#f0b18e]/50"
+                                                        className="relative min-h-0 min-w-0 overflow-hidden border-[0.5px] border-[#000000]/50"
                                                     >
                                                         <img
                                                             src={tile.url}
@@ -691,7 +691,7 @@ export function ImageSplitterWorkspace() {
                                                         <button
                                                             type="button"
                                                             onClick={() => downloadBlob(tile.blob, tile.name)}
-                                                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-2 py-2 text-xs text-white/75 transition hover:border-[#c77b53]/60 hover:text-white"
+                                                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-2 py-2 text-xs text-white/75 transition hover:border-white/60 hover:text-white"
                                                         >
                                                             <Download size={14} />
                                                             Download PNG

@@ -275,7 +275,7 @@ setResult(null);
   className="text-lg font-black tracking-[0.2em] text-white"
   aria-label="BROBEX home"
 >
-  BROBEX<span className="text-[#c77b53]">.</span>
+  BROBEX<span className="text-white">.</span>
 </Link>
 
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65">
@@ -285,7 +285,7 @@ setResult(null);
         </header>
 
         <section className="mx-auto max-w-3xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c77b53]/25 bg-[#c77b53]/[0.08] px-3 py-1.5 text-xs font-medium tracking-wide text-[#e4a17d]">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.08] px-3 py-1.5 text-xs font-medium tracking-wide text-white">
             <span className="h-4 w-4">
               <SparkIcon />
             </span>
@@ -294,7 +294,7 @@ setResult(null);
 
           <h1 className="text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">
             Remove backgrounds.
-            <span className="mt-2 block bg-gradient-to-r from-[#f0c3a7] via-[#c77b53] to-[#e6a17b] bg-clip-text text-transparent">
+            <span className="mt-2 block bg-gradient-to-r from-[#000000] via-[#000000] to-[#000000] bg-clip-text text-transparent">
               Keep the subject.
             </span>
           </h1>
@@ -327,11 +327,11 @@ setResult(null);
               onDrop={onDrop}
               className={`flex min-h-[310px] flex-col items-center justify-center rounded-2xl border border-dashed px-5 py-12 text-center transition sm:min-h-[360px] ${
                 dragging
-                  ? "border-[#d99a75] bg-[#c77b53]/10"
+                  ? "border-[#000000] bg-white/10"
                   : "border-white/20 bg-white/[0.015] hover:border-white/35 hover:bg-white/[0.03]"
               }`}
             >
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c77b53]/25 bg-[#c77b53]/10 text-[#e4a17d]">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white">
                 <span className="h-8 w-8">
                   <UploadIcon />
                 </span>
@@ -348,7 +348,7 @@ setResult(null);
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#c77b53] px-6 py-3 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] focus:outline-none focus:ring-2 focus:ring-[#dfa17e] focus:ring-offset-2 focus:ring-offset-[#101313]"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#101313]"
               >
                 <span className="h-5 w-5">
                   <UploadIcon />
@@ -432,7 +432,7 @@ setResult(null);
                         {processing ? (
                          <>
   <div
-    className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c77b53]/30 bg-[#c77b53]/10"
+    className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10"
     aria-hidden="true"
   >
     <SparkIcon />
@@ -458,7 +458,7 @@ setResult(null);
     aria-valuenow={progress}
   >
     <div
-      className="h-full rounded-full bg-gradient-to-r from-[#a95835] via-[#d99a75] to-[#f0c3a7] transition-[width] duration-300"
+      className="h-full rounded-full bg-gradient-to-r from-[#a95835] via-[#000000] to-[#000000] transition-[width] duration-300"
       style={{ width: `${progress}%` }}
     />
   </div>
@@ -516,7 +516,7 @@ setResult(null);
                     type="button"
                     onClick={processImage}
                     disabled={processing}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#c77b53] px-5 py-3.5 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] focus:outline-none focus:ring-2 focus:ring-[#dfa17e] disabled:cursor-wait disabled:opacity-60 sm:flex-none"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white disabled:cursor-wait disabled:opacity-60 sm:flex-none"
                   >
                     <span className="h-5 w-5">
                       <SparkIcon />
@@ -528,7 +528,7 @@ setResult(null);
                     <button
                       type="button"
                       onClick={downloadResult}
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#c77b53] px-5 py-3.5 text-sm font-semibold text-[#160d09] transition hover:bg-[#dfa17e] focus:outline-none focus:ring-2 focus:ring-[#dfa17e] sm:flex-none"
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white sm:flex-none"
                     >
                       <span className="h-5 w-5">
                         <DownloadIcon />
@@ -557,7 +557,7 @@ setResult(null);
                     <select
                       value={exportFormat}
                       onChange={(event) => setExportFormat(event.target.value as "png" | "jpeg" | "webp")}
-                      className="rounded-lg border border-white/15 bg-[#171a1a] px-3 py-2 text-sm text-white outline-none focus:border-[#c77b53]"
+                      className="rounded-lg border border-white/15 bg-[#171a1a] px-3 py-2 text-sm text-white outline-none focus:border-white"
                       aria-label="Export format"
                     >
                       <option value="png">PNG · Transparent</option>
@@ -585,7 +585,7 @@ setResult(null);
                         title={option.label}
                         className={`h-8 rounded-lg border px-3 text-xs transition ${
                           backgroundColor === option.value
-                            ? "border-[#d99a75] ring-1 ring-[#d99a75]"
+                            ? "border-[#000000] ring-1 ring-[#000000]"
                             : "border-white/15 hover:border-white/40"
                         } ${option.value === "transparent" ? "bg-[linear-gradient(45deg,#777_25%,transparent_25%,transparent_75%,#777_75%),linear-gradient(45deg,#777_25%,#222_25%,#222_75%,#777_75%)] bg-[length:12px_12px] bg-[position:0_0,6px_6px]" : ""}`}
                         style={option.value === "transparent" ? undefined : { backgroundColor: option.value }}
@@ -645,7 +645,7 @@ setResult(null);
               key={step.number}
               className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5"
             >
-              <p className="text-xs tracking-[0.18em] text-[#d99a75]">
+              <p className="text-xs tracking-[0.18em] text-[#000000]">
                 {step.number}
               </p>
               <h3 className="mt-3 text-sm font-semibold">{step.title}</h3>
