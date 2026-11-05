@@ -1,4 +1,5 @@
-import type { ToolGuideData } from "@/components/tool-guide";
+﻿import type { ToolGuideData } from "@/components/tool-guide";
+import signatureGeneratorGuide from "@/content/tool-guides/signature-generator.json";
 import guide0 from "@/content/tool-guides/remove-background-from-image.json";
 import guide1 from "@/content/tool-guides/upscale-image.json";
 import guide2 from "@/content/tool-guides/colorize-photo.json";
@@ -108,6 +109,7 @@ import guide105 from "@/content/tool-guides/compress-image-to-1mb.json";
 import guide106 from "@/content/tool-guides/compress-image-to-2mb.json";
 
 export const toolGuides: Record<string, ToolGuideData> = {
+  "signature-generator": signatureGeneratorGuide,
   "remove-background-from-image": guide0,
   "upscale-image": guide1,
   "colorize-photo": guide2,
@@ -220,3 +222,5 @@ export const toolGuides: Record<string, ToolGuideData> = {
 export function getToolGuide(slug: string): ToolGuideData | undefined {
   return toolGuides[slug];
 }
+
+

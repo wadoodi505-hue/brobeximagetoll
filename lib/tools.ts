@@ -1,4 +1,4 @@
-import type { ToolDefinition, Category } from "@/types/tools";
+﻿import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase pixel dimensions by 2×, 3×, or 4× using browser resampling. This enlarges the image but does not recreate missing detail.",
+      "Increase pixel dimensions by 2Ã—, 3Ã—, or 4Ã— using browser resampling. This enlarges the image but does not recreate missing detail.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
@@ -330,6 +330,16 @@ export const tools: ToolDefinition[] = [
     "method": "Browser Canvas API (local rendering and export)",
     "status": "browser",
     "operation": "combine"
+  },
+  {
+    slug: "signature-generator",
+    name: "Signature Generator",
+    description: "Create a handwritten-style digital signature by drawing with a mouse, stylus, or finger, or typing your name. Export a high-resolution transparent PNG or JPEG directly in your browser.",
+    category: "image",
+    icon: "PenLine",
+    acceptedTypes: [],
+    method: "Local HTML Canvas API (no API key or server upload)",
+    status: "browser"
   },
   {
     "slug": "chart-maker",
@@ -1166,7 +1176,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "compress-jpeg-between-20kb-to-50kb",
-    name: "Compress 20KB–50KB",
+    name: "Compress 20KBâ€“50KB",
     description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
     category: "image",
     icon: "FileImage",
@@ -1354,6 +1364,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 

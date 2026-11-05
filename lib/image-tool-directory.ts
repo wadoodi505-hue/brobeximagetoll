@@ -1,4 +1,4 @@
-import { tools } from "@/lib/tools";
+﻿import { tools } from "@/lib/tools";
 
 export type DirectoryTool = {
   name: string;
@@ -23,12 +23,12 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Text to Handwriting Converter", undefined, "Turn typed text into a handwriting-style image."),
       item("Extract Text from Image (OCR)", "image-to-text", "Recognize text in photos and make it editable."),
       item("Create Photo Collages", "collage-maker", "Arrange multiple photos into one collage layout."),
-      item("Signature Generator", undefined, "Create a clean digital signature for documents."),
+      item("Signature Generator", "signature-generator", "Draw or type a digital signature and export a transparent PNG."),
       item("Increase Image File Size", undefined, "Adjust image output size for a required file limit."),
       item("Manual Photo Enhancement", "upscale-image", "Improve image dimensions with browser-based resampling."),
       item("Signature Image Resizer", undefined, "Resize a signature image to specified dimensions."),
       item("Resize Image in Centimeters", undefined, "Prepare images using physical dimensions in centimeters."),
-      item("Resize Photo to 3.5 × 4.5 cm", undefined, "Create a photo at the common 3.5 × 4.5 cm size.")
+      item("Resize Photo to 3.5 Ã— 4.5 cm", undefined, "Create a photo at the common 3.5 Ã— 4.5 cm size.")
     ]
   },
   {
@@ -199,7 +199,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("JPEG to 10KB", "compress-jpeg-to-10kb", "Fixed target: 10 KB"),
       item("Compress to 15KB", "compress-image-to-15kb", "Fixed target: 15 KB"),
       item("Compress to 20KB", "compress-image-to-20kb", "Fixed target: 20 KB"),
-      item("Compress 20KB–50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
+      item("Compress 20KBâ€“50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
       item("JPEG to 25KB", "compress-jpeg-to-25kb", "Fixed target: 25 KB"),
       item("JPEG to 30KB", "compress-jpeg-to-30kb", "Fixed target: 30 KB"),
       item("JPEG to 40KB", "compress-jpeg-to-40kb", "Fixed target: 40 KB"),
@@ -240,18 +240,47 @@ const categoryNames = [
 
 function classifyDirectoryTool(tool: DirectoryTool): (typeof categoryNames)[number] {
   const value = `${tool.name} ${tool.slug ?? ""} ${tool.description ?? ""}`.toLowerCase();
-  if (/passport|\bid photo\b|3\.5|35mm|45mm|2 ?x ?2|3 ?x ?4|4 ?x ?6|600 ?x ?600|ssc photo|pan card|upsc|psc photo|signature.*(cm|mm)|a4 photo/.test(value)) return "Passport & ID Photos";
-  if (/compress|\bkb\b|\bmb\b|target size/.test(value)) return "Image Compression";
-  if (/pdf|word to jpg|image to word|merge pdf|split pdf/.test(value)) return "PDF & Documents";
-  if (/ocr|extract text|translate image|handwriting|essay|paragraph|content improver|tiff to text/.test(value)) return "OCR & Text Tools";
-  if (/background|remove object|remove logo|remove text|transparent/.test(value)) return "Background & Object Tools";
-  if (/beautify|enhanc|unblur|blur|pixelat|retouch|face|deep fry|colorize|upscale|quality/.test(value)) return "Photo Enhancement";
-  if (/convert|\.png|png to|jpg to|jpeg to|webp|heic|avif|tiff|svg|ico|gif|eps|psd/.test(value)) return "Image Converters";
-  if (/resize|dimension|centimeter|social media|bulk resiz|dpi/.test(value)) return "Image Resizing";
-  if (/video|mp4|slideshow|collage|signature generator|font awesome|chart maker|icon.*png/.test(value)) return "Creative & Media Tools";
+
+  if (/passport|\bid photo\b|3\.5|35mm|45mm|2 ?x ?2|3 ?x ?4|4 ?x ?6|600 ?x ?600|ssc photo|pan card|upsc|psc photo|signature.*(cm|mm)|a4 photo/.test(value)) {
+    return "Passport & ID Photos";
+  }
+
+  if (/compress|\bkb\b|\bmb\b|target size/.test(value)) {
+    return "Image Compression";
+  }
+
+  if (/pdf|word to jpg|image to word|merge pdf|split pdf/.test(value)) {
+    return "PDF & Documents";
+  }
+
+  if (/ocr|extract text|translate image|handwriting|essay|paragraph|content improver|tiff to text/.test(value)) {
+    return "OCR & Text Tools";
+  }
+
+  // Check creative tools BEFORE transparent-image tools.
+  // This prevents Signature Generator from being incorrectly categorized.
+  if (/video|mp4|slideshow|collage|signature generator|font awesome|chart maker|icon.*png/.test(value)) {
+    return "Creative & Media Tools";
+  }
+
+  if (/background|remove object|remove logo|remove text|transparent/.test(value)) {
+    return "Background & Object Tools";
+  }
+
+  if (/beautify|enhanc|unblur|blur|pixelat|retouch|face|deep fry|colorize|upscale|quality/.test(value)) {
+    return "Photo Enhancement";
+  }
+
+  if (/convert|\.png|png to|jpg to|jpeg to|webp|heic|avif|tiff|svg|ico|gif|eps|psd/.test(value)) {
+    return "Image Converters";
+  }
+
+  if (/resize|dimension|centimeter|social media|bulk resiz|dpi/.test(value)) {
+    return "Image Resizing";
+  }
+
   return "Image Editing";
 }
-
 const allDirectoryTools: DirectoryTool[] = [];
 const seenDirectoryEntries = new Set<string>();
 const representedSlugs = new Set<string>();
@@ -306,3 +335,4 @@ export function getDirectoryToolState(tool: DirectoryTool): {
     available
   };
 }
+

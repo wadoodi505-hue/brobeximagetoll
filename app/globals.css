@@ -8815,3 +8815,306 @@ body::before { display: none; }
 @media(max-width:560px) { .brobex-collage-head { flex-direction:column; } .brobex-collage-main,.brobex-collage-settings { padding:11px; } .brobex-collage-toolbar { align-items:flex-start; flex-direction:column; } .brobex-collage-settings { grid-template-columns:1fr; } .brobex-collage-photo-list article { grid-template-columns:36px minmax(0,1fr) 26px 26px 26px; } .brobex-collage-photo-list img { width:36px; height:36px; } .brobex-collage-photo-list small { display:none; } }
 .brobex-collage-check { display:flex !important; grid-template-columns:auto 1fr; align-items:center; gap:8px !important; font-weight:650 !important; }
 .brobex-collage-check input { width:15px; height:15px; accent-color:currentColor; }
+
+
+/* BROBEX Signature Studio — monochrome, responsive, browser-only */
+.brobex-signature { width:100%; color:var(--foreground,#111); }
+.brobex-signature-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin:0 0 20px; }
+.brobex-signature-kicker { display:block; font-size:10px; font-weight:800; letter-spacing:.16em; opacity:.62; margin-bottom:8px; }
+.brobex-signature-head h2 { margin:0 0 7px; font-size:clamp(24px,3vw,34px); letter-spacing:-.04em; }
+.brobex-signature-head p { margin:0; opacity:.68; font-size:14px; }
+.brobex-signature-private { display:inline-flex; align-items:center; gap:7px; border:1px solid currentColor; border-radius:999px; padding:8px 11px; font-size:11px; white-space:nowrap; opacity:.8; }
+.brobex-signature-layout { display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:17px; align-items:start; }
+.brobex-signature-editor,.brobex-signature-settings { min-width:0; padding:16px; border:1px solid var(--border,#ddd); border-radius:16px; background:var(--card,#fff); }
+.brobex-signature-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.brobex-signature-toolbar button,.brobex-signature-actions button,.brobex-signature-download,.brobex-signature-reset { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:39px; padding:8px 11px; border:1px solid var(--border,#ccc); border-radius:9px; background:transparent; color:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+.brobex-signature-toolbar button.is-active { background:#111; color:#fff; border-color:#111; }
+.brobex-signature-canvas-label { margin-left:auto; font-size:10px; opacity:.58; }
+.brobex-signature-typed-controls { display:grid; grid-template-columns:minmax(0,1fr) 190px; gap:10px; margin-bottom:12px; }
+.brobex-signature-typed-controls label,.brobex-signature-settings label { display:grid; gap:7px; margin:0 0 13px; font-size:11px; font-weight:750; }
+.brobex-signature-typed-controls input,.brobex-signature-typed-controls select,.brobex-signature-settings select { width:100%; min-height:39px; padding:8px 10px; border:1px solid var(--border,#ccc); border-radius:9px; background:var(--input,#fff); color:inherit; font:inherit; }
+.brobex-signature-paper { position:relative; display:grid; place-items:center; width:100%; overflow:hidden; border:1px solid var(--border,#ccc); border-radius:12px; background:#fff; }
+.brobex-signature-paper.is-transparent { background-color:#fff; background-image:linear-gradient(45deg,#ededed 25%,transparent 25%),linear-gradient(-45deg,#ededed 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ededed 75%),linear-gradient(-45deg,transparent 75%,#ededed 75%); background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0; }
+.brobex-signature-paper canvas { display:block; width:100%; height:auto; aspect-ratio:1600/560; touch-action:none; }
+.brobex-signature-placeholder { position:absolute; pointer-events:none; color:#777; font-size:clamp(12px,2vw,17px); text-align:center; padding:12px; }
+.brobex-signature-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.brobex-signature-actions button:disabled { opacity:.35; cursor:not-allowed; }
+.brobex-signature-actions span { margin-left:auto; font-size:10px; opacity:.58; }
+.brobex-signature-settings h3 { margin:0 0 16px; font-size:14px; }
+.brobex-signature-settings label output { justify-self:end; margin-top:-24px; opacity:.65; }
+.brobex-signature-settings input[type=range] { width:100%; accent-color:currentColor; }
+.brobex-signature-settings input[type=color] { width:100%; height:38px; padding:3px; border:1px solid var(--border,#ccc); border-radius:9px; background:transparent; }
+.brobex-signature-check { display:flex!important; grid-template-columns:auto 1fr; align-items:center; gap:8px!important; }
+.brobex-signature-check input { width:15px; height:15px; accent-color:currentColor; }
+.brobex-signature-note { display:grid; gap:5px; margin:15px 0; padding:11px; border:1px solid var(--border,#ddd); border-radius:10px; font-size:11px; }
+.brobex-signature-note span { opacity:.65; line-height:1.5; }
+.brobex-signature-download { width:100%; min-height:44px; background:#111; color:#fff; border-color:#111; }
+.brobex-signature-download:disabled { opacity:.4; cursor:not-allowed; }
+.brobex-signature-reset { width:100%; margin-top:8px; }
+.brobex-signature-message { margin:10px 0 0; padding:9px 10px; border:1px solid currentColor; border-radius:8px; font-size:11px; }
+.brobex-signature-footnote { margin:13px 0 0; font-size:10px; line-height:1.55; opacity:.62; }
+:root[data-theme="dark"] .brobex-signature { color:#fff; }
+:root[data-theme="dark"] .brobex-signature-editor,:root[data-theme="dark"] .brobex-signature-settings { background:#101010; border-color:#393939; }
+:root[data-theme="dark"] .brobex-signature-toolbar button.is-active,:root[data-theme="dark"] .brobex-signature-download { background:#fff; color:#000; border-color:#fff; }
+:root[data-theme="dark"] .brobex-signature-typed-controls input,:root[data-theme="dark"] .brobex-signature-typed-controls select,:root[data-theme="dark"] .brobex-signature-settings select { background:#111; border-color:#444; color:#fff; }
+:root[data-theme="light"] .brobex-signature { color:#000; }
+:root[data-theme="light"] .brobex-signature-toolbar button.is-active,:root[data-theme="light"] .brobex-signature-download { background:#000; color:#fff; border-color:#000; }
+.brobex-signature-toolbar button:hover,.brobex-signature-actions button:hover,.brobex-signature-download:hover,.brobex-signature-reset:hover { box-shadow:0 0 0 2px currentColor; }
+@media(max-width:850px) { .brobex-signature-layout { grid-template-columns:1fr; } .brobex-signature-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; } .brobex-signature-settings h3,.brobex-signature-note,.brobex-signature-download,.brobex-signature-reset,.brobex-signature-message,.brobex-signature-footnote { grid-column:1/-1; } }
+@media(max-width:560px) { .brobex-signature-head { flex-direction:column; } .brobex-signature-private { white-space:normal; } .brobex-signature-editor,.brobex-signature-settings { padding:11px; } .brobex-signature-typed-controls,.brobex-signature-settings { grid-template-columns:1fr; } .brobex-signature-actions span { width:100%; margin-left:0; } .brobex-signature-canvas-label { width:100%; margin:3px 0 0; } }
+
+/* BROBEX — consistent download and export buttons across all tools */
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px;
+  min-height: 44px;
+  padding: 11px 17px !important;
+  border: 1px solid #c77b53 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #d18a61, #b7673c) !important;
+  color: #17110d !important;
+  font-weight: 750 !important;
+  text-decoration: none !important;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(183, 103, 60, .16);
+  transition: background .18s ease, box-shadow .18s ease,
+    transform .18s ease, border-color .18s ease;
+}
+
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+):not(:disabled):hover {
+  background: linear-gradient(135deg, #dfa17c, #c77b53) !important;
+  border-color: #dfa17c !important;
+  color: #17110d !important;
+  box-shadow: 0 8px 22px rgba(183, 103, 60, .25);
+  transform: translateY(-1px);
+}
+
+:root :is(
+  button.download-button,
+  button.studio-download,
+  button.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  button[class*="Download"],
+  button[class*="export"],
+  button[class*="Export"]
+):disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+):focus-visible {
+  outline: 3px solid rgba(199, 123, 83, .45) !important;
+  outline-offset: 3px;
+}
+
+
+/* BROBEX — consistent download and export buttons across all tools */
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px;
+  min-height: 44px;
+  padding: 11px 17px !important;
+  border: 1px solid #c77b53 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #d18a61, #b7673c) !important;
+  color: #17110d !important;
+  font-weight: 750 !important;
+  text-decoration: none !important;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(183, 103, 60, .16);
+  transition: background .18s ease, box-shadow .18s ease,
+    transform .18s ease, border-color .18s ease;
+}
+
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+):not(:disabled):hover {
+  background: linear-gradient(135deg, #dfa17c, #c77b53) !important;
+  border-color: #dfa17c !important;
+  color: #17110d !important;
+  box-shadow: 0 8px 22px rgba(183, 103, 60, .25);
+  transform: translateY(-1px);
+}
+
+:root :is(
+  button.download-button,
+  button.studio-download,
+  button.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  button[class*="Download"],
+  button[class*="export"],
+  button[class*="Export"]
+):disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:root :is(
+  button.download-button,
+  a.download-button,
+  button.studio-download,
+  a.studio-download,
+  button.exact-download-button,
+  a.exact-download-button,
+  button.brobex-signature-download,
+  button.brobex-collage-download,
+  button[class*="download"],
+  a[class*="download"],
+  button[class*="Download"],
+  a[class*="Download"],
+  button[class*="export"],
+  a[class*="export"],
+  button[class*="Export"],
+  a[class*="Export"],
+  a[download]
+):focus-visible {
+  outline: 3px solid rgba(199, 123, 83, .45) !important;
+  outline-offset: 3px;
+}
+
+/* BROBEX Signature Generator — professional font preview */
+
+.brobex-signature-font-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 17px;
+  border: 1px solid rgba(199, 123, 83, 0.25);
+  border-radius: 12px;
+  background: rgba(199, 123, 83, 0.055);
+  overflow: hidden;
+}
+
+.brobex-signature-font-preview>span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.brobex-signature-font-preview strong {
+  display: block;
+  min-height: 54px;
+  font-size: clamp(27px, 4vw, 42px);
+  font-weight: 400;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.brobex-signature-font-preview small {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.brobex-signature-typed-controls optgroup {
+  font-weight: 700;
+}
+
+.brobex-signature-typed-controls select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

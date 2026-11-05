@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +7,7 @@ import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-work
 import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { CollageMakerWorkspace } from "@/components/collage-maker-workspace";
+import { SignatureGeneratorWorkspace } from "@/components/signature-generator-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
@@ -171,6 +172,8 @@ export default async function ToolPage({
       <ImageSplitterWorkspace />
     ) : tool.slug === "collage-maker" ? (
       <CollageMakerWorkspace />
+    ) : tool.slug === "signature-generator" ? (
+      <SignatureGeneratorWorkspace />
     ) : tool.slug === "tiff-to-text" ? (
       <TiffToTextWorkspace />
     ) : tool.slug === "image-to-text" ? (
@@ -287,7 +290,7 @@ export default async function ToolPage({
                   <span className="tool-info-eyebrow">KEEP CREATING</span>
                   <h2>Related tools</h2>
                 </div>
-                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools ↗</Link>
+                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools â†—</Link>
               </div>
               <div className="tool-grid">
                 {related.map((item) => (
@@ -301,3 +304,5 @@ export default async function ToolPage({
     </div>
   );
 }
+
+

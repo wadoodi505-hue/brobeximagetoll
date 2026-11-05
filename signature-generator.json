@@ -1,0 +1,44 @@
+{
+  "slug": "signature-generator",
+  "title": "Signature Generator",
+  "keywords": [
+    "signature generator",
+    "online signature maker",
+    "digital signature image",
+    "transparent signature PNG",
+    "draw signature online"
+  ],
+  "about": "Create a signature image by drawing with a mouse, stylus, or finger, or by typing your name in a selectable style. The workspace renders and exports the result locally in your browser without a paid API or account.",
+  "steps": [
+    "Open Signature Generator and choose Draw signature to write naturally on the canvas, or choose Type signature to enter your name.",
+    "When drawing, adjust pen thickness and ink color. Use a mouse, touchscreen, or compatible stylus; select Undo to revert the most recent stroke.",
+    "When typing, enter your name and choose a cursive, elegant, serif, or clean text style. The preview updates as you edit.",
+    "Choose a transparent background for a PNG signature image, or disable transparency for a white background. JPEG exports always use a white background.",
+    "Select PNG or JPEG and download the high-resolution 1600 \u00d7 560 pixel image. Review the file before inserting it into a document."
+  ],
+  "capabilities": "Freehand signature drawing, touch and stylus input, typed signature styles, ink color selection, adjustable pen thickness, undo, clear and reset controls, transparent PNG export, white-background JPEG export, and high-resolution browser-side rendering.",
+  "benefits": "Create a reusable signature image for mockups, personal documents, design layouts, and workflows that accept an inserted signature image. The tool requires no account, paid API, or server-side image processing, and the signature canvas remains in the current browser session.",
+  "limitations": "This tool creates a signature image only. It does not verify identity, apply a cryptographic certificate, provide an audit trail, or guarantee legal acceptance. Typed signatures are rendered using fonts available on the device, so their appearance can vary between systems. Do not use a signature image as a substitute for a verified e-signature service when identity verification or tamper evidence is required.",
+  "faqs": [
+    {
+      "question": "Is the signature generator free?",
+      "answer": "Yes. Drawing, typing, previewing, and exporting use browser features and do not require a paid API or subscription."
+    },
+    {
+      "question": "Can I create a transparent signature?",
+      "answer": "Yes. Keep Transparent background enabled and export as PNG. JPEG does not support transparency and is exported on white."
+    },
+    {
+      "question": "Can I draw with my phone?",
+      "answer": "Yes. Use your finger or a compatible stylus on the drawing canvas."
+    },
+    {
+      "question": "Are my signature details uploaded?",
+      "answer": "The signature is rendered locally in your browser. The workspace does not upload the signature to a processing server."
+    },
+    {
+      "question": "Is this a legally verified electronic signature?",
+      "answer": "No. It exports a signature image and does not perform identity verification, cryptographic signing, or create a tamper-evident audit record."
+    }
+  ]
+}
