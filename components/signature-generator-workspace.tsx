@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type PointerEvent,
+  type ChangeEvent,
 } from "react";
 
 import {
@@ -16,11 +17,16 @@ import {
   PenLine,
   Type,
   ShieldCheck,
-  Check,
+  Upload,
+  Move,
+  RotateCw,
+  ImagePlus,
+  X,
 } from "lucide-react";
 
 type Mode = "draw" | "type";
 type ExportFormat = "png" | "jpg";
+type BackgroundMode = "transparent" | "color" | "image";
 
 type SignatureFont = {
   label: string;
@@ -29,40 +35,146 @@ type SignatureFont = {
   style?: string;
 };
 
+type SignaturePosition = {
+  x: number;
+  y: number;
+};
+
 const CANVAS_WIDTH = 1600;
 const CANVAS_HEIGHT = 560;
 const MAX_HISTORY = 20;
+const MAX_BACKGROUND_SIZE = 15 * 1024 * 1024;
 
 const SIGNATURE_FONTS: Record<string, SignatureFont> = {
-  allura: { label: "Allura", family: "Allura", category: "Signature Scripts" },
-  alexBrush: { label: "Alex Brush", family: "Alex Brush", category: "Signature Scripts" },
-  greatVibes: { label: "Great Vibes", family: "Great Vibes", category: "Signature Scripts" },
-  parisienne: { label: "Parisienne", family: "Parisienne", category: "Signature Scripts" },
-  pinyon: { label: "Pinyon Script", family: "Pinyon Script", category: "Signature Scripts" },
-  italianno: { label: "Italianno", family: "Italianno", category: "Signature Scripts" },
+  allura: {
+    label: "Allura",
+    family: "Allura",
+    category: "Signature Scripts",
+  },
+  greatVibes: {
+    label: "Great Vibes",
+    family: "Great Vibes",
+    category: "Signature Scripts",
+  },
+  parisienne: {
+    label: "Parisienne",
+    family: "Parisienne",
+    category: "Signature Scripts",
+  },
+  pinyon: {
+    label: "Pinyon Script",
+    family: "Pinyon Script",
+    category: "Signature Scripts",
+  },
+  italianno: {
+    label: "Italianno",
+    family: "Italianno",
+    category: "Signature Scripts",
+  },
 
-  dancing: { label: "Dancing Script", family: "Dancing Script", category: "Handwriting" },
-  caveat: { label: "Caveat", family: "Caveat", category: "Handwriting" },
-  satisfy: { label: "Satisfy", family: "Satisfy", category: "Handwriting" },
-  sacramento: { label: "Sacramento", family: "Sacramento", category: "Handwriting" },
-  tangerine: { label: "Tangerine", family: "Tangerine", category: "Handwriting" },
-  marck: { label: "Marck Script", family: "Marck Script", category: "Handwriting" },
+  dancing: {
+    label: "Dancing Script",
+    family: "Dancing Script",
+    category: "Handwriting",
+  },
+  caveat: {
+    label: "Caveat",
+    family: "Caveat",
+    category: "Handwriting",
+  },
+  satisfy: {
+    label: "Satisfy",
+    family: "Satisfy",
+    category: "Handwriting",
+  },
+  sacramento: {
+    label: "Sacramento",
+    family: "Sacramento",
+    category: "Handwriting",
+  },
+  tangerine: {
+    label: "Tangerine",
+    family: "Tangerine",
+    category: "Handwriting",
+  },
+  marck: {
+    label: "Marck Script",
+    family: "Marck Script",
+    category: "Handwriting",
+  },
 
-  petit: { label: "Petit Formal Script", family: "Petit Formal Script", category: "Decorative Scripts" },
-  rouge: { label: "Rouge Script", family: "Rouge Script", category: "Decorative Scripts" },
-  berkshire: { label: "Berkshire Swash", family: "Berkshire Swash", category: "Decorative Scripts" },
-  yesteryear: { label: "Yesteryear", family: "Yesteryear", category: "Decorative Scripts" },
+  petit: {
+    label: "Petit Formal Script",
+    family: "Petit Formal Script",
+    category: "Decorative Scripts",
+  },
+  rouge: {
+    label: "Rouge Script",
+    family: "Rouge Script",
+    category: "Decorative Scripts",
+  },
+  berkshire: {
+    label: "Berkshire Swash",
+    family: "Berkshire Swash",
+    category: "Decorative Scripts",
+  },
+  yesteryear: {
+    label: "Yesteryear",
+    family: "Yesteryear",
+    category: "Decorative Scripts",
+  },
 
-  cormorant: { label: "Cormorant Garamond", family: "Cormorant Garamond", category: "Professional Serif", style: "italic" },
-  playfair: { label: "Playfair Display", family: "Playfair Display", category: "Professional Serif", style: "italic" },
-  baskerville: { label: "Libre Baskerville", family: "Libre Baskerville", category: "Professional Serif", style: "italic" },
-  lora: { label: "Lora", family: "Lora", category: "Professional Serif", style: "italic" },
-  dmserif: { label: "DM Serif Display", family: "DM Serif Display", category: "Professional Serif", style: "italic" },
+  cormorant: {
+    label: "Cormorant Garamond",
+    family: "Cormorant Garamond",
+    category: "Professional Serif",
+    style: "italic",
+  },
+  playfair: {
+    label: "Playfair Display",
+    family: "Playfair Display",
+    category: "Professional Serif",
+    style: "italic",
+  },
+  baskerville: {
+    label: "Libre Baskerville",
+    family: "Libre Baskerville",
+    category: "Professional Serif",
+    style: "italic",
+  },
+  lora: {
+    label: "Lora",
+    family: "Lora",
+    category: "Professional Serif",
+    style: "italic",
+  },
+  dmserif: {
+    label: "DM Serif Display",
+    family: "DM Serif Display",
+    category: "Professional Serif",
+    style: "italic",
+  },
 
-  montserrat: { label: "Montserrat", family: "Montserrat", category: "Modern Professional" },
-  manrope: { label: "Manrope", family: "Manrope", category: "Modern Professional" },
-  inter: { label: "Inter", family: "Inter", category: "Modern Professional" },
-  raleway: { label: "Raleway", family: "Raleway", category: "Modern Professional" },
+  montserrat: {
+    label: "Montserrat",
+    family: "Montserrat",
+    category: "Modern Professional",
+  },
+  manrope: {
+    label: "Manrope",
+    family: "Manrope",
+    category: "Modern Professional",
+  },
+  inter: {
+    label: "Inter",
+    family: "Inter",
+    category: "Modern Professional",
+  },
+  raleway: {
+    label: "Raleway",
+    family: "Raleway",
+    category: "Modern Professional",
+  },
 };
 
 const FONT_GROUPS = [
@@ -89,8 +201,23 @@ function loadSignatureFonts(): Promise<boolean> {
     }
 
     if (existing) {
-      existing.addEventListener("load", () => resolve(true), { once: true });
-      existing.addEventListener("error", () => resolve(false), { once: true });
+      if (existing.sheet) {
+        resolve(true);
+        return;
+      }
+
+      existing.addEventListener(
+        "load",
+        () => resolve(true),
+        { once: true }
+      );
+
+      existing.addEventListener(
+        "error",
+        () => resolve(false),
+        { once: true }
+      );
+
       return;
     }
 
@@ -130,18 +257,75 @@ function loadSignatureFonts(): Promise<boolean> {
   });
 }
 
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  width: number,
+  height: number
+) {
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const canvasRatio = width / height;
+
+  let sourceX = 0;
+  let sourceY = 0;
+  let sourceWidth = image.naturalWidth;
+  let sourceHeight = image.naturalHeight;
+
+  if (imageRatio > canvasRatio) {
+    sourceWidth = image.naturalHeight * canvasRatio;
+    sourceX = (image.naturalWidth - sourceWidth) / 2;
+  } else {
+    sourceHeight = image.naturalWidth / canvasRatio;
+    sourceY = (image.naturalHeight - sourceHeight) / 2;
+  }
+
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    width,
+    height
+  );
+}
+
 export function SignatureGeneratorWorkspace() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
+  const draggingRef = useRef(false);
   const historyRef = useRef<ImageData[]>([]);
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const backgroundUrlRef = useRef<string | null>(null);
 
   const [mode, setMode] = useState<Mode>("draw");
   const [signature, setSignature] = useState("");
   const [font, setFont] = useState("greatVibes");
   const [ink, setInk] = useState("#111111");
   const [stroke, setStroke] = useState(5);
+  const [fontSize, setFontSize] = useState(118);
+  const [rotation, setRotation] = useState(0);
+
+  const [position, setPosition] = useState<SignaturePosition>({
+    x: CANVAS_WIDTH / 2,
+    y: CANVAS_HEIGHT / 2,
+  });
+
+  const [backgroundMode, setBackgroundMode] =
+    useState<BackgroundMode>("transparent");
+
+  const [backgroundColor, setBackgroundColor] =
+    useState("#ffffff");
+
+  const [backgroundImageUrl, setBackgroundImageUrl] =
+    useState("");
+
+  const [backgroundImageName, setBackgroundImageName] =
+    useState("");
+
   const [format, setFormat] = useState<ExportFormat>("png");
-  const [transparent, setTransparent] = useState(true);
   const [hasInk, setHasInk] = useState(false);
   const [historyCount, setHistoryCount] = useState(0);
   const [message, setMessage] = useState("");
@@ -160,6 +344,14 @@ export function SignatureGeneratorWorkspace() {
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (backgroundUrlRef.current) {
+        URL.revokeObjectURL(backgroundUrlRef.current);
+      }
     };
   }, []);
 
@@ -187,36 +379,48 @@ export function SignatureGeneratorWorkspace() {
     const selectedFont =
       SIGNATURE_FONTS[font] ?? SIGNATURE_FONTS.greatVibes;
 
-    const family = `"${selectedFont.family}", cursive`;
     const style = selectedFont.style ?? "normal";
+    const family = `"${selectedFont.family}", cursive`;
+
+    let fitted = fontSize;
+
+    ctx.font = `${style} ${fitted}px ${family}`;
+
+    const maxWidth = canvas.width - 80;
+
+    while (
+      ctx.measureText(signature).width > maxWidth &&
+      fitted > 24
+    ) {
+      fitted -= 2;
+      ctx.font = `${style} ${fitted}px ${family}`;
+    }
+
+    ctx.save();
+
+    ctx.translate(position.x, position.y);
+    ctx.rotate((rotation * Math.PI) / 180);
 
     ctx.fillStyle = ink;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    let fitted = 118;
+    ctx.fillText(signature, 0, 0, maxWidth);
 
-    ctx.font = `${style} ${fitted}px ${family}`;
-
-    while (
-      ctx.measureText(signature).width > canvas.width - 120 &&
-      fitted > 32
-    ) {
-      fitted -= 4;
-      ctx.font = `${style} ${fitted}px ${family}`;
-    }
-
-    ctx.fillText(
-      signature,
-      canvas.width / 2,
-      canvas.height / 2,
-      canvas.width - 120
-    );
+    ctx.restore();
 
     setHasInk(true);
     historyRef.current = [];
     setHistoryCount(0);
-  }, [font, getContext, ink, signature]);
+  }, [
+    font,
+    fontSize,
+    getContext,
+    ink,
+    position,
+    rotation,
+    signature,
+  ]);
 
   useEffect(() => {
     if (mode !== "type" || !fontsLoaded) return;
@@ -231,10 +435,10 @@ export function SignatureGeneratorWorkspace() {
 
       try {
         await document.fonts.load(
-          `${style} 118px "${selectedFont.family}"`
+          `${style} ${fontSize}px "${selectedFont.family}"`
         );
       } catch {
-        // Continue with the browser's fallback font.
+        // Use the browser fallback if the selected font is unavailable.
       }
 
       if (!cancelled) {
@@ -247,32 +451,65 @@ export function SignatureGeneratorWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [mode, font, fontsLoaded, paintTypedSignature]);
+  }, [
+    mode,
+    font,
+    fontSize,
+    fontsLoaded,
+    paintTypedSignature,
+  ]);
 
   const pointFromEvent = (
     event: PointerEvent<HTMLCanvasElement>
-  ) => {
+  ): SignaturePosition => {
     const canvas = canvasRef.current;
 
-    if (!canvas) return { x: 0, y: 0 };
+    if (!canvas) {
+      return {
+        x: CANVAS_WIDTH / 2,
+        y: CANVAS_HEIGHT / 2,
+      };
+    }
 
     const rect = canvas.getBoundingClientRect();
 
     return {
-      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
-      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+      x: Math.max(
+        0,
+        Math.min(
+          CANVAS_WIDTH,
+          ((event.clientX - rect.left) / rect.width) * canvas.width
+        )
+      ),
+      y: Math.max(
+        0,
+        Math.min(
+          CANVAS_HEIGHT,
+          ((event.clientY - rect.top) / rect.height) * canvas.height
+        )
+      ),
     };
   };
 
   const startDrawing = (
     event: PointerEvent<HTMLCanvasElement>
   ) => {
-    if (mode !== "draw") return;
-
     const canvas = canvasRef.current;
     const ctx = getContext();
 
     if (!canvas || !ctx) return;
+
+    if (mode === "type") {
+      if (!signature.trim()) return;
+
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+
+      draggingRef.current = true;
+      setPosition(pointFromEvent(event));
+      setMessage("");
+      return;
+    }
 
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
@@ -312,6 +549,12 @@ export function SignatureGeneratorWorkspace() {
   const continueDrawing = (
     event: PointerEvent<HTMLCanvasElement>
   ) => {
+    if (mode === "type" && draggingRef.current) {
+      event.preventDefault();
+      setPosition(pointFromEvent(event));
+      return;
+    }
+
     if (!drawingRef.current || mode !== "draw") return;
 
     const ctx = getContext();
@@ -332,6 +575,7 @@ export function SignatureGeneratorWorkspace() {
 
   const stopDrawing = () => {
     drawingRef.current = false;
+    draggingRef.current = false;
   };
 
   const clearCanvas = () => {
@@ -380,6 +624,71 @@ export function SignatureGeneratorWorkspace() {
     setMessage("");
   };
 
+  const handleBackgroundUpload = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setMessage("Please upload a JPG, PNG, or WebP image.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_BACKGROUND_SIZE) {
+      setMessage("Background image must be smaller than 15 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    const newUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      if (backgroundUrlRef.current) {
+        URL.revokeObjectURL(backgroundUrlRef.current);
+      }
+
+      backgroundUrlRef.current = newUrl;
+      backgroundImageRef.current = image;
+
+      setBackgroundImageUrl(newUrl);
+      setBackgroundImageName(file.name);
+      setBackgroundMode("image");
+      setMessage("Background image loaded successfully.");
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(newUrl);
+      setMessage("Could not load this image. Please try another file.");
+    };
+
+    image.src = newUrl;
+    event.target.value = "";
+  };
+
+  const removeBackgroundImage = () => {
+    if (backgroundUrlRef.current) {
+      URL.revokeObjectURL(backgroundUrlRef.current);
+      backgroundUrlRef.current = null;
+    }
+
+    backgroundImageRef.current = null;
+
+    setBackgroundImageUrl("");
+    setBackgroundImageName("");
+    setBackgroundMode("transparent");
+    setMessage("Background image removed.");
+  };
+
   const exportSignature = () => {
     const canvas = canvasRef.current;
 
@@ -400,7 +709,20 @@ export function SignatureGeneratorWorkspace() {
       return;
     }
 
-    if (format === "jpg" || !transparent) {
+    if (backgroundMode === "color") {
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, output.width, output.height);
+    } else if (
+      backgroundMode === "image" &&
+      backgroundImageRef.current
+    ) {
+      drawImageCover(
+        ctx,
+        backgroundImageRef.current,
+        output.width,
+        output.height
+      );
+    } else if (format === "jpg") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, output.width, output.height);
     }
@@ -448,16 +770,32 @@ export function SignatureGeneratorWorkspace() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    if (backgroundUrlRef.current) {
+      URL.revokeObjectURL(backgroundUrlRef.current);
+      backgroundUrlRef.current = null;
+    }
+
+    backgroundImageRef.current = null;
     historyRef.current = [];
     drawingRef.current = false;
+    draggingRef.current = false;
 
     setMode("draw");
     setSignature("");
     setFont("greatVibes");
     setInk("#111111");
     setStroke(5);
+    setFontSize(118);
+    setRotation(0);
+    setPosition({
+      x: CANVAS_WIDTH / 2,
+      y: CANVAS_HEIGHT / 2,
+    });
+    setBackgroundMode("transparent");
+    setBackgroundColor("#ffffff");
+    setBackgroundImageUrl("");
+    setBackgroundImageName("");
     setFormat("png");
-    setTransparent(true);
     setHasInk(false);
     setHistoryCount(0);
     setMessage("Signature settings have been reset.");
@@ -465,6 +803,19 @@ export function SignatureGeneratorWorkspace() {
 
   const selectedFont =
     SIGNATURE_FONTS[font] ?? SIGNATURE_FONTS.greatVibes;
+
+  const paperStyle = {
+    backgroundColor:
+      backgroundMode === "color"
+        ? backgroundColor
+        : backgroundMode === "image"
+          ? "#ffffff"
+          : undefined,
+    backgroundImage:
+      backgroundMode === "image" && backgroundImageUrl
+        ? `url("${backgroundImageUrl}")`
+        : undefined,
+  };
 
   return (
     <section
@@ -480,14 +831,14 @@ export function SignatureGeneratorWorkspace() {
           <h2>Create Your Digital Signature</h2>
 
           <p>
-            Create a personal signature with professional typography
-            or draw your own.
+            Design a personal signature, position it on your own
+            background, and export your finished composition.
           </p>
         </div>
 
         <span className="brobex-signature-private">
           <ShieldCheck size={15} />
-          Private - Signature text stays in your browser
+          Private - Your files stay in your browser
         </span>
       </header>
 
@@ -565,19 +916,6 @@ export function SignatureGeneratorWorkspace() {
                 </select>
               </label>
 
-              <div className="brobex-signature-font-preview">
-                <span>Selected font preview</span>
-                <strong
-                  style={{
-                    fontFamily: `"${selectedFont.family}", cursive`,
-                    fontStyle: selectedFont.style ?? "normal",
-                  }}
-                >
-                  {signature.trim() || "Your Signature"}
-                </strong>
-                <small>{selectedFont.label}</small>
-              </div>
-
               {!fontsLoaded && (
                 <p className="brobex-signature-message" role="status">
                   Loading professional fonts...
@@ -594,8 +932,11 @@ export function SignatureGeneratorWorkspace() {
           )}
 
           <div
-            className={`brobex-signature-paper ${transparent ? "is-transparent" : "is-white"
+            className={`brobex-signature-paper ${backgroundMode === "transparent"
+                ? "is-transparent"
+                : ""
               }`}
+            style={paperStyle}
           >
             <canvas
               ref={canvasRef}
@@ -604,7 +945,7 @@ export function SignatureGeneratorWorkspace() {
               aria-label={
                 mode === "draw"
                   ? "Draw your signature here"
-                  : "Typed signature preview"
+                  : "Drag to position your typed signature"
               }
               onPointerDown={startDrawing}
               onPointerMove={continueDrawing}
@@ -613,8 +954,8 @@ export function SignatureGeneratorWorkspace() {
               onPointerLeave={stopDrawing}
               onLostPointerCapture={stopDrawing}
               style={{
-                touchAction: mode === "draw" ? "none" : "auto",
-                cursor: mode === "draw" ? "crosshair" : "default",
+                touchAction: "none",
+                cursor: mode === "draw" ? "crosshair" : "move",
               }}
             />
 
@@ -626,10 +967,17 @@ export function SignatureGeneratorWorkspace() {
 
             {!hasInk && mode === "type" && (
               <span className="brobex-signature-placeholder">
-                Your typed signature preview will appear here
+                Enter your name above to create your signature
               </span>
             )}
           </div>
+
+          {mode === "type" && (
+            <div className="brobex-signature-position-hint">
+              <Move size={14} />
+              Drag your signature directly on the canvas to position it.
+            </div>
+          )}
 
           <div className="brobex-signature-actions">
             <button
@@ -649,7 +997,7 @@ export function SignatureGeneratorWorkspace() {
             <span>
               {mode === "draw"
                 ? "Use a steady stroke for a smoother result."
-                : "Choose a font and enter your name above."}
+                : "Drag your signature to move it."}
             </span>
           </div>
         </div>
@@ -673,6 +1021,54 @@ export function SignatureGeneratorWorkspace() {
             </label>
           )}
 
+          {mode === "type" && (
+            <>
+              <label>
+                Signature size
+                <output>{fontSize}px</output>
+                <input
+                  type="range"
+                  min="30"
+                  max="220"
+                  value={fontSize}
+                  onChange={(event) =>
+                    setFontSize(Number(event.target.value))
+                  }
+                />
+              </label>
+
+              <label>
+                Rotation
+                <output>{rotation}°</output>
+                <input
+                  type="range"
+                  min="-180"
+                  max="180"
+                  value={rotation}
+                  onChange={(event) =>
+                    setRotation(Number(event.target.value))
+                  }
+                />
+              </label>
+
+              <button
+                type="button"
+                className="brobex-signature-reset-position"
+                onClick={() => {
+                  setPosition({
+                    x: CANVAS_WIDTH / 2,
+                    y: CANVAS_HEIGHT / 2,
+                  });
+                  setRotation(0);
+                  setMessage("Signature position centered.");
+                }}
+              >
+                <Move size={14} />
+                Center signature
+              </button>
+            </>
+          )}
+
           <label>
             Ink color
             <input
@@ -682,16 +1078,86 @@ export function SignatureGeneratorWorkspace() {
             />
           </label>
 
-          <label className="brobex-signature-check">
-            <input
-              type="checkbox"
-              checked={transparent}
-              onChange={(event) =>
-                setTransparent(event.target.checked)
-              }
-            />
-            Transparent background
-          </label>
+          <div className="brobex-signature-background-controls">
+            <h4>Background</h4>
+
+            <div className="brobex-signature-background-options">
+              <button
+                type="button"
+                className={
+                  backgroundMode === "transparent" ? "is-active" : ""
+                }
+                onClick={() => setBackgroundMode("transparent")}
+              >
+                Transparent
+              </button>
+
+              <button
+                type="button"
+                className={
+                  backgroundMode === "color" ? "is-active" : ""
+                }
+                onClick={() => setBackgroundMode("color")}
+              >
+                Solid color
+              </button>
+
+              <button
+                type="button"
+                className={
+                  backgroundMode === "image" ? "is-active" : ""
+                }
+                disabled={!backgroundImageUrl}
+                onClick={() => setBackgroundMode("image")}
+              >
+                Image
+              </button>
+            </div>
+
+            {backgroundMode === "color" && (
+              <label>
+                Background color
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(event) =>
+                    setBackgroundColor(event.target.value)
+                  }
+                />
+              </label>
+            )}
+
+            <label className="brobex-signature-upload">
+              <Upload size={16} />
+              <span>
+                {backgroundImageUrl
+                  ? "Replace background image"
+                  : "Upload background image"}
+              </span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleBackgroundUpload}
+              />
+            </label>
+
+            {backgroundImageUrl && (
+              <div className="brobex-signature-image-info">
+                <ImagePlus size={15} />
+                <span title={backgroundImageName}>
+                  {backgroundImageName}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={removeBackgroundImage}
+                  aria-label="Remove background image"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+          </div>
 
           <label>
             Download format
@@ -702,15 +1168,15 @@ export function SignatureGeneratorWorkspace() {
               }
             >
               <option value="png">PNG - Supports transparency</option>
-              <option value="jpg">JPEG - White background</option>
+              <option value="jpg">JPEG - Solid background</option>
             </select>
           </label>
 
           <div className="brobex-signature-note">
             <strong>Export quality</strong>
             <span>
-              High-resolution 1600 x 560 px image. PNG preserves
-              transparent pixels.
+              High-resolution 1600 x 560 px image. Your selected
+              background and signature are combined in the export.
             </span>
           </div>
 
@@ -739,10 +1205,10 @@ export function SignatureGeneratorWorkspace() {
           )}
 
           <p className="brobex-signature-footnote">
-            Your signature text and drawing stay in your browser.
-            Professional fonts are loaded from Google Fonts. A
-            generated image is not a verified electronic-signature
-            certificate.
+            Your signature text, drawing, and uploaded background
+            remain in your browser. Fonts are loaded from Google Fonts.
+            This tool creates an image, not a verified electronic
+            signature certificate.
           </p>
         </aside>
       </div>

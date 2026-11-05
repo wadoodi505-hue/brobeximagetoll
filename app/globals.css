@@ -9117,4 +9117,201 @@ body::before { display: none; }
 .brobex-signature-typed-controls select:disabled {
   opacity: 0.6;
   cursor: wait;
+}/* BROBEX Signature Studio — background editor upgrade */
+
+.brobex-signature-background-controls {
+  margin: 16px 0;
+  padding: 13px;
+  border: 1px solid var(--border, #444);
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.brobex-signature-background-controls h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.brobex-signature-background-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.brobex-signature-background-options button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 4px;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.brobex-signature-background-options button.is-active {
+  border-color: #c77b53;
+  background: rgba(199, 123, 83, 0.13);
+  color: #c77b53;
+}
+
+.brobex-signature-background-options button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.brobex-signature-upload {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 9px !important;
+  min-height: 43px;
+  padding: 9px;
+  border: 1px dashed #c77b53;
+  border-radius: 9px;
+  color: #c77b53;
+  cursor: pointer;
+  text-align: center;
+}
+
+.brobex-signature-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brobex-signature-upload span {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.brobex-signature-image-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(199, 123, 83, 0.08);
+  font-size: 10px;
+}
+
+.brobex-signature-image-info span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brobex-signature-image-info button {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.brobex-signature-position-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: #c77b53;
+  font-size: 11px;
+}
+
+.brobex-signature-reset-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 36px;
+  margin: 0 0 13px;
+  padding: 7px 10px;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.brobex-signature-paper {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.brobex-signature-paper canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1600 / 560;
+}
+
+.brobex-signature-paper.is-transparent {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #ededed 25%, transparent 25%),
+    linear-gradient(-45deg, #ededed 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ededed 75%),
+    linear-gradient(-45deg, transparent 75%, #ededed 75%);
+  background-size: 24px 24px;
+  background-position:
+    0 0,
+    0 12px,
+    12px -12px,
+    -12px 0;
+}
+
+.brobex-signature-typed-controls {
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+}
+
+.brobex-signature-typed-controls label {
+  min-width: 0;
+}
+
+.brobex-signature-settings input[type="range"] {
+  accent-color: #c77b53;
+}
+
+.brobex-signature-settings input[type="color"] {
+  cursor: pointer;
+}
+
+.brobex-signature-upload:hover,
+.brobex-signature-reset-position:hover,
+.brobex-signature-image-info button:hover {
+  border-color: #c77b53;
+}
+
+@media (max-width: 560px) {
+  .brobex-signature-background-options {
+    grid-template-columns: 1fr;
+  }
+
+  .brobex-signature-typed-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .brobex-signature-background-controls {
+    padding: 10px;
+  }
 }
