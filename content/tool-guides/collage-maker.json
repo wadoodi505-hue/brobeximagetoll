@@ -6,37 +6,42 @@
     "creative media production",
     "BROBEX Image Studio"
   ],
-  "about": "Collage Maker is a focused BROBEX Image Studio tool for creative media production. Build a collage from multiple images (basic vertical composition available) It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+  "about": "Create a photo collage from 2 to 20 images using balanced grid, featured-photo, horizontal-strip, and vertical-strip layouts. Choose a canvas ratio, export resolution, image fitting mode, spacing, outer margin, rounded corners, and background. Export a flattened PNG, JPEG, or WebP collage directly from your browser.",
   "steps": [
-    "Read the accepted file types and upload limits displayed in the workspace before starting.",
-    "Select a source file using the file picker or drag-and-drop area when supported. Confirm the preview matches the file you intended to edit.",
-    "Review the controls provided by this exact tool. Adjust only the settings that are available; other BROBEX tools may have different controls.",
-    "Start the operation and wait for the actual processing result. Browser-based operations depend on device memory and supported browser APIs; integration-dependent operations require their configured service.",
-    "Inspect the output preview and check edges, colors, transparency, dimensions, or layout as relevant to this operation. Download the result when the workspace provides a working download action."
+    "Add 2 to 20 supported image files using the file picker or drag-and-drop area. Each image can be up to 20 MB.",
+    "Choose a layout that suits your photo count: balanced grid, featured photo on the left, featured photo on top, horizontal strip, or vertical strip.",
+    "Select the canvas ratio and export resolution. Use Fill to cover each cell or Fit to preserve the full image inside its cell.",
+    "Fine-tune spacing, outer margin, rounded corners, canvas background, and transparent PNG output when needed.",
+    "Reorder photos with drag-and-drop or the move controls. Remove any image you do not want in the composition.",
+    "Choose PNG, JPEG, or WebP and adjust quality for lossy formats. Export the collage, inspect the downloaded file, and keep your original photos unchanged."
   ],
-  "capabilities": "The registered processing method for this tool is Canvas API. The tool accepts the formats listed in the workspace. Its intended task is build a collage from multiple images (basic vertical composition available). Only controls and output choices visible in the current workspace should be treated as supported. The tool does not silently add unrelated editing features, and an operation that needs a provider cannot be considered available until that integration is configured and tested.",
+  "capabilities": "Browser-based collage composition with up to 20 images, five layout modes, six canvas ratios plus automatic sizing, adjustable resolution, fill/fit behavior, spacing, outer margin, rounded corners, solid background or transparent PNG background, photo reordering/removal, and PNG/JPEG/WebP export. Photos are decoded and rendered locally using the Canvas API.",
   "benefits": "This workflow can make a repetitive creative media production task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
-  "limitations": "Supported input types are the formats listed in the workspace. Browser processing can be affected by device memory, browser version, image dimensions, and file complexity. This tool is registered as browser-based, but its provider-dependent behavior must still be checked against the actual workspace before relying on it. Conversion and compression can change quality, metadata, transparency, color handling, or layout. Always verify the exported file in its intended destination. BROBEX cannot guarantee acceptance by third-party services or official application portals.",
+  "limitations": "Each input image is limited to 20 MB and 40 megapixels; up to 20 images can be selected. The exported collage is a flattened image, not an editable layered project. The editor uses center-based image fitting and does not currently provide per-photo focal-point dragging, text overlays, stickers, filters, or undo history. Export dimensions are capped by a 16-megapixel browser safety limit.",
   "faqs": [
     {
-      "question": "What does Collage Maker do?",
-      "answer": "Build a collage from multiple images (basic vertical composition available)"
+      "question": "How many photos can I add?",
+      "answer": "You can add 2 to 20 images, with a maximum file size of 20 MB per image."
     },
     {
-      "question": "Which files can I use?",
-      "answer": "Use only supported files. The registered accepted types are the formats listed in the workspace; the workspace may also show additional upload limits or browser restrictions."
+      "question": "Which layouts are available?",
+      "answer": "Choose a balanced grid, featured photo on the left, featured photo on top, horizontal strip, or vertical strip."
     },
     {
-      "question": "How do I get the best result?",
-      "answer": "Start with a clear, correctly oriented source file and review the available settings before processing. Inspect the actual output rather than relying only on the preview or filename."
+      "question": "Can I change the collage size and shape?",
+      "answer": "Yes. Choose square, portrait, story, landscape, 3:2, 4:3, or automatic composition, then select a standard, high, ultra, or print-oriented export resolution."
     },
     {
-      "question": "Will the result always match the original quality?",
-      "answer": "Not necessarily. Editing, conversion, resizing, and compression can affect detail, color, transparency, metadata, or layout. Keep an untouched copy of important source files."
+      "question": "Can I make a transparent collage?",
+      "answer": "Yes. Select PNG and enable Transparent PNG background. JPEG does not support transparency."
     },
     {
-      "question": "Is processing available right now?",
-      "answer": "The registry identifies this tool as browser-based. Availability still depends on the controls and processing path currently present in its workspace; do not treat a result as complete unless the tool produces it."
+      "question": "Are my photos uploaded?",
+      "answer": "No. Images are decoded and rendered locally in your browser. The original files are not changed or uploaded by this workspace."
+    },
+    {
+      "question": "Can I edit the collage after downloading?",
+      "answer": "The export is a flattened PNG, JPEG, or WebP image. Keep the original photos if you may want to create a different arrangement later."
     }
   ]
 }

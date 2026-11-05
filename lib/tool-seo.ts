@@ -7,6 +7,12 @@ const BRAND = "Brobex";
 type SeoCopy = { title: string; description: string; keywords: string[]; ogTitle?: string };
 
 const seoBySlug: Record<string, SeoCopy> = {
+  "collage-maker": {
+    title: "Free Online Photo Collage Maker: Create Photo Grids | Brobex",
+    description: "Create photo collages online with grid and featured layouts. Arrange up to 20 photos, customize spacing, margins, corners and backgrounds, then export high-resolution PNG, JPG or WebP images.",
+    keywords: ["photo collage maker", "create photo collage online", "picture collage maker", "photo grid maker", "combine photos into one image"],
+    ogTitle: "Create Beautiful Photo Collages Online – BROBEX",
+  },
   "compress-image-size": {
     title: "Free Online Image Compressor: Reduce Image File Size | Brobex",
     description: "Reduce image file size while balancing visual quality. Compress JPG, PNG, WebP, and other supported image formats with this free online image compressor.",

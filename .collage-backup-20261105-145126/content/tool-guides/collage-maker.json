@@ -1,0 +1,47 @@
+{
+  "slug": "collage-maker",
+  "title": "Collage Maker",
+  "keywords": [
+    "collage maker",
+    "creative media production",
+    "BROBEX Image Studio"
+  ],
+  "about": "Create a photo collage from 2 to 20 images using balanced grid, featured-photo, horizontal-strip, and vertical-strip layouts. Choose a canvas ratio, export resolution, image fitting mode, spacing, outer margin, rounded corners, and background. Export a flattened PNG, JPEG, or WebP collage directly from your browser.",
+  "steps": [
+    "Add 2 to 20 supported image files using the file picker or drag-and-drop area. Each image can be up to 20 MB.",
+    "Choose a layout that suits your photo count: balanced grid, featured photo on the left, featured photo on top, horizontal strip, or vertical strip.",
+    "Select the canvas ratio and export resolution. Use Fill to cover each cell or Fit to preserve the full image inside its cell.",
+    "Fine-tune spacing, outer margin, rounded corners, canvas background, and transparent PNG output when needed.",
+    "Reorder photos with drag-and-drop or the move controls. Remove any image you do not want in the composition.",
+    "Choose PNG, JPEG, or WebP and adjust quality for lossy formats. Export the collage, inspect the downloaded file, and keep your original photos unchanged."
+  ],
+  "capabilities": "Browser-based collage composition with up to 20 images, five layout modes, six canvas ratios plus automatic sizing, adjustable resolution, fill/fit behavior, spacing, outer margin, rounded corners, solid background or transparent PNG background, photo reordering/removal, and PNG/JPEG/WebP export. Photos are decoded and rendered locally using the Canvas API.",
+  "benefits": "This workflow can make a repetitive creative media production task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
+  "limitations": "Each input image is limited to 20 MB and 40 megapixels; up to 20 images can be selected. The exported collage is a flattened image, not an editable layered project. The editor uses center-based image fitting and does not currently provide per-photo focal-point dragging, text overlays, stickers, filters, or undo history. Export dimensions are capped by a 16-megapixel browser safety limit.",
+  "faqs": [
+    {
+      "question": "How many photos can I add?",
+      "answer": "You can add 2 to 20 images, with a maximum file size of 20 MB per image."
+    },
+    {
+      "question": "Which layouts are available?",
+      "answer": "Choose a balanced grid, featured photo on the left, featured photo on top, horizontal strip, or vertical strip."
+    },
+    {
+      "question": "Can I change the collage size and shape?",
+      "answer": "Yes. Choose square, portrait, story, landscape, 3:2, 4:3, or automatic composition, then select a standard, high, ultra, or print-oriented export resolution."
+    },
+    {
+      "question": "Can I make a transparent collage?",
+      "answer": "Yes. Select PNG and enable Transparent PNG background. JPEG does not support transparency."
+    },
+    {
+      "question": "Are my photos uploaded?",
+      "answer": "No. Images are decoded and rendered locally in your browser. The original files are not changed or uploaded by this workspace."
+    },
+    {
+      "question": "Can I edit the collage after downloading?",
+      "answer": "The export is a flattened PNG, JPEG, or WebP image. Keep the original photos if you may want to create a different arrangement later."
+    }
+  ]
+}

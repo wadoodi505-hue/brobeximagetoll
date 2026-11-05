@@ -263,7 +263,7 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Browser Canvas API (local rendering and export)",
     "status": "browser",
     "operation": "combine"
   },
@@ -276,7 +276,7 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Browser Canvas API (local rendering and export)",
     "status": "browser",
     "operation": "combine"
   },
@@ -321,13 +321,13 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "collage-maker",
     "name": "Collage Maker",
-    "description": "Build a collage from multiple images (basic vertical composition available)",
+    "description": "Create polished photo collages with grid and featured layouts, canvas ratios, spacing, margins, rounded corners, background colors, and high-resolution PNG, JPEG, or WebP export.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Browser Canvas API (local rendering and export)",
     "status": "browser",
     "operation": "combine"
   },

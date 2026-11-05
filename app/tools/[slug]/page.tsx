@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
 import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
+import { CollageMakerWorkspace } from "@/components/collage-maker-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
@@ -168,6 +169,8 @@ export default async function ToolPage({
       <FontAwesomeToPngWorkspace />
     ) : tool.slug === "image-splitter" ? (
       <ImageSplitterWorkspace />
+    ) : tool.slug === "collage-maker" ? (
+      <CollageMakerWorkspace />
     ) : tool.slug === "tiff-to-text" ? (
       <TiffToTextWorkspace />
     ) : tool.slug === "image-to-text" ? (

@@ -8760,3 +8760,58 @@ body::before { display: none; }
 :root[data-theme="light"] .tool-workspace-shell [class*="border-white"] { border-color: #d8d8d8 !important; }
 :root[data-theme="light"] .tool-workspace-shell button { color: #000000; }
 :root[data-theme="dark"] .tool-workspace-shell { color: #ffffff; }
+
+/* BROBEX Collage Studio — lightweight monochrome editor */
+.brobex-collage { color: var(--foreground, #111); width: 100%; }
+.brobex-collage-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin:0 0 22px; }
+.brobex-collage-kicker { display:block; font-size:10px; font-weight:800; letter-spacing:.16em; opacity:.65; margin-bottom:8px; }
+.brobex-collage-head h2 { margin:0 0 7px; font-size:clamp(24px,3vw,34px); letter-spacing:-.04em; }
+.brobex-collage-head p { margin:0; opacity:.68; font-size:14px; }
+.brobex-collage-private { display:inline-flex; align-items:center; gap:7px; border:1px solid currentColor; border-radius:999px; padding:8px 11px; font-size:11px; white-space:nowrap; opacity:.8; }
+.brobex-collage-grid { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:18px; align-items:start; }
+.brobex-collage-main,.brobex-collage-settings { border:1px solid var(--border, #d8d8d8); border-radius:16px; padding:16px; min-width:0; background:var(--card, #fff); }
+.brobex-collage-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.brobex-collage-toolbar strong,.brobex-collage-toolbar small { display:block; }
+.brobex-collage-toolbar small { opacity:.65; font-size:11px; margin-top:4px; }
+.brobex-collage-button,.brobex-collage-export,.brobex-collage-download,.brobex-collage-reset { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; border-radius:10px; padding:9px 13px; font-size:12px; font-weight:750; cursor:pointer; text-decoration:none; }
+.brobex-collage-button { color:#fff; background:#111; border:1px solid #111; }
+.brobex-collage-drop { min-height:280px; display:grid; place-items:center; padding:12px; border:1px dashed var(--border,#aaa); border-radius:13px; background:var(--muted,#f6f6f6); }
+.brobex-collage-empty { width:100%; min-height:260px; border:0; background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; color:inherit; }
+.brobex-collage-empty span { opacity:.6; font-size:12px; }
+.brobex-collage-stage { width:min(100%,760px); max-height:680px; overflow:hidden; background:#eee; display:grid; place-items:center; }
+.brobex-collage-stage canvas { display:block; width:100%; height:100%; object-fit:contain; }
+.brobex-collage-photo-list { display:grid; gap:7px; margin-top:14px; }
+.brobex-collage-photo-list article { display:grid; grid-template-columns:42px minmax(0,1fr) auto 28px 28px 28px; align-items:center; gap:8px; padding:7px; border:1px solid var(--border,#ddd); border-radius:10px; min-width:0; }
+.brobex-collage-photo-list img { width:42px; height:42px; object-fit:cover; border-radius:6px; }
+.brobex-collage-photo-list span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:11px; }
+.brobex-collage-photo-list small { font-size:10px; opacity:.6; white-space:nowrap; }
+.brobex-collage-photo-list button { width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border,#ddd); border-radius:7px; background:transparent; color:inherit; cursor:pointer; }
+.brobex-collage-photo-list button:disabled { opacity:.25; cursor:not-allowed; }
+.brobex-collage-settings h3 { margin:0 0 13px; font-size:14px; letter-spacing:-.02em; }
+.brobex-collage-settings h3:not(:first-child) { margin-top:20px; padding-top:16px; border-top:1px solid var(--border,#ddd); }
+.brobex-collage-settings label { display:grid; gap:7px; margin:0 0 13px; font-size:11px; font-weight:700; }
+.brobex-collage-settings label output { justify-self:end; margin-top:-24px; opacity:.65; }
+.brobex-collage-settings select { width:100%; min-height:38px; border:1px solid var(--border,#ccc); border-radius:8px; padding:7px 9px; background:var(--input,#fff); color:inherit; font:inherit; }
+.brobex-collage-settings input[type="range"] { width:100%; accent-color:currentColor; }
+.brobex-collage-settings input[type="color"] { width:100%; height:36px; border:1px solid var(--border,#ccc); border-radius:8px; background:transparent; padding:3px; }
+.brobex-collage-size { display:grid; gap:5px; padding:11px; border-radius:9px; background:var(--muted,#f5f5f5); font-size:10px; opacity:.8; }
+.brobex-collage-size strong { font-size:13px; opacity:1; }
+.brobex-collage-export { width:100%; margin-top:12px; border:1px solid #111; background:#111; color:#fff; }
+.brobex-collage-export:disabled { opacity:.4; cursor:not-allowed; }
+.brobex-collage-download { width:100%; margin-top:8px; color:inherit; border:1px solid currentColor; }
+.brobex-collage-reset { width:100%; margin-top:8px; border:1px solid var(--border,#ccc); background:transparent; color:inherit; }
+.brobex-collage-hint { font-size:10px; line-height:1.55; opacity:.6; margin:12px 0 0; }
+.brobex-collage-alert,.brobex-collage-notice { margin:12px 0 0; padding:10px 12px; border:1px solid currentColor; border-radius:9px; font-size:12px; }
+:root[data-theme="dark"] .brobex-collage { color:#fff; }
+:root[data-theme="dark"] .brobex-collage-main,:root[data-theme="dark"] .brobex-collage-settings { background:#101010; border-color:#393939; }
+:root[data-theme="dark"] .brobex-collage-drop,:root[data-theme="dark"] .brobex-collage-size { background:#181818; }
+:root[data-theme="dark"] .brobex-collage-settings select { background:#111; border-color:#444; color:#fff; }
+:root[data-theme="dark"] .brobex-collage-button,:root[data-theme="dark"] .brobex-collage-export { background:#fff; color:#000; border-color:#fff; }
+:root[data-theme="light"] .brobex-collage { color:#000; }
+:root[data-theme="light"] .brobex-collage-main,:root[data-theme="light"] .brobex-collage-settings { background:#fff; border-color:#ddd; }
+:root[data-theme="light"] .brobex-collage-button,:root[data-theme="light"] .brobex-collage-export { background:#000; color:#fff; border-color:#000; }
+.brobex-collage-button:hover,.brobex-collage-export:hover,.brobex-collage-download:hover,.brobex-collage-reset:hover { box-shadow:0 0 0 2px currentColor; }
+@media(max-width:900px) { .brobex-collage-grid { grid-template-columns:1fr; } .brobex-collage-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; } .brobex-collage-settings h3,.brobex-collage-size,.brobex-collage-export,.brobex-collage-download,.brobex-collage-reset,.brobex-collage-hint { grid-column:1/-1; } }
+@media(max-width:560px) { .brobex-collage-head { flex-direction:column; } .brobex-collage-main,.brobex-collage-settings { padding:11px; } .brobex-collage-toolbar { align-items:flex-start; flex-direction:column; } .brobex-collage-settings { grid-template-columns:1fr; } .brobex-collage-photo-list article { grid-template-columns:36px minmax(0,1fr) 26px 26px 26px; } .brobex-collage-photo-list img { width:36px; height:36px; } .brobex-collage-photo-list small { display:none; } }
+.brobex-collage-check { display:flex !important; grid-template-columns:auto 1fr; align-items:center; gap:8px !important; font-weight:650 !important; }
+.brobex-collage-check input { width:15px; height:15px; accent-color:currentColor; }
