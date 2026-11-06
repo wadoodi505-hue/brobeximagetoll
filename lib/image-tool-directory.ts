@@ -1,4 +1,4 @@
-﻿import { tools } from "@/lib/tools";
+import { tools } from "@/lib/tools";
 
 export type DirectoryTool = {
   name: string;
@@ -40,8 +40,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Remove Logo from Photo"),
       item("Remove Object from Photo", "blur-any-object"),
       item("Add Text to Image", "add-text-to-image"),
-      item("Rotate Image", "flip-image"),
-      item("Flip Image", "flip-image"),
+      item("Rotate & Flip Image", "flip-image"),
       item("Add Text to Image", "add-text-to-image"),
       item("Freehand Crop", "crop-image"),
       item("Create Circular Image", "make-round-image"),

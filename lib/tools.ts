@@ -1,4 +1,4 @@
-﻿import type { ToolDefinition, Category } from "@/types/tools";
+import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -192,8 +192,8 @@ export const tools: ToolDefinition[] = [
     "operation": "aspect-ratio-crop"
   },  {
     "slug": "flip-image",
-    "name": "Flip Image",
-    "description": "Flip horizontally or vertically and rotate raster images",
+    "name": "Rotate & Flip Image",
+    "description": "Rotate images to precise angles and flip them horizontally or vertically with a live preview.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
