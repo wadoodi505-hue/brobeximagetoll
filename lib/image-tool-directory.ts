@@ -42,9 +42,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Add Text to Image", "add-text-to-image"),
       item("Rotate & Flip Image", "flip-image"),
       item("Add Text to Image", "add-text-to-image"),
-      item("Freehand Crop", "crop-image"),
-      item("Create Circular Image", "make-round-image"),
-      item("Square Crop", "crop-image"),
+      item("Crop Image", "crop-image", "Free crop, square, 16:9, triangle, hexagon and circular image cropping."),
       item("Crop Round Corners"),
       item("Resize Image Dimensions", "resize-image-dimensions"),
       item("Combine Multiple Images", "combine-images"),
@@ -59,7 +57,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Edit Metadata"),
       item("View Image Properties & Metadata", "view-metadata"),
       item("Remove Metadata"),
-      item("Crop PNG", "crop-image")
+
     ]
   },
   {

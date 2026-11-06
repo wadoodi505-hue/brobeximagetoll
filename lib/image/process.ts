@@ -251,59 +251,47 @@ export async function processImage(
   let sw = srcW;
   let sh = srcH;
 
-  if (settings.operation === "crop") {
-    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
-    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
-    sw = Math.max(
-      1,
-      Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)),
-    );
-    sh = Math.max(
-      1,
-      Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)),
-    );
-    width = sw;
-    height = sh;
-  }
+  const cropOperations = [
+    "crop",
+    "square-crop",
+    "aspect-ratio-crop",
+    "triangle-crop",
+    "shape-crop",
+    "circle",
+  ];
 
-  if (settings.operation === "square-crop") {
-    const side = Math.min(srcW, srcH);
-    sx = Math.floor((srcW - side) / 2);
-    sy = Math.floor((srcH - side) / 2);
-    sw = side;
-    sh = side;
-    width = side;
-    height = side;
-  }
+  if (cropOperations.includes(settings.operation)) {
+    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX ?? 0)));
+    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY ?? 0)));
+    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
+    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
 
-  if (settings.operation === "aspect-ratio-crop") {
-    const ratio = 16 / 9;
+    if (settings.operation === "square-crop" || settings.operation === "circle") {
+      const side = Math.min(sw, sh);
+      sx += Math.floor((sw - side) / 2);
+      sy += Math.floor((sh - side) / 2);
+      sw = side;
+      sh = side;
+    }
 
-    if (srcW / srcH > ratio) {
-      sh = srcH;
-      sw = Math.max(1, Math.round(sh * ratio));
-      sx = Math.floor((srcW - sw) / 2);
-    } else {
-      sw = srcW;
-      sh = Math.max(1, Math.round(sw / ratio));
-      sy = Math.floor((srcH - sh) / 2);
+    if (settings.operation === "aspect-ratio-crop") {
+      const ratio = 16 / 9;
+
+      if (sw / sh > ratio) {
+        const adjustedWidth = Math.max(1, Math.round(sh * ratio));
+        sx += Math.floor((sw - adjustedWidth) / 2);
+        sw = adjustedWidth;
+      } else {
+        const adjustedHeight = Math.max(1, Math.round(sw / ratio));
+        sy += Math.floor((sh - adjustedHeight) / 2);
+        sh = adjustedHeight;
+      }
     }
 
     width = sw;
     height = sh;
   }
 
-  if (
-    settings.operation === "triangle-crop" ||
-    settings.operation === "shape-crop"
-  ) {
-    sx = Math.max(0, Math.min(srcW - 1, Math.round(settings.cropX || 0)));
-    sy = Math.max(0, Math.min(srcH - 1, Math.round(settings.cropY || 0)));
-    sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
-    sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
-    width = sw;
-    height = sh;
-  }
   if (settings.operation === "rotate" &&
     Math.abs(settings.rotation || 0) % 180 === 90
   ) {
@@ -319,14 +307,6 @@ export async function processImage(
     height = Math.max(1, Math.ceil(srcW * sine + srcH * cosine));
   }
 
-  if (settings.operation === "circle") {
-    width = Math.min(srcW, srcH);
-    height = width;
-    sx = Math.floor((srcW - width) / 2);
-    sy = Math.floor((srcH - height) / 2);
-    sw = width;
-    sh = height;
-  }
 
   const border = settings.operation === "border"
     ? Math.max(0, settings.borderWidth || 0)

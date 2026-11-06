@@ -73,6 +73,8 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [cropY, setCropY] = useState(0);
   const [cropW, setCropW] = useState(800);
   const [cropH, setCropH] = useState(600);
+  type CropMode = "crop" | "square-crop" | "aspect-ratio-crop" | "triangle-crop" | "shape-crop" | "circle";
+  const [cropMode, setCropMode] = useState<CropMode>("crop");
   const cropStageRef = useRef<HTMLDivElement>(null);
 
   const cropDragRef = useRef<{
@@ -85,6 +87,32 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     h: number;
   } | null>(null);
 
+  function selectCropMode(next: CropMode) {
+    setCropMode(next);
+    if (width < 1 || height < 1) return;
+
+    let nextW = width;
+    let nextH = height;
+
+    if (next === "square-crop" || next === "circle") {
+      nextW = Math.min(width, height);
+      nextH = nextW;
+    } else if (next === "aspect-ratio-crop") {
+      const ratio = 16 / 9;
+      if (width / height > ratio) {
+        nextH = height;
+        nextW = Math.round(height * ratio);
+      } else {
+        nextW = width;
+        nextH = Math.round(width / ratio);
+      }
+    }
+
+    setCropW(nextW);
+    setCropH(nextH);
+    setCropX(Math.floor((width - nextW) / 2));
+    setCropY(Math.floor((height - nextH) / 2));
+  }
   function beginCropDrag(
     event: React.PointerEvent,
     mode: string,
@@ -195,7 +223,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const previewRef = useRef("");
   const resultRef = useRef("");
 
-  const op = tool.operation;
+  const op = tool.slug === "crop-image" ? cropMode : tool.operation;
 
   useEffect(() => {
     if (op !== "text" || !preview || !textCanvasRef.current) return;
@@ -1095,11 +1123,49 @@ if (!canProcess || !op) {
             ) : (
               <>
 
+                  {tool.slug === "crop-image" && (
+                    <div className="crop-mode-selector" aria-label="Choose crop shape">
+                      {([
+                        ["crop", "Free"],
+                        ["square-crop", "Square"],
+                        ["aspect-ratio-crop", "16:9"],
+                        ["triangle-crop", "Triangle"],
+                        ["shape-crop", "Hexagon"],
+                        ["circle", "Circle"],
+                      ] as [CropMode, string][]).map(([mode, label]) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          className={`crop-mode-button ${cropMode === mode ? "active" : ""}`}
+                          disabled={busy}
+                          aria-pressed={cropMode === mode}
+                          onClick={() => selectCropMode(mode)}
+                        >
+                          <svg viewBox="0 0 32 32" aria-hidden="true">
+                            {mode === "circle" ? (
+                              <circle cx="16" cy="16" r="11" />
+                            ) : mode === "triangle-crop" ? (
+                              <polygon points="16,4 28,27 4,27" />
+                            ) : mode === "shape-crop" ? (
+                              <polygon points="9,4 23,4 30,16 23,28 9,28 2,16" />
+                            ) : mode === "aspect-ratio-crop" ? (
+                              <rect x="3" y="8" width="26" height="16" rx="2" />
+                            ) : mode === "square-crop" ? (
+                              <rect x="5" y="5" width="22" height="22" rx="2" />
+                            ) : (
+                              <rect x="3" y="3" width="26" height="26" rx="2" />
+                            )}
+                          </svg>
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div className="panel-heading">
-                    {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") ? "Interactive crop editor" : "Original preview"}
+                    {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") ? "Interactive crop editor" : "Original preview"}
                   </div>
 
-                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && preview ? (
+                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && preview ? (
                     <>
                       <div className="crop-editor-viewport">
                         <div
@@ -1119,6 +1185,7 @@ if (!canProcess || !op) {
                           <div
                             className="crop-selection"
                             style={{
+                              clipPath: cropMode === "circle" ? "circle(50%)" : cropMode === "triangle-crop" ? "polygon(50% 0%, 100% 100%, 0% 100%)" : cropMode === "shape-crop" ? "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)" : "none",
                               left: `${(cropX / Math.max(1, width)) * 100}%`,
                               top: `${(cropY / Math.max(1, height)) * 100}%`,
                               width: `${(cropW / Math.max(1, width)) * 100}%`,
@@ -1182,7 +1249,7 @@ if (!canProcess || !op) {
                           src={preview}
                           alt="Image crop preview"
                           style={
-                            ["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && cropPreviewMode
+                            ["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && cropPreviewMode
                               ? {
                                 clipPath: `inset(
                   ${(cropY / Math.max(1, height)) * 100}%
@@ -1260,7 +1327,7 @@ if (!canProcess || !op) {
                     </section>
                   )}
 
-                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && (
+                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && (
                     <div className="settings-grid crop-controls">
                       <div className="crop-controls-heading">
                         <strong>Crop dimensions</strong>
@@ -1514,7 +1581,7 @@ if (!canProcess || !op) {
             )}
 
 
-            {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && (
+            {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && (
               <div className="settings-grid crop-controls">
                 <div className="crop-controls-heading">
                   <strong>Crop settings</strong>

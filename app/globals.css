@@ -12239,3 +12239,55 @@ body {
     margin-left: 0;
   }
 }
+/* BROBEX unified crop workspace */
+.crop-mode-selector {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.crop-mode-button {
+  display: flex;
+  min-width: 76px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border: 1px solid var(--border, #343434);
+  border-radius: 12px;
+  background: var(--surface, #171717);
+  color: var(--foreground, #f4f4f4);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: .18s ease;
+}
+
+.crop-mode-button svg {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.crop-mode-button:hover,
+.crop-mode-button.active {
+  border-color: #00e887;
+  color: #00e887;
+  background: rgb(0 232 135 / 10%);
+}
+
+.crop-mode-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.crop-controls,
+.crop-dimensions {
+  display: none !important;
+}
