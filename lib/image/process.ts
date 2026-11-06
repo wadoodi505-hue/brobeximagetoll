@@ -36,6 +36,8 @@ export type ProcessSettings = {
   textColor?: string;
   textX?: number;
   textY?: number;
+  textFont?: string;
+  textAlign?: "left" | "center" | "right";
   borderWidth?: number;
   borderColor?: string;
   blurAmount?: number;
@@ -430,15 +432,16 @@ export async function processImage(
     ctx.font = `600 ${Math.max(
       8,
       Math.min(240, settings.textSize || 36),
-    )}px Arial`;
+    )}px ${settings.textFont || "Arial"}`;
     ctx.fillStyle = settings.textColor || "#ffffff";
-    ctx.textAlign = "left";
+    ctx.textAlign = settings.textAlign || "left";
+    ctx.textBaseline = "top";
     ctx.shadowColor = "rgba(0,0,0,.55)";
     ctx.shadowBlur = 3;
     ctx.fillText(
       settings.text,
-      Math.max(0, settings.textX ?? 24),
-      Math.max(20, settings.textY ?? height - 24),
+      Math.max(0, Math.min(width, settings.textX ?? 24)),
+      Math.max(0, Math.min(height, settings.textY ?? 24)),
       width,
     );
   }

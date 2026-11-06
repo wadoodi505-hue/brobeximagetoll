@@ -12099,3 +12099,25 @@ body {
   color: #dc2626;
   font-weight: 700;
 }
+
+
+/* BROBEX Add Text to Image editor */
+.text-editor-canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.text-editor-hidden-preview {
+  display: none !important;
+}
+
+.text-position-controls {
+  margin-top: 4px;
+}

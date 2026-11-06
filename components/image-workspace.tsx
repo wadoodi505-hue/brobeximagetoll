@@ -162,9 +162,15 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
   const [flipX, setFlipX] = useState(true);
   const [flipY, setFlipY] = useState(false);
-  const [text, setText] = useState("BROBEX");
+  const [text, setText] = useState("");
   const [textSize, setTextSize] = useState(36);
   const [textColor, setTextColor] = useState("#ffffff");
+  const [textX, setTextX] = useState(24);
+  const [textY, setTextY] = useState(24);
+  const [textFont, setTextFont] = useState("Arial");
+  const [textAlign, setTextAlign] = useState<"left" | "center" | "right">("left");
+  const textCanvasRef = useRef<HTMLCanvasElement>(null);
+  const textDragRef = useRef(false);
   const [borderWidth, setBorderWidth] = useState(12);
   const [borderColor, setBorderColor] = useState("#171717");
   const [pixelSize, setPixelSize] = useState(12);
@@ -190,6 +196,86 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const resultRef = useRef("");
 
   const op = tool.operation;
+
+  useEffect(() => {
+    if (op !== "text" || !preview || !textCanvasRef.current) return;
+
+    const canvas = textCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const image = new Image();
+
+    image.onload = () => {
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0);
+
+      if (!text) return;
+
+      ctx.filter = "none";
+      ctx.font = `600 ${Math.max(8, Math.min(240, textSize || 36))}px ${textFont}`;
+      ctx.fillStyle = textColor || "#ffffff";
+      ctx.textAlign = textAlign;
+      ctx.textBaseline = "top";
+      ctx.shadowColor = "rgba(0,0,0,.55)";
+      ctx.shadowBlur = 3;
+
+      ctx.fillText(
+        text,
+        Math.max(0, Math.min(width, textX)),
+        Math.max(0, Math.min(height, textY)),
+        width,
+      );
+    };
+
+    image.src = preview;
+
+    return () => {
+      image.onload = null;
+    };
+  }, [
+    op, preview, text, textSize, textColor, textFont,
+    textAlign, textX, textY, width, height,
+  ]);
+
+  function beginTextDrag(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (busy || op !== "text" || !width || !height) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    event.preventDefault();
+
+    const x = Math.round(((event.clientX - rect.left) / rect.width) * width);
+    const y = Math.round(((event.clientY - rect.top) / rect.height) * height);
+
+    setTextX(Math.max(0, Math.min(width, x)));
+    setTextY(Math.max(0, Math.min(height, y)));
+
+    textDragRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function updateTextDrag(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (!textDragRef.current || !width || !height) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const x = Math.round(((event.clientX - rect.left) / rect.width) * width);
+    const y = Math.round(((event.clientY - rect.top) / rect.height) * height);
+
+    setTextX(Math.max(0, Math.min(width, x)));
+    setTextY(Math.max(0, Math.min(height, y)));
+  }
+
+  function endTextDrag() {
+    textDragRef.current = false;
+  }
+
   const canProcess = tool.status === "browser" && !!op;
 
   // Keep refs synchronized so cleanup always revokes the current URLs.
@@ -474,6 +560,10 @@ if (!canProcess || !op) {
         text,
         textSize,
         textColor,
+        textX,
+        textY,
+        textFont,
+        textAlign,
         borderWidth,
         borderColor,
         pixelSize,
@@ -1017,12 +1107,23 @@ if (!canProcess || !op) {
                     </>
                   ) : (
                     <div className="preview-canvas">
-                      {preview && (
-                        <img src={preview} alt="Original selected image" />
-                      )}
+                      {op === "text" && preview ? (
+                          <canvas
+                            ref={textCanvasRef}
+                            className="text-editor-canvas"
+                            aria-label="Live text editor preview. Click or drag to position text."
+                            onPointerDown={beginTextDrag}
+                            onPointerMove={updateTextDrag}
+                            onPointerUp={endTextDrag}
+                            onPointerCancel={endTextDrag}
+                            onLostPointerCapture={endTextDrag}
+                          />
+                        ) : (
+                          <img src={preview} alt="Original selected image" />
+                        )}
                     </div>
                   )}
-                  <div className="preview-canvas">
+                  <div className={`preview-canvas ${op === "text" ? "text-editor-hidden-preview" : ""}`}>
                     {preview && (
                       <div className="crop-preview-stage">
                         <img
@@ -1438,6 +1539,72 @@ if (!canProcess || !op) {
                     onChange={(event) => setTextColor(event.target.value)}
                   />
                 </label>
+
+                <label>
+                  Font family
+                  <select
+                    value={textFont}
+                    onChange={(event) => setTextFont(event.target.value)}
+                    disabled={busy}
+                  >
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Trebuchet MS">Trebuchet MS</option>
+                  </select>
+                </label>
+
+                <label>
+                  Text alignment
+                  <select
+                    value={textAlign}
+                    onChange={(event) =>
+                      setTextAlign(event.target.value as "left" | "center" | "right")
+                    }
+                    disabled={busy}
+                  >
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </label>
+
+                <div className="settings-grid text-position-controls">
+                  <label>
+                    Horizontal position (X)
+                    <input
+                      type="number"
+                      min="0"
+                      max={width}
+                      value={textX}
+                      disabled={busy}
+                      onChange={(event) =>
+                        setTextX(Math.max(0, Math.min(width, Number(event.target.value) || 0)))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    Vertical position (Y)
+                    <input
+                      type="number"
+                      min="0"
+                      max={height}
+                      value={textY}
+                      disabled={busy}
+                      onChange={(event) =>
+                        setTextY(Math.max(0, Math.min(height, Number(event.target.value) || 0)))
+                      }
+                    />
+                  </label>
+                </div>
+
+                <p className="hint">
+                  Click anywhere on the image to position your text, then drag to fine-tune it.
+                  Coordinates are measured in original image pixels.
+                </p>
               </>
             )}
 
