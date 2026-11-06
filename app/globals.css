@@ -9315,3 +9315,243 @@ body::before { display: none; }
     padding: 10px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BROBEX quality pass — theme contrast, responsive safety and UI consistency
+   -------------------------------------------------------------------------- */
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --ink: #171717;
+  --muted: #303030;
+  --line: #e5e5e5;
+  --soft: #f0f0ee;
+  --dark: #171717;
+  --shadow: 0 8px 30px rgba(0, 0, 0, .045);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #101010;
+  --surface: #191919;
+  --ink: #ffffff;
+  --muted: #ffffff;
+  --line: #343434;
+  --soft: #242424;
+  --dark: #ffffff;
+  --shadow: 0 10px 32px rgba(0, 0, 0, .28);
+  color-scheme: dark;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  color: #171717;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:root:not([data-theme="dark"]) body :where(
+  h1,h2,h3,h4,h5,h6,p,label,legend,small,strong,em,b,li,dt,dd,
+  summary,figcaption,caption,th,td,.tool-name,.tool-description,
+  .workspace-top p,.page-title p,.section-heading p,.breadcrumb
+) {
+  color: #171717;
+}
+
+:root[data-theme="dark"] body :where(
+  h1,h2,h3,h4,h5,h6,p,label,legend,small,strong,em,b,li,dt,dd,
+  summary,figcaption,caption,th,td,a,span,div,button,input,select,
+  textarea,option,output,.tool-name,.tool-description,.status,
+  .workspace-top p,.page-title p,.section-heading p,.breadcrumb
+) {
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] body :where(
+  input,select,textarea,option,
+  .search-box,.search-box input,.filter-label select,
+  .settings-panel input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+  .settings-panel select
+) {
+  background-color: #191919;
+  border-color: #454545;
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] body :where(input,textarea)::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .button-dark,
+:root[data-theme="dark"] button.button-dark,
+:root[data-theme="dark"] .button-light,
+:root[data-theme="dark"] .icon-button,
+:root[data-theme="dark"] .mobile-menu-button {
+  color: #ffffff !important;
+  background: #252525 !important;
+  border-color: #454545 !important;
+}
+
+:root[data-theme="dark"] :is(
+  button.download-button,a.download-button,
+  button.studio-download,a.studio-download,
+  button.exact-download-button,a.exact-download-button,
+  button.brobex-signature-download,button.brobex-collage-download,
+  button[class*="download"],a[class*="download"],
+  button[class*="Download"],a[class*="Download"],
+  button[class*="export"],a[class*="export"],
+  button[class*="Export"],a[class*="Export"],a[download]
+) {
+  color: #ffffff !important;
+  background: #252525 !important;
+  border-color: #c77b53 !important;
+}
+
+:root[data-theme="dark"] .status.browser {
+  background: #242424;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .status.integration {
+  background: #242424;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .dropzone {
+  background: #151515;
+  border-color: #666666;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .preview-canvas {
+  background: repeating-conic-gradient(#292929 0% 25%, #191919 0% 50%) 50% / 18px 18px;
+}
+
+:root[data-theme="dark"] .tool-card:hover,
+:root[data-theme="dark"] .category-tile:hover {
+  border-color: #ffffff;
+  background: #202020;
+}
+
+:root[data-theme="dark"] .brobex-signature-background-options button.is-active,
+:root[data-theme="dark"] .brobex-signature-upload {
+  color: #ffffff !important;
+  border-color: #c77b53;
+}
+
+@media (max-width: 900px) {
+  .nav-inner {
+    padding-inline: 18px;
+    gap: 12px;
+  }
+  .container {
+    width: min(100% - 36px, 1160px);
+  }
+  .tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .workspace-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-inner {
+    height: 64px;
+    grid-template-columns: 1fr auto;
+  }
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-menu-button {
+    display: grid;
+  }
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 18px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .container {
+    width: calc(100% - 28px);
+  }
+  .hero {
+    padding: 54px 0 38px;
+  }
+  .hero h1 {
+    font-size: clamp(38px, 12vw, 54px);
+  }
+  .section {
+    padding: 26px 0 48px;
+  }
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .category-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 36px;
+  }
+  .category-tile {
+    padding: 14px;
+  }
+  .tool-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-card {
+    min-height: 0;
+  }
+  .page-title {
+    padding: 42px 0 22px;
+  }
+  .workspace {
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 20px;
+  }
+  .workspace-top {
+    flex-direction: column;
+  }
+  .workspace-columns {
+    gap: 12px;
+  }
+  .preview-panel,.settings-panel {
+    padding: 11px;
+  }
+  .dropzone {
+    min-height: 155px;
+    padding: 24px 12px;
+  }
+  .file-facts {
+    gap: 8px 14px;
+  }
+  .button {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    width: calc(100% - 22px);
+  }
+  .nav-inner {
+    padding-inline: 11px;
+  }
+  .brand {
+    font-size: 13px;
+  }
+  .workspace {
+    padding: 11px;
+  }
+  .category-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

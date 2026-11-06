@@ -1,4 +1,4 @@
-﻿import type { ToolDefinition, Category } from "@/types/tools";
+import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase pixel dimensions by 2Ã—, 3Ã—, or 4Ã— using browser resampling. This enlarges the image but does not recreate missing detail.",
+      "Increase pixel dimensions by 2×, 3×, or 4× using browser resampling. This enlarges the image but does not recreate missing detail.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
@@ -191,6 +191,7 @@ export const tools: ToolDefinition[] = [
     "status": "browser",
     "operation": "aspect-ratio-crop"
   },  {
+    "slug": "flip-image",
     "name": "Flip Image",
     "description": "Flip horizontally or vertically and rotate raster images",
     "category": "image",
@@ -1176,7 +1177,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "compress-jpeg-between-20kb-to-50kb",
-    name: "Compress 20KBâ€“50KB",
+    name: "Compress 20KB–50KB",
     description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
     category: "image",
     icon: "FileImage",

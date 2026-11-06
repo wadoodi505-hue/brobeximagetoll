@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import type { ToolDefinition } from "@/types/tools";
 
 const SITE = "https://brobeximagetolls.vercel.app";
@@ -11,17 +11,17 @@ const seoBySlug: Record<string, SeoCopy> = {
     title: "Free Online Photo Collage Maker: Create Photo Grids | Brobex",
     description: "Create photo collages online with grid and featured layouts. Arrange up to 20 photos, customize spacing, margins, corners and backgrounds, then export high-resolution PNG, JPG or WebP images.",
     keywords: ["photo collage maker", "create photo collage online", "picture collage maker", "photo grid maker", "combine photos into one image"],
-    ogTitle: "Create Beautiful Photo Collages Online â€“ BROBEX",
+    ogTitle: "Create Beautiful Photo Collages Online – BROBEX",
   },
   "compress-image-size": {
     title: "Free Online Image Compressor: Reduce Image File Size | Brobex",
     description: "Reduce image file size while balancing visual quality. Compress JPG, PNG, WebP, and other supported image formats with this free online image compressor.",
     keywords: ["compress image size", "reduce image file size", "online image compressor", "optimize image"],
-    ogTitle: "Fast & Free Online Image Compressor â€“ Brobex Tools",
+    ogTitle: "Fast & Free Online Image Compressor – Brobex Tools",
   },
   "compress-jpeg-between-20kb-to-50kb": {
     title: "Compress JPEG Between 20KB to 50KB Online | Brobex",
-    description: "Compress JPEG images toward a 20KBâ€“50KB file-size range for application forms, portals, and uploads with strict file limits.",
+    description: "Compress JPEG images toward a 20KB–50KB file-size range for application forms, portals, and uploads with strict file limits.",
     keywords: ["compress jpeg between 20kb 50kb", "shrink jpeg file size", "JPEG compressor"],
   },
   "remove-background-from-image": {
@@ -103,7 +103,7 @@ const seoBySlug: Record<string, SeoCopy> = {
     title: "Free Online Signature Generator & Signature Maker | Brobex",
     description: "Create a free digital signature online. Draw with a mouse, stylus, or finger, or type your name. Download a high-resolution transparent PNG or JPEG. No paid API or sign-up required.",
     keywords: ["free online signature generator", "signature maker", "draw signature online", "digital signature image", "transparent signature PNG"],
-    ogTitle: "Free Online Signature Generator â€“ Draw or Type Your Signature | BROBEX",
+    ogTitle: "Free Online Signature Generator – Draw or Type Your Signature | BROBEX",
   },
   "chart-maker": {
     title: "Online Chart & Graph Maker: Create Visual Charts | Brobex",

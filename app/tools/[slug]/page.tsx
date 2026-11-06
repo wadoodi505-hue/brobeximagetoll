@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -290,7 +290,7 @@ export default async function ToolPage({
                   <span className="tool-info-eyebrow">KEEP CREATING</span>
                   <h2>Related tools</h2>
                 </div>
-                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools â†—</Link>
+                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools ↗</Link>
               </div>
               <div className="tool-grid">
                 {related.map((item) => (
