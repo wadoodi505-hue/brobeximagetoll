@@ -159,7 +159,7 @@ export function IncreaseImageFileSizeWorkspace() {
           </span>
           <h2>Increase Image File Size</h2>
           <p>
-            Increase an image's file size without resizing, re-encoding,
+            Increase an image&apos;s file size without resizing, re-encoding,
             or changing its original image data.
           </p>
         </div>
