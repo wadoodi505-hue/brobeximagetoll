@@ -12052,3 +12052,29 @@ body {
     padding: 12px
   }
 }
+/* BROBEX Increase Image File Size - output format selector */
+.increase-size-workspace .isw-format-select {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 9px;
+  padding: 0 14px;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 10px;
+  background: var(--surface, #ffffff);
+  color: var(--foreground, #111111);
+  font: inherit;
+  outline: none;
+}
+
+.increase-size-workspace .isw-format-select:focus {
+  border-color: var(--accent, #000000);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #000000) 12%, transparent);
+}
+
+.increase-size-workspace .isw-format-hint {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.5;
+  opacity: 0.72;
+}

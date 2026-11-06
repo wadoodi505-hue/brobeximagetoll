@@ -108,8 +108,11 @@ import guide104 from "@/content/tool-guides/compress-jpeg-to-500kb.json";
 import guide105 from "@/content/tool-guides/compress-image-to-1mb.json";
 import guide106 from "@/content/tool-guides/compress-image-to-2mb.json";
 
+import increaseImageFileSizeGuide from "@/content/tool-guides/increase-image-file-size.json";
+
 export const toolGuides: Record<string, ToolGuideData> = {
   "signature-generator": signatureGeneratorGuide,
+  "increase-image-file-size": increaseImageFileSizeGuide,
   "remove-background-from-image": guide0,
   "upscale-image": guide1,
   "colorize-photo": guide2,
@@ -222,5 +225,6 @@ export const toolGuides: Record<string, ToolGuideData> = {
 export function getToolGuide(slug: string): ToolGuideData | undefined {
   return toolGuides[slug];
 }
+
 
 

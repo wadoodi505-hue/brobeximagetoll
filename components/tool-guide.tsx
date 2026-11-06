@@ -1,4 +1,4 @@
-export type ToolGuideData = {
+﻿export type ToolGuideData = {
   slug: string;
   title: string;
   keywords: string[];
@@ -8,6 +8,7 @@ export type ToolGuideData = {
   benefits: string;
   limitations: string;
   faqs: { question: string; answer: string }[];
+  quickGuide?: string[];
 };
 
 export function ToolGuide({ guide }: { guide: ToolGuideData }) {
@@ -40,10 +41,21 @@ export function ToolGuide({ guide }: { guide: ToolGuideData }) {
       <section className="tool-guide-section">
         <h2>Limitations &amp; Important Notes</h2><p>{guide.limitations}</p>
       </section>
-      <section className="tool-guide-section tool-guide-faq">
+      {guide.quickGuide && guide.quickGuide.length > 0 && (
+      <section className="tool-guide-section">
+        <h2>Quick Guide</h2>
+        <ol>
+          {guide.quickGuide.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ol>
+      </section>
+    )}
+    <section className="tool-guide-section tool-guide-faq">
         <h2>Frequently Asked Questions</h2>
         {guide.faqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}
       </section>
     </article>
   );
 }
+

@@ -1,0 +1,63 @@
+﻿{
+    "slug":  "increase-image-file-size",
+    "title":  "Increase Image File Size",
+    "keywords":  [
+                     "increase image file size",
+                     "make image file larger",
+                     "increase photo size in KB or MB",
+                     "image minimum upload size",
+                     "BROBEX Image Studio"
+                 ],
+    "about":  "Increase Image File Size is a specialized BROBEX Image Studio tool designed to help increase an image\u0027s exported file size to meet minimum file-size requirements for upload portals, forms, and applications. When Original format is selected, the tool uses format-specific padding data where supported, without resizing or intentionally changing the original image pixels. Processing takes place locally in your browser. If you choose JPG, PNG, or WebP instead, the image is re-encoded into that format, which can affect encoding, metadata, transparency, or visual quality. The exact result depends on the source file, target size, selected output format, and browser capabilities.",
+    "steps":  [
+                  "Check the accepted image formats and maximum upload size shown in the workspace, then select or drop your original image.",
+                  "Wait for the image preview, original file size, and image dimensions to appear. Confirm that the correct source image was selected.",
+                  "Choose your target minimum file size using the available size presets or size control. Select Original format to retain the source format, or choose JPG, PNG, or WebP if you want to convert the output.",
+                  "Start the processing operation and wait while the image is processed locally in your browser. Larger targets may require additional memory and processing time.",
+                  "Review the output preview, dimensions, actual file size, and selected format. Download the result only after confirming that it is suitable for your intended use."
+              ],
+    "capabilities":  "The tool uses local browser processing. Its workspace accepts JPEG, PNG, WebP, GIF, and AVIF image uploads, subject to browser decoding support and the displayed upload limit. Original-format padding is implemented for JPEG, PNG, GIF, and WebP. AVIF does not currently have the same original-format padding support, so choose a supported conversion format if you need to increase an AVIF image\u0027s size. The optional output conversion choices are JPG, PNG, and WebP. The tool does not resize the image dimensions. When a format conversion is selected, the browser re-encodes the image before the file-size operation.",
+    "benefits":  "This tool can help prepare images for upload destinations that enforce a minimum file size. It provides a focused workflow without requiring a desktop image editor, and local browser processing means the selected image is not intentionally sent to a BROBEX processing server. When the original format is retained and supported padding is used, the original image data and dimensions are preserved. The output can be checked before downloading, making it easier to compare the original and generated file sizes.",
+    "limitations":  "The tool increases file size; it does not add visual detail, improve resolution, or make an image look sharper. Original-format padding is only supported for the formats implemented by the current engine. Browser memory, device performance, image dimensions, and target size can affect processing. Selecting JPG, PNG, or WebP as a different output format requires re-encoding and may change metadata, transparency, or visual quality. JPEG does not support transparency, so transparent areas may be flattened during JPEG conversion. Some upload portals remove metadata, inspect file contents, or apply their own validation, so a larger file is not guaranteed to be accepted. Keep an untouched copy of important images and always test the downloaded result at its destination.",
+    "faqs":  [
+                 {
+                     "question":  "What does Increase Image File Size do?",
+                     "answer":  "It increases an image\u0027s exported file size to help meet a minimum upload requirement. When supported Original format padding is used, the image dimensions and original image data are retained."
+                 },
+                 {
+                     "question":  "Which image formats can I upload?",
+                     "answer":  "The workspace accepts JPEG, PNG, WebP, GIF, and AVIF uploads, subject to browser decoding support and the upload limit shown in the tool."
+                 },
+                 {
+                     "question":  "Does increasing the file size improve image quality?",
+                     "answer":  "No. Increasing file size does not add detail, pixels, or resolution. Original-format padding does not improve visual quality; it increases the file\u0027s stored size."
+                 },
+                 {
+                     "question":  "Will my image quality change?",
+                     "answer":  "With supported Original format padding, the existing image data is retained. If you convert to JPG, PNG, or WebP, the browser re-encodes the image and the result may differ. JPG conversion can also remove transparency."
+                 },
+                 {
+                     "question":  "Is my image uploaded to a server?",
+                     "answer":  "The image processing operation runs locally in your browser. The tool does not need to upload your image to a BROBEX processing server."
+                 },
+                 {
+                     "question":  "Why can\u0027t I increase every original format?",
+                     "answer":  "Safe padding requires format-specific handling. The current engine supports original-format padding for JPEG, PNG, GIF, and WebP. For other formats, choose a supported output conversion if your browser can decode the source."
+                 },
+                 {
+                     "question":  "Will every website accept the increased image?",
+                     "answer":  "No. Some websites inspect image contents, remove metadata, or enforce additional rules. Always verify the downloaded file with the destination service."
+                 },
+                 {
+                     "question":  "What happens if my selected output format is unsupported?",
+                     "answer":  "The tool should show an error if your browser cannot export the selected JPG, PNG, or WebP format. It should not silently download a different format."
+                 }
+             ],
+    "quickGuide":  [
+                       "SELECT — Upload your image and check its original size and dimensions.",
+                       "CONFIGURE — Choose a minimum file size and select Original format or JPG, PNG, or WebP.",
+                       "PROCESS — Run the local browser operation and wait for the result.",
+                       "VERIFY — Check the generated file size, dimensions, and actual output format.",
+                       "EXPORT — Download the result and test it with your intended upload destination."
+                   ]
+}

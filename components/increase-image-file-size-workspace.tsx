@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -37,6 +37,7 @@ export function IncreaseImageFileSizeWorkspace() {
   const [sourceInfo, setSourceInfo] = useState<ImageInfo | null>(null);
   const [resultInfo, setResultInfo] = useState<ImageInfo | null>(null);
   const [targetKb, setTargetKb] = useState(2048);
+  const [outputFormat, setOutputFormat] = useState<"original" | "image/jpeg" | "image/png" | "image/webp">("original");
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
@@ -78,6 +79,7 @@ export function IncreaseImageFileSizeWorkspace() {
       }
 
       setFile(nextFile);
+      setOutputFormat("original");
       setSourceUrl(url);
       setSourceInfo({
         width: image.naturalWidth,
@@ -102,7 +104,7 @@ export function IncreaseImageFileSizeWorkspace() {
     setNotice("");
 
     try {
-      const generated = await increaseImageFileSize(file, targetKb * 1024);
+      const generated = await increaseImageFileSize(file, targetKb * 1024, outputFormat);
 
       setResultBlob(generated.blob);
       setResultInfo({
@@ -124,7 +126,8 @@ export function IncreaseImageFileSizeWorkspace() {
     const url = URL.createObjectURL(resultBlob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${file.name.replace(/\.[^.]+$/, "")}-increased${file.name.match(/\.[^.]+$/)?.[0] || ""}`;
+    const extension = resultBlob.type === "image/jpeg" ? ".jpg" : resultBlob.type === "image/png" ? ".png" : resultBlob.type === "image/webp" ? ".webp" : resultBlob.type === "image/gif" ? ".gif" : (file.name.match(/\.[^.]+$/)?.[0] || "");
+    anchor.download = `${file.name.replace(/\.[^.]+$/, "")}-increased${extension}`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -264,6 +267,27 @@ export function IncreaseImageFileSizeWorkspace() {
                 </button>
               ))}
             </div>
+            <label className="isw-label" htmlFor="isw-output-format">
+              Output format
+            </label>
+            <select
+              id="isw-output-format"
+              className="isw-format-select"
+              value={outputFormat}
+              onChange={(event) =>
+                setOutputFormat(event.target.value as "original" | "image/jpeg" | "image/png" | "image/webp")
+              }
+            >
+              <option value="original">
+                Original format (recommended)
+              </option>
+              <option value="image/jpeg">JPG</option>
+              <option value="image/png">PNG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+            <small className="isw-format-hint">
+              Original format is selected automatically. Choose another format only if you want to convert the image.
+            </small>
 
             <div className="isw-preservation-note">
               <Lock size={17} />
@@ -390,3 +414,4 @@ export function IncreaseImageFileSizeWorkspace() {
     </section>
   );
 }
+
