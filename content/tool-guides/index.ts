@@ -1,4 +1,4 @@
-﻿import type { ToolGuideData } from "@/components/tool-guide";
+import type { ToolGuideData } from "@/components/tool-guide";
 import signatureGeneratorGuide from "@/content/tool-guides/signature-generator.json";
 import guide0 from "@/content/tool-guides/remove-background-from-image.json";
 import guide1 from "@/content/tool-guides/upscale-image.json";
@@ -109,10 +109,12 @@ import guide105 from "@/content/tool-guides/compress-image-to-1mb.json";
 import guide106 from "@/content/tool-guides/compress-image-to-2mb.json";
 
 import increaseImageFileSizeGuide from "@/content/tool-guides/increase-image-file-size.json";
+import rotateFlipImageGuide from "@/content/tool-guides/flip-image.json";
 
 export const toolGuides: Record<string, ToolGuideData> = {
   "signature-generator": signatureGeneratorGuide,
   "increase-image-file-size": increaseImageFileSizeGuide,
+  "flip-image": rotateFlipImageGuide,
   "remove-background-from-image": guide0,
   "upscale-image": guide1,
   "colorize-photo": guide2,

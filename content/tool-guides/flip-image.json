@@ -1,0 +1,66 @@
+{
+    "slug":  "flip-image",
+    "title":  "Rotate \u0026 Flip Image",
+    "keywords":  [
+                     "rotate image",
+                     "flip image",
+                     "horizontal flip",
+                     "vertical flip",
+                     "image rotation",
+                     "mirror image",
+                     "rotate photo"
+                 ],
+    "about":  "Rotate \u0026 Flip Image is a focused BROBEX Image Studio tool designed to flip raster images horizontally or vertically and rotate them to precise angles. It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated or heavyweight editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+    "steps":  [
+                  "Open the Rotate \u0026 Flip Image workspace and select a supported image from your device. The selected image will appear in the workspace preview.",
+                  "Review the original image, including its filename, file size, format, and preview, before making changes.",
+                  "Use the rotation controls to choose an available angle. You can use the provided angle presets or adjust the rotation control when available.",
+                  "Enable Flip horizontally to mirror the image from left to right, or enable Flip vertically to reverse it from top to bottom. You can combine flipping with rotation.",
+                  "Review the transformed preview carefully. If the result is not what you expected, adjust the controls or use Reset to return to the initial settings.",
+                  "Select Process image to generate the transformed result. Review the output and use the available download control to save it to your device."
+              ],
+    "capabilities":  "The workspace provides image rotation and horizontal or vertical flipping controls, with a preview to help you inspect the intended transformation. Rotation changes the image orientation, while horizontal flipping mirrors the left and right sides and vertical flipping reverses the top and bottom. These operations can be combined when the workspace allows them. Image processing uses the browser Canvas API in the current browser-based workflow. Supported input and output behavior depends on the browser, the source image format, and the actual export implementation. Only the controls and export options visible in the workspace should be treated as available features.",
+    "benefits":  "Quick Geometric Adjustments: Correct an image orientation or create a mirrored version without opening a full photo editor. Flexible Transformations: Combine rotation with horizontal or vertical flipping to achieve the arrangement you need. Local and Private Processing: Supported image operations take place in your browser, so you can work with your file without sending it to an external editing service. Streamlined Workflow: Select, adjust, preview, process, and download from one focused workspace. Immediate Feedback: The preview helps you inspect the transformation before saving the result.",
+    "limitations":  "Supported Input Types: The formats you can open depend on the browser\u0027s image decoding support and the file selected. Some specialized, animated, or unsupported formats may not work as expected. Browser Performance: Very large or high-resolution images can require substantial memory and processing time, particularly on older devices. Quality and Format Handling: Exporting an image through a browser canvas may change its encoding or metadata. The downloaded file may not preserve every property of the original. Rotation Geometry: Rotating an image by an angle other than a quarter-turn can change the output canvas dimensions to fit the rotated image. Backup Recommended: Keep your original image if you may need its original dimensions, metadata, or encoding later. Always inspect the final preview and downloaded file before using it for an important submission.",
+    "faqs":  [
+                 {
+                     "question":  "What does Rotate \u0026 Flip Image do?",
+                     "answer":  "It lets you rotate an image to an available angle and mirror it horizontally or vertically. You can combine the available transformations and inspect the result before downloading."
+                 },
+                 {
+                     "question":  "What is the difference between horizontal and vertical flipping?",
+                     "answer":  "Horizontal flipping mirrors the image from left to right. Vertical flipping reverses it from top to bottom. Neither operation is the same as rotating the image."
+                 },
+                 {
+                     "question":  "Can I rotate and flip an image at the same time?",
+                     "answer":  "Yes. The workspace allows you to combine its rotation and flip controls. Review the preview to confirm the final orientation before processing."
+                 },
+                 {
+                     "question":  "Which image files can I use?",
+                     "answer":  "Compatibility depends on the image formats supported by your browser and the current workspace implementation. If a file cannot be previewed or processed, try a standard browser-supported image format such as PNG or JPEG."
+                 },
+                 {
+                     "question":  "Will my image be uploaded to a server?",
+                     "answer":  "The supported image transformation workflow runs in your browser using the Canvas API. Your original file remains under your control during local processing. This does not make a claim about unrelated website analytics or hosting services."
+                 },
+                 {
+                     "question":  "Will rotating an image change its dimensions?",
+                     "answer":  "It can. A rotation that is not a simple quarter-turn may require a larger output canvas so the rotated image fits. Check the generated result rather than assuming the original dimensions will remain unchanged."
+                 },
+                 {
+                     "question":  "Will the downloaded image have exactly the same file size?",
+                     "answer":  "Not necessarily. Browser canvas export can re-encode an image, so the resulting file size, format, and metadata may differ from the original."
+                 },
+                 {
+                     "question":  "How do I get the best result?",
+                     "answer":  "Start with a clear, supported source image, choose the required rotation and flip settings, inspect the preview, and download only after checking the processed result."
+                 }
+             ],
+    "quickGuide":  [
+                       "SELECT — Choose a supported image and inspect the original preview.",
+                       "TRANSFORM — Set the rotation angle and enable horizontal or vertical flipping as needed.",
+                       "PREVIEW — Check the orientation and make any necessary adjustments.",
+                       "PROCESS — Generate the transformed image using the workspace control.",
+                       "DOWNLOAD — Save the result and check the downloaded file before using it."
+                   ]
+}
