@@ -12078,3 +12078,24 @@ body {
   line-height: 1.5;
   opacity: 0.72;
 }
+
+/* BROBEX Increase Image File Size - Technical Warning */
+.isw-technical-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 14px 0 12px;
+  padding: 13px 15px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-left: 4px solid #ef4444;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.isw-technical-warning strong {
+  color: #dc2626;
+  font-weight: 700;
+}
