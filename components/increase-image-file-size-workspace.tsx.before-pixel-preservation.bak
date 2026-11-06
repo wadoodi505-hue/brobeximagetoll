@@ -1,0 +1,265 @@
+﻿"use client";
+
+import { useEffect, useRef, useState } from "react";
+import {
+  UploadCloud, Image as ImageIcon, Download, RotateCcw, CheckCircle2,
+  AlertCircle, FileImage, SlidersHorizontal, Lock, Unlock, Sparkles,
+} from "lucide-react";
+import {
+  increaseImageFileSize,
+  type IncreaseImageFormat,
+} from "@/lib/image/increase-image-file-size";
+
+
+type ImageInfo = { width: number; height: number; size: number; type: string };
+
+const ACCEPTED = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function getExtension(format: IncreaseImageFormat) {
+  return format === "image/jpeg" ? "jpg" : format === "image/png" ? "png" : "webp";
+}
+
+export function IncreaseImageFileSizeWorkspace() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [resultUrl, setResultUrl] = useState("");
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [sourceInfo, setSourceInfo] = useState<ImageInfo | null>(null);
+  const [resultInfo, setResultInfo] = useState<ImageInfo | null>(null);
+  const [targetKb, setTargetKb] = useState(500);
+  const [format, setFormat] = useState<IncreaseImageFormat>("image/jpeg");
+  const [quality, setQuality] = useState(95);
+  const [preserveDimensions, setPreserveDimensions] = useState(true);
+  const [scale, setScale] = useState(2);
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [reachedTarget, setReachedTarget] = useState(false);
+
+  useEffect(() => () => {
+    if (sourceUrl) URL.revokeObjectURL(sourceUrl);
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [sourceUrl, resultUrl]);
+
+  async function acceptFile(nextFile?: File) {
+    if (!nextFile) return;
+    setError(""); setNotice(""); setResultBlob(null); setResultInfo(null);
+    setReachedTarget(false);
+    if (!nextFile.type.startsWith("image/")) {
+      setError("Choose an image file such as JPG, PNG, WebP, GIF or AVIF.");
+      return;
+    }
+    if (nextFile.size > MAX_FILE_BYTES) {
+      setError("The maximum upload size is 25 MB.");
+      return;
+    }
+    const url = URL.createObjectURL(nextFile);
+    const image = new Image();
+    image.onload = () => {
+      setFile(nextFile);
+      setSourceUrl(url);
+      setSourceInfo({
+        width: image.naturalWidth, height: image.naturalHeight,
+        size: nextFile.size, type: nextFile.type || "Unknown",
+      });
+      setFormat(nextFile.type === "image/png" ? "image/png" : "image/jpeg");
+      setNotice("Image loaded. Choose your target size and processing settings.");
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      setError("This image could not be opened. Try another image format.");
+    };
+    image.src = url;
+  }
+
+  async function process() {
+    if (!file) { setError("Upload an image first."); return; }
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const generated = await increaseImageFileSize(file, {
+        format, quality: quality / 100, targetBytes: targetKb * 1024,
+        scale, preserveDimensions,
+      });
+      const url = URL.createObjectURL(generated.blob);
+      setResultUrl(url);
+      setResultBlob(generated.blob);
+      setResultInfo({
+        width: generated.width, height: generated.height,
+        size: generated.blob.size, type: format,
+      });
+      setReachedTarget(generated.reachedTarget);
+      setNotice(generated.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Image processing failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function download() {
+    if (!resultBlob || !file) return;
+    const url = URL.createObjectURL(resultBlob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${file.name.replace(/\.[^.]+$/, "")}-increased.${getExtension(format)}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function reset() {
+    setFile(null); setSourceInfo(null); setResultInfo(null); setResultBlob(null);
+    setError(""); setNotice(""); setReachedTarget(false);
+    if (inputRef.current) inputRef.current.value = "";
+    setSourceUrl(""); setResultUrl("");
+  }
+
+  const changePercent = sourceInfo && resultInfo
+    ? ((resultInfo.size - sourceInfo.size) / sourceInfo.size) * 100 : 0;
+
+  return (
+    <section className="increase-size-workspace">
+      <div className="isw-heading">
+        <div>
+          <span className="isw-kicker"><Sparkles size={14} /> BROBEX IMAGE ENGINE</span>
+          <h2>Increase Image File Size</h2>
+          <p>Enlarge an imageâ€™s actual file size using browser-based image encoding and optional dimension scaling.</p>
+        </div>
+        <span className="isw-private"><Lock size={13} /> Local processing</span>
+      </div>
+
+      {!file ? (
+        <button
+          type="button"
+          className={`isw-dropzone ${dragging ? "isw-dragging" : ""}`}
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => { event.preventDefault(); setDragging(false); void acceptFile(event.dataTransfer.files?.[0]); }}
+        >
+          <span className="isw-upload-icon"><UploadCloud size={28} /></span>
+          <strong>Drop your image here</strong>
+          <span>or click to browse your device</span>
+          <small>JPG, PNG, WebP, GIF or AVIF Â· Maximum 25 MB</small>
+        </button>
+      ) : (
+        <div className="isw-filebar">
+          <div className="isw-file-icon"><FileImage size={22} /></div>
+          <div className="isw-file-meta">
+            <strong>{file.name}</strong>
+            <span>{formatBytes(file.size)} Â· {sourceInfo?.width} Ã— {sourceInfo?.height}px</span>
+          </div>
+          <button type="button" className="isw-quiet-button" onClick={() => inputRef.current?.click()}>Replace</button>
+          <button type="button" className="isw-icon-button" onClick={reset} aria-label="Remove image"><RotateCcw size={17} /></button>
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept={ACCEPTED} hidden onChange={(e) => void acceptFile(e.target.files?.[0])} />
+
+      {file && (
+        <div className="isw-layout">
+          <div className="isw-settings">
+            <div className="isw-section-title"><SlidersHorizontal size={16} /> OUTPUT SETTINGS</div>
+
+            <label className="isw-label" htmlFor="isw-target">Target minimum file size</label>
+            <div className="isw-target-row">
+              <input id="isw-target" type="number" min="1" max="51200" value={targetKb}
+                onChange={(e) => setTargetKb(Math.max(1, Math.min(51200, Number(e.target.value) || 1)))} />
+              <span>KB</span>
+            </div>
+            <div className="isw-presets">
+              {[100, 200, 500, 1024, 2048].map((value) => (
+                <button type="button" key={value} className={targetKb === value ? "active" : ""}
+                  onClick={() => setTargetKb(value)}>{value >= 1024 ? `${value / 1024} MB` : `${value} KB`}</button>
+              ))}
+            </div>
+
+            <label className="isw-label" htmlFor="isw-format">Output format</label>
+            <select id="isw-format" value={format} onChange={(e) => setFormat(e.target.value as IncreaseImageFormat)}>
+              <option value="image/jpeg">JPEG â€” best for photos</option>
+              <option value="image/png">PNG â€” lossless / transparency</option>
+              <option value="image/webp">WebP â€” modern compression</option>
+            </select>
+
+            {format !== "image/png" && (
+              <>
+                <div className="isw-label-line"><label className="isw-label" htmlFor="isw-quality">Encoding quality</label><strong>{quality}%</strong></div>
+                <input id="isw-quality" className="isw-range" type="range" min="60" max="100" value={quality}
+                  onChange={(e) => setQuality(Number(e.target.value))} />
+                <p className="isw-hint">Higher quality can produce a larger file. It cannot restore detail missing from the source.</p>
+              </>
+            )}
+
+            <div className="isw-toggle-row">
+              <div><strong>Preserve original dimensions</strong><small>Keep the exact pixel width and height.</small></div>
+              <button type="button" className={`isw-toggle ${preserveDimensions ? "on" : ""}`}
+                onClick={() => setPreserveDimensions((value) => !value)} aria-pressed={preserveDimensions}>
+                {preserveDimensions ? <Lock size={14} /> : <Unlock size={14} />}
+                {preserveDimensions ? "ON" : "OFF"}
+              </button>
+            </div>
+
+            {!preserveDimensions && (
+              <>
+                <div className="isw-label-line"><label className="isw-label" htmlFor="isw-scale">Dimension scale</label><strong>{scale}Ã—</strong></div>
+                <input id="isw-scale" className="isw-range" type="range" min="1" max="4" step="0.5" value={scale}
+                  onChange={(e) => setScale(Number(e.target.value))} />
+                <p className="isw-hint">Scaling increases pixel dimensions and may increase file size. The aspect ratio stays locked.</p>
+              </>
+            )}
+
+            <button type="button" className="isw-process-button" disabled={busy || targetKb < 1} onClick={() => void process()}>
+              {busy ? <><span className="isw-spinner" /> Processing imageâ€¦</> : <><Sparkles size={17} /> Increase file size</>}
+            </button>
+            <p className="isw-local-note"><Lock size={12} /> Your image is processed locally in this browser. It is not uploaded to a server.</p>
+          </div>
+
+          <div className="isw-preview-panel">
+            <div className="isw-section-title"><ImageIcon size={16} /> IMAGE PREVIEW</div>
+            <div className="isw-previews">
+              <div className="isw-preview-card">
+                <div className="isw-preview-image"><img src={sourceUrl} alt="Original image preview" /></div>
+                <div className="isw-preview-caption"><strong>Original</strong><span>{sourceInfo ? formatBytes(sourceInfo.size) : "â€”"}</span></div>
+              </div>
+              <div className="isw-preview-card">
+                <div className="isw-preview-image">
+                  {resultUrl ? <img src={resultUrl} alt="Processed image preview" /> : <div className="isw-preview-empty"><ImageIcon size={30} /><span>Processed preview appears here</span></div>}
+                </div>
+                <div className="isw-preview-caption"><strong>Increased</strong><span>{resultInfo ? formatBytes(resultInfo.size) : "Not generated"}</span></div>
+              </div>
+            </div>
+
+            <div className="isw-stats">
+              <div><span>Original size</span><strong>{sourceInfo ? formatBytes(sourceInfo.size) : "â€”"}</strong></div>
+              <div><span>Output size</span><strong>{resultInfo ? formatBytes(resultInfo.size) : "â€”"}</strong></div>
+              <div><span>Output dimensions</span><strong>{resultInfo ? `${resultInfo.width} Ã— ${resultInfo.height}` : "â€”"}</strong></div>
+              <div><span>Size change</span><strong className={changePercent >= 0 ? "isw-positive" : "isw-negative"}>{resultInfo ? `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%` : "â€”"}</strong></div>
+            </div>
+
+            {notice && <div className={`isw-message ${reachedTarget ? "success" : "info"}`}><CheckCircle2 size={16} />{notice}</div>}
+            {error && <div className="isw-message error"><AlertCircle size={16} />{error}</div>}
+
+            {resultBlob && (
+              <button type="button" className="isw-download-button" onClick={download}>
+                <Download size={17} /> Download increased image
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="isw-footnote">
+        <strong>Technical note:</strong> This tool increases file size by changing image encoding and, when enabled, pixel dimensions. It does not add genuine photographic detail. Exact byte sizes cannot be guaranteed for every image because compression depends on image content and browser encoders.
+      </div>
+    </section>
+  );
+}
+

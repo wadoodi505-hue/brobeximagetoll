@@ -35,7 +35,7 @@ export function ToolStudioBrand({
       <div className="brobex-studio-inner">
         <div className="brobex-studio-topline">
           <Link href="/" className="brobex-studio-brand" aria-label="BROBEX home">
-            <span className="brobex-studio-brand-mark">B</span>
+            <img src="/brobex-logo.png" alt="BROBEX" className="brand-mark" />
             <span className="brobex-studio-brand-name">
               BROBEX<span>TOOLS</span>
             </span>

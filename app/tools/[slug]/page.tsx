@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +12,7 @@ import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
+import { IncreaseImageFileSizeWorkspace } from "@/components/increase-image-file-size-workspace";
 import { ExactTargetCompressionWorkspace } from "@/components/exact-target-compression-workspace";
 import { getExactTargetTool } from "@/lib/exact-targets";
 import { PassportPhotoWorkspace } from "@/components/passport-photo-workspace";
@@ -190,6 +191,8 @@ export default async function ToolPage({
       <UpscaleWorkspace />
     ) : tool.category === "pdf" ? (
       <PdfWorkspace tool={tool} />
+    ) : tool.slug === "increase-image-file-size" ? (
+      <IncreaseImageFileSizeWorkspace />
     ) : tool.category === "image" ? (
       <ImageWorkspace tool={tool} />
     ) : tool.category === "write" ? (
@@ -290,7 +293,7 @@ export default async function ToolPage({
                   <span className="tool-info-eyebrow">KEEP CREATING</span>
                   <h2>Related tools</h2>
                 </div>
-                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools ↗</Link>
+                <Link href={cat.href}>Explore {cat.label.toLowerCase()} tools â†—</Link>
               </div>
               <div className="tool-grid">
                 {related.map((item) => (
@@ -304,5 +307,6 @@ export default async function ToolPage({
     </div>
   );
 }
+
 
 

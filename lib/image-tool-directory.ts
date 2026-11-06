@@ -1,4 +1,4 @@
-import { tools } from "@/lib/tools";
+﻿import { tools } from "@/lib/tools";
 
 export type DirectoryTool = {
   name: string;
@@ -24,11 +24,11 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Extract Text from Image (OCR)", "image-to-text", "Recognize text in photos and make it editable."),
       item("Create Photo Collages", "collage-maker", "Arrange multiple photos into one collage layout."),
       item("Signature Generator", "signature-generator", "Draw or type a digital signature and export a transparent PNG."),
-      item("Increase Image File Size", undefined, "Adjust image output size for a required file limit."),
+      item("Increase Image File Size", "increase-image-file-size", "Adjust image output size for a required file limit."),
       item("Manual Photo Enhancement", "upscale-image", "Improve image dimensions with browser-based resampling."),
       item("Signature Image Resizer", undefined, "Resize a signature image to specified dimensions."),
       item("Resize Image in Centimeters", undefined, "Prepare images using physical dimensions in centimeters."),
-      item("Resize Photo to 3.5 × 4.5 cm", undefined, "Create a photo at the common 3.5 × 4.5 cm size.")
+      item("Resize Photo to 3.5 Ã— 4.5 cm", undefined, "Create a photo at the common 3.5 Ã— 4.5 cm size.")
     ]
   },
   {
@@ -199,7 +199,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("JPEG to 10KB", "compress-jpeg-to-10kb", "Fixed target: 10 KB"),
       item("Compress to 15KB", "compress-image-to-15kb", "Fixed target: 15 KB"),
       item("Compress to 20KB", "compress-image-to-20kb", "Fixed target: 20 KB"),
-      item("Compress 20KB–50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
+      item("Compress 20KBâ€“50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
       item("JPEG to 25KB", "compress-jpeg-to-25kb", "Fixed target: 25 KB"),
       item("JPEG to 30KB", "compress-jpeg-to-30kb", "Fixed target: 30 KB"),
       item("JPEG to 40KB", "compress-jpeg-to-40kb", "Fixed target: 40 KB"),
@@ -335,4 +335,5 @@ export function getDirectoryToolState(tool: DirectoryTool): {
     available
   };
 }
+
 

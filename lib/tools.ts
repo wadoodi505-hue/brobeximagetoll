@@ -1,4 +1,4 @@
-import type { ToolDefinition, Category } from "@/types/tools";
+﻿import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase pixel dimensions by 2×, 3×, or 4× using browser resampling. This enlarges the image but does not recreate missing detail.",
+      "Increase pixel dimensions by 2Ã—, 3Ã—, or 4Ã— using browser resampling. This enlarges the image but does not recreate missing detail.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
@@ -1122,6 +1122,20 @@ export const tools: ToolDefinition[] = [
     "status": "browser"
   },
   {
+    "slug": "increase-image-file-size",
+    "name": "Increase Image File Size",
+    "description": "Increase an image's exported file size using adjustable encoding quality and image scaling.",
+    "category": "image",
+    "icon": "FileImage",
+    "acceptedTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "method": "Local browser Canvas API",
+    "status": "browser"
+  },
+  {
     "slug": "passport-photo-maker",
     "name": "Passport Photo Maker",
     "description": "Create correctly sized passport and ID photos with adjustable framing and local browser export.",
@@ -1177,7 +1191,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "compress-jpeg-between-20kb-to-50kb",
-    name: "Compress 20KB–50KB",
+    name: "Compress 20KBâ€“50KB",
     description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
     category: "image",
     icon: "FileImage",
@@ -1365,6 +1379,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
