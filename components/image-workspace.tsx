@@ -174,7 +174,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [borderWidth, setBorderWidth] = useState(12);
   const [borderColor, setBorderColor] = useState("#171717");
   const [pixelSize, setPixelSize] = useState(12);
-  const [rotation, setRotation] = useState(90);
+  const [rotation, setRotation] = useState(0);
   const [blurAmount, setBlurAmount] = useState(4);
 
   // Automatic enhancement defaults: restrained sharpening and noise reduction.
@@ -240,6 +240,52 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     op, preview, text, textSize, textColor, textFont,
     textAlign, textX, textY, width, height,
   ]);
+
+  const rotationCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (op !== "flip" || !preview || !rotationCanvasRef.current) return;
+
+    const canvas = rotationCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const image = new Image();
+
+    image.onload = () => {
+      const angle = ((rotation % 360) * Math.PI) / 180;
+      const cosine = Math.abs(Math.cos(angle));
+      const sine = Math.abs(Math.sin(angle));
+
+      canvas.width = Math.max(
+        1,
+        Math.ceil(image.naturalWidth * cosine + image.naturalHeight * sine),
+      );
+      canvas.height = Math.max(
+        1,
+        Math.ceil(image.naturalWidth * sine + image.naturalHeight * cosine),
+      );
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(angle);
+      ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+
+      ctx.drawImage(
+        image,
+        -image.naturalWidth / 2,
+        -image.naturalHeight / 2,
+        image.naturalWidth,
+        image.naturalHeight,
+      );
+    };
+
+    image.src = preview;
+
+    return () => {
+      image.onload = null;
+    };
+  }, [op, preview, rotation, flipX, flipY]);
 
   function beginTextDrag(event: React.PointerEvent<HTMLCanvasElement>) {
     if (busy || op !== "text" || !width || !height) return;
@@ -1118,12 +1164,18 @@ if (!canProcess || !op) {
                             onPointerCancel={endTextDrag}
                             onLostPointerCapture={endTextDrag}
                           />
+                        ) : op === "flip" && preview ? (
+                          <canvas
+                            ref={rotationCanvasRef}
+                            className="flip-rotation-canvas"
+                            aria-label="Live rotated and flipped image preview"
+                          />
                         ) : (
                           <img src={preview} alt="Original selected image" />
                         )}
                     </div>
                   )}
-                  <div className={`preview-canvas ${op === "text" ? "text-editor-hidden-preview" : ""}`}>
+                  <div className={`preview-canvas ${op === "text" || op === "flip" ? "text-editor-hidden-preview" : ""}`}>
                     {preview && (
                       <div className="crop-preview-stage">
                         <img
@@ -1145,6 +1197,69 @@ if (!canProcess || !op) {
                       </div>
                     )}
                   </div>
+
+                  {op === "flip" && (
+                    <section className="flip-rotation-controls">
+                      <div className="flip-rotation-heading">
+                        <div>
+                          <span className="eyebrow">TRANSFORM CONTROLS</span>
+                          <strong>Rotate image</strong>
+                          <small>Adjust the angle and preview your changes instantly.</small>
+                        </div>
+                        <output>{rotation}°</output>
+                      </div>
+
+                      <input
+                        className="flip-rotation-slider"
+                        type="range"
+                        min="0"
+                        max="360"
+                        step="1"
+                        value={rotation}
+                        disabled={busy}
+                        onChange={(event) => setRotation(Number(event.target.value))}
+                        aria-label="Image rotation angle"
+                      />
+
+                      <div className="flip-rotation-scale">
+                        <span>0°</span>
+                        <span>90°</span>
+                        <span>180°</span>
+                        <span>270°</span>
+                        <span>360°</span>
+                      </div>
+
+                      <div className="flip-rotation-presets">
+                        {[0, 90, 180, 270, 360].map((angle) => (
+                          <button
+                            key={angle}
+                            type="button"
+                            className={rotation === angle ? "active" : ""}
+                            aria-pressed={rotation === angle}
+                            disabled={busy}
+                            onClick={() => setRotation(angle)}
+                          >
+                            {angle}°
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          className="flip-rotation-reset"
+                          disabled={busy}
+                          onClick={() => {
+                            setRotation(0);
+                            setFlipX(false);
+                            setFlipY(false);
+                          }}
+                        >
+                          <RotateCcw size={14} />
+                          Reset
+                        </button>
+                      </div>
+                    </section>
+                  )}
+
                   {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop"].includes(op || "") && (
                     <div className="settings-grid crop-controls">
                       <div className="crop-controls-heading">
@@ -1476,21 +1591,7 @@ if (!canProcess || !op) {
               </>
             )}
 
-            {op === "rotate" && (
-              <label>
-                Rotation
-                <select
-                  value={rotation}
-                  onChange={(event) =>
-                    setRotation(Number(event.target.value))
-                  }
-                >
-                  <option value={90}>90° clockwise</option>
-                  <option value={180}>180°</option>
-                  <option value={270}>270° clockwise</option>
-                </select>
-              </label>
-            )}
+
 
             {op === "pixelate" && (
               <label>

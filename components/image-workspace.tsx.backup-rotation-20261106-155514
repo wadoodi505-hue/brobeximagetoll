@@ -1107,8 +1107,7 @@ if (!canProcess || !op) {
                     </>
                   ) : (
                     <div className="preview-canvas">
-                      {preview && (
-                        op === "text" ? (
+                      {op === "text" && preview ? (
                           <canvas
                             ref={textCanvasRef}
                             className="text-editor-canvas"
@@ -1122,7 +1121,6 @@ if (!canProcess || !op) {
                         ) : (
                           <img src={preview} alt="Original selected image" />
                         )}
-                      )}
                     </div>
                   )}
                   <div className={`preview-canvas ${op === "text" ? "text-editor-hidden-preview" : ""}`}>

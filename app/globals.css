@@ -12121,3 +12121,121 @@ body {
 .text-position-controls {
   margin-top: 4px;
 }
+/* BROBEX Flip Image — live rotation workspace */
+.flip-rotation-canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.flip-rotation-controls {
+  display: grid;
+  gap: 13px;
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.flip-rotation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flip-rotation-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.flip-rotation-heading strong {
+  font-size: 16px;
+}
+
+.flip-rotation-heading small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.flip-rotation-heading output {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.flip-rotation-slider {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--accent, #c99a52);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.flip-rotation-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.flip-rotation-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.flip-rotation-presets button {
+  min-width: 48px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.flip-rotation-presets button.active {
+  border-color: var(--accent, #c99a52);
+  background: var(--soft);
+}
+
+.flip-rotation-presets button:disabled,
+.flip-rotation-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.flip-rotation-presets .flip-rotation-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .flip-rotation-controls {
+    padding: 14px;
+  }
+
+  .flip-rotation-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .flip-rotation-presets button {
+    width: 100%;
+  }
+
+  .flip-rotation-presets .flip-rotation-reset {
+    grid-column: span 3;
+    margin-left: 0;
+  }
+}

@@ -310,6 +310,15 @@ export async function processImage(
     [width, height] = [height, width];
   }
 
+  if (settings.operation === "flip") {
+    const angle = ((settings.rotation || 0) * Math.PI) / 180;
+    const cosine = Math.abs(Math.cos(angle));
+    const sine = Math.abs(Math.sin(angle));
+
+    width = Math.max(1, Math.ceil(srcW * cosine + srcH * sine));
+    height = Math.max(1, Math.ceil(srcW * sine + srcH * cosine));
+  }
+
   if (settings.operation === "circle") {
     width = Math.min(srcW, srcH);
     height = width;
@@ -374,11 +383,14 @@ export async function processImage(
   }
 
   if (settings.operation === "flip") {
-    ctx.translate(
-      settings.flipX ? width : 0,
-      settings.flipY ? height : 0,
+    const angle = ((settings.rotation || 0) * Math.PI) / 180;
+
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(angle);
+    ctx.scale(
+      settings.flipX ? -1 : 1,
+      settings.flipY ? -1 : 1,
     );
-    ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1);
   }
 
   if (settings.operation === "rotate") {
@@ -406,7 +418,10 @@ export async function processImage(
   } else {
     const offset = border;
 
-  if (settings.operation === "rotate") {
+  if (
+      settings.operation === "rotate" ||
+      settings.operation === "flip"
+    ) {
       ctx.drawImage(image, -srcW / 2, -srcH / 2, srcW, srcH);
     } else {
       ctx.drawImage(
