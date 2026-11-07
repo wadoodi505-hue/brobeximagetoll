@@ -12657,3 +12657,158 @@ body {
     max-height: 42svh;
   }
 }
+
+
+
+/* ==========================================================================
+   BROBEX — UNIVERSAL ORIGINAL PREVIEW LAYOUT FIX
+   Fixes preview stages that appear divided into columns or clipped panels.
+   Keeps the complete source image visible; does not alter editor processing.
+   ========================================================================== */
+
+/* Preview containers must establish one predictable, full-width layout. */
+.tool-workspace-shell .preview-panel,
+.workspace .preview-panel,
+.tool-workspace-shell .preview-sticky-region,
+.workspace .preview-sticky-region,
+.brobex-live-preview-panel {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* A preview stage is one image viewport, never a two-column content grid. */
+.tool-workspace-shell .preview-canvas,
+.workspace .preview-canvas,
+.tool-workspace-shell .preview-sticky-region .crop-editor-viewport,
+.workspace .preview-sticky-region .crop-editor-viewport,
+.brobex-live-preview-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  columns: auto !important;
+  column-count: 1 !important;
+  column-width: auto !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+}
+
+/* Prevent preview media from inheriting split/grid/flex sizing from tool CSS. */
+.tool-workspace-shell .preview-canvas > img,
+.tool-workspace-shell .preview-canvas > canvas,
+.workspace .preview-canvas > img,
+.workspace .preview-canvas > canvas,
+.tool-workspace-shell .preview-sticky-region img,
+.tool-workspace-shell .preview-sticky-region canvas,
+.workspace .preview-sticky-region img,
+.workspace .preview-sticky-region canvas,
+.brobex-live-preview-stage > img,
+.brobex-live-preview-stage > canvas {
+  display: block !important;
+  flex: 0 1 auto !important;
+  float: none !important;
+  position: static;
+  inset: auto;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  aspect-ratio: auto !important;
+  clip-path: none;
+  transform: none;
+  columns: auto !important;
+  column-span: none !important;
+  box-sizing: border-box;
+}
+
+/* Common nested wrappers used by individual tools: keep each stage full-width
+   and stack multiple preview items vertically rather than squeezing them
+   into adjacent columns. */
+.tool-workspace-shell .preview-sticky-region > *,
+.workspace .preview-sticky-region > *,
+.tool-workspace-shell .preview-canvas > *,
+.workspace .preview-canvas > *,
+.brobex-live-preview-stage > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.tool-workspace-shell .preview-sticky-region > :not(.panel-heading),
+.workspace .preview-sticky-region > :not(.panel-heading) {
+  width: 100%;
+}
+
+.tool-workspace-shell .preview-sticky-region .preview-canvas,
+.workspace .preview-sticky-region .preview-canvas,
+.tool-workspace-shell .preview-sticky-region .crop-editor-viewport,
+.workspace .preview-sticky-region .crop-editor-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+/* Preserve the complete image on compact/mobile screens without cropping. */
+@media (max-width: 767px) {
+  .tool-workspace-shell .preview-sticky-region,
+  .workspace .preview-sticky-region {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .preview-canvas,
+  .workspace .preview-sticky-region .preview-canvas {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 0;
+    max-height: 100%;
+    padding: 5px;
+    overflow: hidden;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .preview-canvas img,
+  .tool-workspace-shell .preview-sticky-region .preview-canvas canvas,
+  .workspace .preview-sticky-region .preview-canvas img,
+  .workspace .preview-sticky-region .preview-canvas canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-editor-stage,
+  .workspace .preview-sticky-region .crop-editor-stage,
+  .tool-workspace-shell .preview-sticky-region .crop-preview-stage,
+  .workspace .preview-sticky-region .crop-preview-stage {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+}
+
+/* Keep intentional before/after comparison controls in their own component;
+   this fix only normalizes ordinary original/live preview stages. */
