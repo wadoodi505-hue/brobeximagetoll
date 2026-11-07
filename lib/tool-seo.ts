@@ -59,9 +59,19 @@ const seoBySlug: Record<string, SeoCopy> = {
     description: "Export Font Awesome icons as PNG images with adjustable dimensions and transparent backgrounds using the BROBEX online converter.",
     keywords: ["font awesome to png converter", "export icon as png", "icon PNG maker"],
   },
+  "convert-mb-to-kb": {
+    title: "Convert MB to KB Online: Free File Size Calculator | Brobex",
+    description: "Convert megabytes to kilobytes instantly using the binary 1 MB = 1,024 KB calculation. Choose decimal precision and copy the result.",
+    keywords: ["MB to KB converter", "convert megabytes to kilobytes", "file size calculator"],
+  },
+  "convert-kb-to-mb": {
+    title: "Convert KB to MB Online: Free File Size Calculator | Brobex",
+    description: "Convert kilobytes to megabytes instantly using the binary 1,024 KB = 1 MB calculation. Choose decimal precision and copy the result.",
+    keywords: ["KB to MB converter", "convert kilobytes to megabytes", "file size calculator"],
+  },
   "compress-pdf": {
     title: "Free Online PDF Compressor: Reduce PDF File Size | Brobex",
-    description: "Reduce PDF file size for sharing, email, and online uploads. Review the processed document before downloading.",
+    description: "Optimize PDF object streams locally where possible. Review the resulting file size; embedded photographs are not downsampled by this browser-only tool.",
     keywords: ["compress PDF online", "reduce PDF file size", "free PDF compressor"],
   },
   "merge-pdf": {

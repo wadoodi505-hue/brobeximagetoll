@@ -1,0 +1,30 @@
+{
+  "slug": "convert-mb-to-kb",
+  "title": "Convert MB to KB",
+  "keywords": [
+    "MB to KB",
+    "megabytes to kilobytes",
+    "file size converter",
+    "BROBEX"
+  ],
+  "about": "Convert megabytes to kilobytes with the standard binary file-size relationship. Enter a value in MB and BROBEX calculates its equivalent in KB immediately, with adjustable decimal precision and a copy control.",
+  "steps": [
+    "Enter a non-negative value in megabytes.",
+    "Review the calculated kilobyte value.",
+    "Choose the number of decimal places if needed.",
+    "Copy the result or reset the converter."
+  ],
+  "capabilities": "Instant local calculation using 1 MB = 1,024 KB. This utility converts a numerical file-size value only; it does not upload, resize or alter a file.",
+  "benefits": "Quickly translate file-size values between MB and KB when checking upload requirements, image dimensions or document limits.",
+  "limitations": "This tool converts values only and does not change a file. It uses the binary convention of 1 MB = 1,024 KB; some services display decimal units.",
+  "faqs": [
+    {
+      "question": "How many KB are in 1 MB?",
+      "answer": "Using the binary convention, 1 MB equals 1,024 KB."
+    },
+    {
+      "question": "Does this tool compress an image?",
+      "answer": "No. It converts a file-size number. Use Compress Image to Target KB to optimize an actual image file."
+    }
+  ]
+}

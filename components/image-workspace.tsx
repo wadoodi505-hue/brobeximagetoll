@@ -52,6 +52,56 @@ type Metadata = {
 };
 
 type PreviewMode = "compare" | "original" | "enhanced";
+function getCropPreviewClipPath(
+  mode: string,
+  x: number,
+  y: number,
+  cropWidth: number,
+  cropHeight: number,
+  imageWidth: number,
+  imageHeight: number,
+): string {
+  const px = (value: number) => (value / imageWidth) * 100;
+  const py = (value: number) => (value / imageHeight) * 100;
+
+  const left = px(x);
+  const top = py(y);
+  const right = px(x + cropWidth);
+  const bottom = py(y + cropHeight);
+
+  const centerX = px(x + cropWidth / 2);
+  const centerY = py(y + cropHeight / 2);
+
+  if (mode === "circle") {
+    return `ellipse(${px(cropWidth / 2)}% ${py(cropHeight / 2)}% at ${centerX}% ${centerY}%)`;
+  }
+
+  if (mode === "triangle-crop") {
+    return `polygon(
+      ${centerX}% ${top}%,
+      ${right}% ${bottom}%,
+      ${left}% ${bottom}%
+    )`;
+  }
+
+  if (mode === "shape-crop") {
+    return `polygon(
+      ${px(x + cropWidth * 0.25)}% ${top}%,
+      ${px(x + cropWidth * 0.75)}% ${top}%,
+      ${right}% ${centerY}%,
+      ${px(x + cropWidth * 0.75)}% ${bottom}%,
+      ${px(x + cropWidth * 0.25)}% ${bottom}%,
+      ${left}% ${centerY}%
+    )`;
+  }
+
+  return `polygon(
+    ${left}% ${top}%,
+    ${right}% ${top}%,
+    ${right}% ${bottom}%,
+    ${left}% ${bottom}%
+  )`;
+}
 
 export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [file, setFile] = useState<File | null>(null);
@@ -290,8 +340,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const operationId = useRef(0);
   const autoCompressFileRef = useRef<File | null>(null);
   const compressionSettingsRef = useRef({ format, quality });
-  const previewRef = useRef("");
-  const resultRef = useRef("");
 
   const op = tool.slug === "crop-image" ? cropMode : tool.operation;
 
@@ -422,21 +470,17 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
   const canProcess = tool.status === "browser" && !!op;
 
-  // Keep refs synchronized so cleanup always revokes the current URLs.
+  // Revoke the previous preview/result URL whenever it changes or the
+  // workspace unmounts. This also covers reset and replacement uploads.
   useEffect(() => {
-    previewRef.current = preview;
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
   }, [preview]);
 
   useEffect(() => {
-    resultRef.current = result;
+    if (!result) return;
+    return () => URL.revokeObjectURL(result);
   }, [result]);
-
-  useEffect(() => {
-    return () => {
-      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-      if (resultRef.current) URL.revokeObjectURL(resultRef.current);
-    };
-  }, []);
 
   function clearOutput() {
     operationId.current += 1;
@@ -939,8 +983,8 @@ if (!canProcess || !op) {
 
             <label className="brobex-quality-control">
               <span>
-                JPG quality
-                <strong>{format === "image/jpeg" ? `${quality}%` : "Lossless PNG"}</strong>
+                Image quality
+                <strong>{`${quality}%`}</strong>
               </span>
               <input
                 type="range"
@@ -948,11 +992,11 @@ if (!canProcess || !op) {
                 max="100"
                 step="1"
                 value={quality}
-                disabled={busy || format !== "image/jpeg"}
+                disabled={busy}
                 onChange={(event) => setQuality(Number(event.target.value))}
               />
               <small>
-                Higher quality keeps more image detail. PNG uses lossless encoding.
+                {format === "image/png" ? "PNG remains lossless as a file format; lower settings apply controlled color reduction while preserving transparency." : "Higher quality keeps more image detail and may produce a larger file."}
               </small>
             </label>
           </div>
@@ -1319,22 +1363,25 @@ if (!canProcess || !op) {
                   <div className={`preview-canvas ${op === "text" || op === "flip" ? "text-editor-hidden-preview" : ""}`}>
                     {preview && (
                       <div className="crop-preview-stage">
-                        <img
-                          src={preview}
-                          alt="Image crop preview"
-                          style={
-                            ["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && cropPreviewMode
-                              ? {
-                                clipPath: `inset(
-                  ${(cropY / Math.max(1, height)) * 100}%
-                  ${100 - ((cropX + cropW) / Math.max(1, width)) * 100}%
-                  ${100 - ((cropY + cropH) / Math.max(1, height)) * 100}%
-                  ${(cropX / Math.max(1, width)) * 100}%
-                )`,
-                              }
-                              : undefined
-                          }
-                        />
+                          <img
+                            src={preview}
+                            alt="Live shape crop preview"
+                            style={
+                              cropPreviewMode
+                                ? {
+                                  clipPath: getCropPreviewClipPath(
+                                    cropMode,
+                                    cropX,
+                                    cropY,
+                                    cropW,
+                                    cropH,
+                                    Math.max(1, width),
+                                    Math.max(1, height),
+                                  ),
+                                }
+                                : undefined
+                            }
+                          />
                       </div>
                     )}
                   </div>

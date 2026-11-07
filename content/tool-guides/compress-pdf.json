@@ -6,15 +6,14 @@
     "image or file-size optimization",
     "BROBEX Image Studio"
   ],
-  "about": "Compress PDF is a focused BROBEX Image Studio tool for image or file-size optimization. Optimize a PDF with a compatible server-side or browser PDF pipeline. It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+  "about": "Compress PDF uses local PDF structure optimization to rewrite object streams and remove avoidable serialization overhead where possible. It preserves the document pages and embedded content. This browser-only implementation does not render pages or downsample embedded photographs, so image-heavy PDFs may not become smaller.",
   "steps": [
-    "Review the formats and file limits shown by the workspace before selecting source documents.",
-    "Choose the file or files that the current tool supports. For multi-file tasks, confirm their order where the interface provides ordering controls.",
-    "Set any page, output, or document options displayed by the tool. Do not assume options that are not present in the current workspace.",
-    "Run the conversion or document operation. Processing may depend on browser support or an external integration; an unavailable integration is identified rather than simulated.",
-    "Inspect the resulting document or page preview when available, then use the provided download control. Open the downloaded file in a compatible viewer to confirm layout and content."
+    "Choose one valid PDF file up to 25 MB.",
+    "Start PDF optimization. The document is read and re-saved locally using compressed PDF object streams.",
+    "Review the reported size comparison. If the rewritten file would be larger, the original is retained instead.",
+    "Download the optimized PDF and open it in a PDF reader to confirm that its pages and content remain intact."
   ],
-  "capabilities": "The registered processing method for this tool is PDF library / document conversion integration. The tool accepts the formats listed in the workspace. Its intended task is optimize a pdf with a compatible server-side or browser pdf pipeline. Only controls and output choices visible in the current workspace should be treated as supported. The tool does not silently add unrelated editing features, and an operation that needs a provider cannot be considered available until that integration is configured and tested.",
+  "capabilities": "Local pdf-lib structural reserialization with object streams. This can reduce some PDF structural overhead but does not recompress embedded images, rasterize pages, remove fonts or guarantee a smaller result. The original is retained when optimization would increase file size. Password-protected PDFs may not be supported.",
   "benefits": "This workflow can make a repetitive image or file-size optimization task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
   "limitations": "Supported input types are the formats listed in the workspace. Browser processing can be affected by device memory, browser version, image dimensions, and file complexity. The required processing integration is not configured as a verified working service in this project; the page must not imply that processing has completed. Conversion and compression can change quality, metadata, transparency, color handling, or layout. Always verify the exported file in its intended destination. BROBEX cannot guarantee acceptance by third-party services or official application portals.",
   "faqs": [

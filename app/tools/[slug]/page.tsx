@@ -1,4 +1,5 @@
-﻿import type { Metadata } from "next";
+import { AdvancedImageToolsWorkspace } from "@/components/advanced-image-tools-workspace";
+import type { Metadata } from "next";
 import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,7 +14,8 @@ import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
 import { IncreaseImageFileSizeWorkspace } from "@/components/increase-image-file-size-workspace";
-import { ExactTargetCompressionWorkspace } from "@/components/exact-target-compression-workspace";
+import { ImageCompressionWorkspace } from "@/components/image-compression-workspace";
+import { FileSizeConverterWorkspace } from "@/components/file-size-converter-workspace";
 import { getExactTargetTool } from "@/lib/exact-targets";
 import { PassportPhotoWorkspace } from "@/components/passport-photo-workspace";
 import { RemoveObjectsWorkspace } from "@/components/remove-objects-workspace";
@@ -160,9 +162,35 @@ export default async function ToolPage({
   // Preserve the existing real workspace for each supported tool.
   const exactTargetTool = getExactTargetTool(tool.slug);
 
+  const advancedToolSlugs = new Set([
+    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata",
+    "blemishes-remover", "a4-size", "profile-photo-maker", "aspect-ratio-crop",
+    "vsd-to-docx", "vsd-to-pptx", "vsd-to-jpg",
+    "vsdx-to-docx", "vsdx-to-pptx", "vsdx-to-jpg",
+  ]);
+
   const workspace =
+    advancedToolSlugs.has(tool.slug) ? (
+      <AdvancedImageToolsWorkspace slug={tool.slug} title={tool.name} />
+    ) :
     exactTargetTool ? (
-      <ExactTargetCompressionWorkspace targetKb={exactTargetTool.targetKb} title={exactTargetTool.name} />
+      <ImageCompressionWorkspace
+        targetKb={exactTargetTool.targetKb}
+        minTargetKb={exactTargetTool.minTargetKb}
+        lockedFormat={exactTargetTool.outputFormat}
+        title={exactTargetTool.name}
+        description={exactTargetTool.description}
+      />
+    ) : tool.slug === "compress-image-size" ? (
+      <ImageCompressionWorkspace
+        targetKb={null}
+        title={tool.name}
+        description={tool.description}
+      />
+    ) : tool.slug === "convert-mb-to-kb" ? (
+      <FileSizeConverterWorkspace direction="mb-to-kb" title={tool.name} />
+    ) : tool.slug === "convert-kb-to-mb" ? (
+      <FileSizeConverterWorkspace direction="kb-to-mb" title={tool.name} />
     ) : tool.slug === "passport-photo-maker" ? (
       <PassportPhotoWorkspace />
     ) : tool.slug === "chart-maker" ? (
@@ -219,9 +247,40 @@ export default async function ToolPage({
     );
 
   const isWritingTool = tool.category === "write";
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: tool.name,
+    description: tool.description,
+    applicationCategory:
+      tool.category === "image"
+        ? "MultimediaApplication"
+        : tool.category === "pdf"
+          ? "UtilitiesApplication"
+          : "BusinessApplication",
+    operatingSystem: "Web browser",
+    isAccessibleForFree: true,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    url: `https://brobeximagetolls.vercel.app/tools/${encodeURIComponent(tool.slug)}`,
+    publisher: {
+      "@type": "Organization",
+      name: "BROBEX",
+      url: "https://brobeximagetolls.vercel.app",
+    },
+  };
 
   return (
     <div className="container tool-page-shell">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <nav className="breadcrumb tool-breadcrumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>

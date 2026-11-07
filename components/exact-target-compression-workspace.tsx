@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { startImageCompression } from "../lib/image-compression-worker";
 import { CheckCircle2, Download, FileImage, LoaderCircle, ShieldCheck, UploadCloud, X } from "lucide-react";
 
 type Props = { targetKb: number; title: string };
+
+// The tool's existing KB targets use binary units (1 KB in this UI = 1,024 bytes).
+const BYTES_PER_KB = 1024;
 
 type Result = {
   blob: Blob;
@@ -11,6 +15,7 @@ type Result = {
   height: number;
   quality: number;
   metTarget: boolean;
+  durationMs: number;
 };
 
 function formatBytes(bytes: number) {
@@ -23,26 +28,27 @@ function safeBaseName(name: string) {
   return name.replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "image";
 }
 
-function canvasBlob(canvas: HTMLCanvasElement, quality: number) {
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Your browser could not encode this image.")), "image/jpeg", quality);
-  });
-}
-
 export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const resultUrlRef = useRef<string | null>(null);
+  const workerRef = useRef<(() => void) | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState("Preparing image…");
 
   useEffect(() => () => {
+    workerRef.current?.();
     if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
   }, []);
 
   function reset() {
+    workerRef.current?.();
+    workerRef.current = null;
+    setProgress(0);
     setFile(null);
     setResult(null);
     setError("");
@@ -60,60 +66,46 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
       setError("Choose a supported image file (JPG, PNG, WebP, GIF or AVIF).");
       return;
     }
-    if (selected.size > 20 * 1024 * 1024) {
-      setError("This tool supports images up to 20 MB.");
+    if (selected.size <= 0 || selected.size > 20 * 1024 * 1024) {
+      setError("Choose a non-empty image up to 20 MB.");
       return;
     }
     setFile(selected);
     setBusy(true);
     setError("");
+    setProgress(0);
+    setProgressMessage("Preparing image…");
     try {
-      const bitmap = await createImageBitmap(selected);
-      if (bitmap.width * bitmap.height > 40_000_000) {
-        bitmap.close();
-        throw new Error("This image is too large to process safely in the browser (maximum 40 megapixels).");
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      const context = canvas.getContext("2d", { alpha: false });
-      if (!context) throw new Error("Your browser could not start the image processor.");
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(bitmap, 0, 0);
-      bitmap.close();
-
-      const targetBytes = targetKb * 1024;
-      let low = 0.01;
-      let high = 0.96;
-      let best = await canvasBlob(canvas, low);
-      let bestQuality = low;
-
-      if (best.size <= targetBytes) {
-        let candidate = best;
-        for (let i = 0; i < 11; i++) {
-          const mid = (low + high) / 2;
-          candidate = await canvasBlob(canvas, mid);
-          if (candidate.size <= targetBytes) {
-            low = mid;
-            best = candidate;
-            bestQuality = mid;
-          } else {
-            high = mid;
-          }
-        }
-      } else {
-        // No resizing is performed: preserve the exact source pixel dimensions.
-        best = await canvasBlob(canvas, 0.01);
-      }
-
-      const metTarget = best.size <= targetBytes;
-      setResult({ blob: best, width: canvas.width, height: canvas.height, quality: bestQuality, metTarget });
-      resultUrlRef.current = URL.createObjectURL(best);
+      const task = startImageCompression({
+        file: selected,
+        targetBytes: targetKb * BYTES_PER_KB,
+        format: "image/jpeg",
+        qualityLimit: 0.96,
+        allowResize: true,
+        maxPixels: 40_000_000,
+        maxIterations: 12,
+        onProgress: (value, message) => {
+          setProgress(value);
+          setProgressMessage(message);
+        },
+      });
+      workerRef.current = task.cancel;
+      const compressed = await task.promise;
+      setProgress(100);
+      setResult({
+        blob: compressed.blob,
+        width: compressed.width,
+        height: compressed.height,
+        quality: compressed.quality,
+        metTarget: compressed.metTarget,
+        durationMs: compressed.durationMs,
+      });
+      resultUrlRef.current = URL.createObjectURL(compressed.blob);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Compression failed. Please try another image.");
       setFile(null);
     } finally {
+      workerRef.current = null;
       setBusy(false);
     }
   }
@@ -163,7 +155,7 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
       {busy && (
         <div className="exact-processing" role="status">
           <LoaderCircle size={20} className="exact-spinner" />
-          <div><strong>Optimizing your image</strong><span>Preserving original pixel dimensions while reducing file size.</span></div>
+          <div><strong>Optimizing your image · {progress}%</strong><span>{progressMessage}</span><div className="exact-progress-track" aria-label={`Compression progress ${progress}%`} style={{ height: 6, marginTop: 10, overflow: "hidden", borderRadius: 999, background: "rgba(127,127,127,.18)" }}><span style={{ display: "block", height: "100%", width: `${progress}%`, borderRadius: 999, background: "currentColor", transition: "width .2s ease" }} /></div></div>
         </div>
       )}
 
@@ -182,21 +174,22 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
             <div><span>Output format</span><strong>JPEG</strong></div>
             <div><span>Download filename</span><strong>{safeBaseName(file.name)}-{targetKb >= 1024 ? `${targetKb / 1024}mb` : `${targetKb}kb`}.jpg</strong></div>
             <div><span>Reduction</span><strong>{Math.max(0, (1 - result.blob.size / file.size) * 100).toFixed(1)}%</strong></div>
+            <div><span>Processing time</span><strong>{(result.durationMs / 1000).toFixed(2)} s</strong></div>
           </div>
           {!result.metTarget && (
             <p className="exact-warning">
-              This image cannot reach {targetKb >= 1024 ? `${targetKb / 1024} MB` : `${targetKb} KB`} at its original dimensions without unacceptable loss. The download below is the smallest JPEG this browser produced; its actual size is shown above.
+              This image could not reach {targetKb >= 1024 ? `${targetKb / 1024} MB` : `${targetKb} KB`} within the quality and dimension limits. The best available JPEG is shown above; verify its actual size before using it.
             </p>
           )}
           <button className="exact-download-button" type="button" onClick={download}>
             <Download size={18} /> Download compressed image
           </button>
-          <p className="exact-download-note"><ShieldCheck size={14} /> Processed locally in your browser. No image is uploaded to a server.</p>
+          <p className="exact-download-note"><ShieldCheck size={14} /> Processed locally in your browser. No image is uploaded; re-encoding removes embedded EXIF metadata.</p>
         </div>
       )}
       <div className="exact-tool-note">
         <ShieldCheck size={16} />
-        <span>Fixed target: <strong>{targetKb >= 1024 ? `${targetKb / 1024} MB` : `${targetKb} KB`}</strong>. Width and height are preserved; this tool never silently resizes your photo.</span>
+        <span>Fixed target: <strong>{targetKb >= 1024 ? `${targetKb / 1024} MB` : `${targetKb} KB`}</strong>. Original dimensions are preserved whenever possible. If needed, the image is proportionally resized to meet the target.</span>
       </div>
     </section>
   );

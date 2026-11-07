@@ -6,7 +6,7 @@ import type { ToolDefinition } from "@/types/tools";
 import { formatBytes } from "@/lib/image/process";
 
 const MAX_BYTES = 25 * 1024 * 1024;
-const implemented = new Set(["merge-pdf", "split-pdf", "jpg-to-pdf"]);
+const implemented = new Set(["merge-pdf", "split-pdf", "jpg-to-pdf", "compress-pdf"]);
 
 export function PdfWorkspace({ tool }: { tool: ToolDefinition }) {
   const [files, setFiles] = useState<File[]>([]);
@@ -20,13 +20,26 @@ export function PdfWorkspace({ tool }: { tool: ToolDefinition }) {
 
   useEffect(() => () => { if (outputUrl) URL.revokeObjectURL(outputUrl); }, [outputUrl]);
   const reset = () => { setFiles([]); setError(""); setMessage(""); setOutput(null); setOutputUrl(""); };
-  function selectFiles(list: FileList | null) {
+  async function selectFiles(list: FileList | null) {
     setError(""); setMessage(""); setOutput(null); setOutputUrl("");
     const next = Array.from(list || []);
     if (!next.length) return;
     if (next.some(f => f.size <= 0 || f.size > MAX_BYTES)) { setError("Each file must be non-empty and no larger than 25 MB."); return; }
     if (tool.slug === "jpg-to-pdf" && next.some(f => !["image/jpeg", "image/png"].includes(f.type))) { setError("Choose JPG or PNG images. PNG is supported as an input too."); return; }
-    if (tool.slug !== "jpg-to-pdf" && next.some(f => f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf"))) { setError("Choose valid PDF files."); return; }
+    if (tool.slug === "compress-pdf" && next.length !== 1) { setError("Choose exactly one PDF file to optimize."); return; }
+    if (tool.slug !== "jpg-to-pdf") {
+      for (const file of next) {
+        const signature = new TextDecoder().decode(await file.slice(0, 5).arrayBuffer());
+        if (signature !== "%PDF-") { setError("The selected file does not contain a valid PDF signature."); return; }
+      }
+    } else {
+      for (const file of next) {
+        const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+        const isJpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+        const isPng = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => header[index] === value);
+        if (!isJpeg && !isPng) { setError("One of the selected files is not a valid JPEG or PNG image."); return; }
+      }
+    }
     if (tool.slug === "split-pdf" && next.length !== 1) { setError("Choose exactly one PDF to split."); return; }
     if (tool.slug === "merge-pdf" && next.length < 2) { setError("Choose at least two PDF files to merge."); return; }
     setFiles(next);
@@ -60,20 +73,35 @@ export function PdfWorkspace({ tool }: { tool: ToolDefinition }) {
           const page = pdf.addPage([image.width, image.height]);
           page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
         }
-        bytes = await pdf.save(); setOutputName("brobex-images.pdf");
+        bytes = await pdf.save({ useObjectStreams: true }); setOutputName("brobex-images.pdf");
+      } else if (tool.slug === "compress-pdf") {
+        const sourceFile = files[0];
+        const source = await PDFDocument.load(await sourceFile.arrayBuffer(), { ignoreEncryption: false });
+        // Rebuild the PDF with compressed object streams. This optimizes PDF structure;
+        // pdf-lib does not rasterize pages or downsample embedded photographs.
+        const optimized = await source.save({ useObjectStreams: true, objectsPerTick: 50 });
+        if (optimized.byteLength < sourceFile.size) {
+          bytes = optimized;
+          setOutputName(`${sourceFile.name.replace(/\.pdf$/i, "")}-optimized.pdf`);
+          setMessage(`PDF structure optimized: ${formatBytes(sourceFile.size)} → ${formatBytes(optimized.byteLength)} (${((1 - optimized.byteLength / sourceFile.size) * 100).toFixed(1)}% smaller). Embedded images and page resolution were preserved.`);
+        } else {
+          bytes = new Uint8Array(await sourceFile.arrayBuffer());
+          setOutputName(`${sourceFile.name.replace(/\.pdf$/i, "")}-optimized.pdf`);
+          setMessage(`No size reduction was available. The original (${formatBytes(sourceFile.size)}) was retained instead of creating a larger file. Embedded image downsampling is not part of this browser-only optimizer.`);
+        }
       } else throw new Error("This PDF operation is not implemented in the free browser workspace yet.");
       const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
       const url = URL.createObjectURL(blob); setOutputUrl(url); setOutput(blob);
-      setMessage(`Finished successfully. Output size: ${formatBytes(blob.size)}.`);
+      if (tool.slug !== "compress-pdf") setMessage(`Finished successfully. Output size: ${formatBytes(blob.size)}.`);
     } catch (e) { setError(e instanceof Error ? e.message : "Could not process these files. Check that the PDF is valid and not password-protected."); }
     finally { setBusy(false); }
   }
   return <div className="workspace">
     <div className="workspace-top"><div><span className="eyebrow">FREE BROWSER WORKSPACE</span><h2>{tool.name}</h2><p>Files are processed locally in your browser. No API key is needed.</p></div><span className="privacy-chip"><ShieldCheck size={15} /> Local processing</span></div>
     {implemented.has(tool.slug) ? <>
-      <label className={`dropzone ${files.length ? "has-file" : ""}`}><input type="file" multiple={tool.slug !== "split-pdf"} accept={tool.slug === "jpg-to-pdf" ? "image/jpeg,image/png" : "application/pdf,.pdf"} onChange={e => selectFiles(e.target.files)} /><FileText size={30} /><strong>{files.length ? `${files.length} file(s) selected` : tool.slug === "jpg-to-pdf" ? "Choose JPG/PNG images" : tool.slug === "merge-pdf" ? "Choose two or more PDF files" : "Choose one PDF file"}</strong><span>{files.map(f => f.name).join(" · ") || "Maximum 25 MB per file"}</span></label>
+      <label className={`dropzone ${files.length ? "has-file" : ""}`}><input type="file" multiple={tool.slug === "merge-pdf" || tool.slug === "jpg-to-pdf"} accept={tool.slug === "jpg-to-pdf" ? "image/jpeg,image/png" : "application/pdf,.pdf"} onChange={e => selectFiles(e.target.files)} /><FileText size={30} /><strong>{files.length ? `${files.length} file(s) selected` : tool.slug === "jpg-to-pdf" ? "Choose JPG/PNG images" : tool.slug === "merge-pdf" ? "Choose two or more PDF files" : "Choose one PDF file"}</strong><span>{files.map(f => f.name).join(" · ") || "Maximum 25 MB per file"}{tool.slug === "compress-pdf" ? " · Structural optimization only; embedded images are not downsampled" : ""}</span></label>
       {tool.slug === "split-pdf" && <label>Pages to extract<input value={pageRange} onChange={e => setPageRange(e.target.value)} placeholder="Example: 1,3-5" /><small>Use page numbers separated by commas and ranges.</small></label>}
-      <div className="workspace-actions"><button className="button button-dark" onClick={run} disabled={busy || !files.length}>{busy ? "Processing…" : tool.slug === "merge-pdf" ? "Merge PDFs" : tool.slug === "split-pdf" ? "Extract pages" : "Create PDF"}</button><button className="button button-light" onClick={reset}><RotateCcw size={15} /> Reset</button></div>
+      <div className="workspace-actions"><button className="button button-dark" onClick={run} disabled={busy || !files.length}>{busy ? "Processing…" : tool.slug === "merge-pdf" ? "Merge PDFs" : tool.slug === "split-pdf" ? "Extract pages" : tool.slug === "compress-pdf" ? "Optimize PDF" : "Create PDF"}</button><button className="button button-light" onClick={reset}><RotateCcw size={15} /> Reset</button></div>
       {output && outputUrl && <a className="button button-dark download-button" href={outputUrl} download={outputName}><Download size={16} /> Download {outputName}</a>}
       {message && <p className="notice success"><CheckCircle2 size={16} />{message}</p>}{error && <p className="notice error"><AlertCircle size={16} />{error}</p>}
     </> : <div className="integration-notice"><span className="integration-icon">✳</span><div><h3>Not yet implemented</h3><p>This tool needs a real document renderer or conversion engine. It is intentionally not presented as working until it can produce a valid output.</p><p className="hint">No paid API is required for every PDF operation, but PDF-to-Word and high-fidelity editing require more than simple PDF page copying.</p></div></div>}

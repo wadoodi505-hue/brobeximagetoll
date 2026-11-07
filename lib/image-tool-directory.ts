@@ -185,8 +185,9 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Compress Image to Target KB", "compress-image-size"),
       item("Compress Image to Target KB", "compress-image-size"),
       item("Compress Image to Target KB", "compress-image-size"),
-      item("Convert MB to KB"),
-      item("Convert KB to MB")
+      item("Convert MB to KB", "convert-mb-to-kb", "Convert megabytes into kilobytes."),
+      item("Convert KB to MB", "convert-kb-to-mb", "Convert kilobytes into megabytes."),
+      item("Compress PDF", "compress-pdf", "Optimize PDF structure locally where possible.")
     ]
   },
   {
@@ -196,7 +197,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("JPEG to 10KB", "compress-jpeg-to-10kb", "Fixed target: 10 KB"),
       item("Compress to 15KB", "compress-image-to-15kb", "Fixed target: 15 KB"),
       item("Compress to 20KB", "compress-image-to-20kb", "Fixed target: 20 KB"),
-      item("Compress 20KBâ€“50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
+      item("Compress 20KB–50KB", "compress-jpeg-between-20kb-to-50kb", "Fixed target: 50 KB"),
       item("JPEG to 25KB", "compress-jpeg-to-25kb", "Fixed target: 25 KB"),
       item("JPEG to 30KB", "compress-jpeg-to-30kb", "Fixed target: 30 KB"),
       item("JPEG to 40KB", "compress-jpeg-to-40kb", "Fixed target: 40 KB"),

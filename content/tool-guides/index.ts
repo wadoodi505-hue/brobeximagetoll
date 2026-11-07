@@ -110,10 +110,14 @@ import guide106 from "@/content/tool-guides/compress-image-to-2mb.json";
 
 import increaseImageFileSizeGuide from "@/content/tool-guides/increase-image-file-size.json";
 import rotateFlipImageGuide from "@/content/tool-guides/flip-image.json";
+import convertMbToKbGuide from "@/content/tool-guides/convert-mb-to-kb.json";
+import convertKbToMbGuide from "@/content/tool-guides/convert-kb-to-mb.json";
 
 export const toolGuides: Record<string, ToolGuideData> = {
   "signature-generator": signatureGeneratorGuide,
   "increase-image-file-size": increaseImageFileSizeGuide,
+  "convert-mb-to-kb": convertMbToKbGuide,
+  "convert-kb-to-mb": convertKbToMbGuide,
   "flip-image": rotateFlipImageGuide,
   "remove-background-from-image": guide0,
   "upscale-image": guide1,

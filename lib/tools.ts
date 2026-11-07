@@ -123,8 +123,8 @@ export const tools: ToolDefinition[] = [
   },
   {
     "slug": "compress-image-size",
-    "name": "Compress Image Size",
-    "description": "Automatically compress images into optimized WebP files with one upload. No settings required.",
+    "name": "Compress Image to Target KB",
+    "description": "Compress an image to a custom maximum file size with format, quality, dimension and before-and-after preview controls.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
@@ -133,6 +133,26 @@ export const tools: ToolDefinition[] = [
     "method": "Canvas API",
     "status": "browser",
     "operation": "compress"
+  },
+  {
+    slug: "convert-mb-to-kb",
+    name: "Convert MB to KB",
+    description: "Convert megabytes to kilobytes with accurate 1 MB = 1,024 KB calculations.",
+    category: "image",
+    icon: "ArrowDownUp",
+    acceptedTypes: [],
+    method: "Local browser file-size calculator",
+    status: "browser"
+  },
+  {
+    slug: "convert-kb-to-mb",
+    name: "Convert KB to MB",
+    description: "Convert kilobytes to megabytes with accurate 1,024 KB = 1 MB calculations.",
+    category: "image",
+    icon: "ArrowDownUp",
+    acceptedTypes: [],
+    method: "Local browser file-size calculator",
+    status: "browser"
   },
   {
     "slug": "crop-image",
@@ -903,15 +923,12 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "compress-pdf",
     "name": "Compress PDF",
-    "description": "Optimize a PDF with a compatible server-side or browser PDF pipeline.",
+    "description": "Re-save and optimize PDF object streams locally while preserving the original pages. Embedded image downsampling is not included.",
     "category": "pdf",
-    "icon": "WandSparkles",
-    "acceptedTypes": [
-      "application/pdf",
-      "image/jpeg"
-    ],
-    "method": "PDF library / document conversion integration",
-    "status": "integration"
+    "icon": "FileText",
+    "acceptedTypes": ["application/pdf"],
+    "method": "Local pdf-lib PDF structure optimization",
+    "status": "browser"
   },
   {
     "slug": "edit-pdf",
@@ -980,38 +997,38 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "vsd-to-docx",
     "name": "VSD to DOCX",
-    "description": "Requires a Visio/document conversion engine.",
+    "description": "Legacy VSD binary parsing is not included. Save as VSDX in Microsoft Visio before conversion.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Legacy VSD signature detection with VSDX conversion guidance",
+    "status": "browser"
   },
   {
     "slug": "vsd-to-pptx",
     "name": "VSD to PPTX",
-    "description": "Requires a Visio/document conversion engine.",
+    "description": "Legacy VSD binary parsing is not included. Save as VSDX in Microsoft Visio before conversion.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Legacy VSD signature detection with VSDX conversion guidance",
+    "status": "browser"
   },
   {
     "slug": "vsd-to-jpg",
     "name": "VSD to JPG",
-    "description": "Requires a Visio-compatible renderer.",
+    "description": "Legacy VSD binary parsing is not included. Save as VSDX in Microsoft Visio before conversion.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Legacy VSD signature detection with VSDX conversion guidance",
+    "status": "browser"
   },
   {
     "slug": "vsdx-to-pdf",
@@ -1028,38 +1045,38 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "vsdx-to-docx",
     "name": "VSDX to DOCX",
-    "description": "Requires a Visio/document conversion engine.",
+    "description": "Extract page text from VSDX packages into an editable Word document.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Client-side JSZip package inspection and document generation",
+    "status": "browser"
   },
   {
     "slug": "vsdx-to-pptx",
     "name": "VSDX to PPTX",
-    "description": "Requires a Visio/document conversion engine.",
+    "description": "Create a text-based PowerPoint presentation from extracted VSDX page text.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Client-side JSZip package inspection and document generation",
+    "status": "browser"
   },
   {
     "slug": "vsdx-to-jpg",
     "name": "VSDX to JPG",
-    "description": "Requires a Visio-compatible renderer.",
+    "description": "Export text contact sheets for VSDX pages; full Visio geometry rendering is not available.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Specialist file conversion integration",
-    "status": "integration"
+    "method": "Client-side JSZip package inspection and document generation",
+    "status": "browser"
   },
   {
     "slug": "general-file-converter",
@@ -1152,7 +1169,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-5kb",
     name: "Compress to 5KB",
-    description: "Compress an image to 5 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 5 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1162,7 +1179,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-10kb",
     name: "JPEG to 10KB",
-    description: "Compress an image to 10 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 10 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1172,7 +1189,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-15kb",
     name: "Compress to 15KB",
-    description: "Compress an image to 15 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 15 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1182,7 +1199,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-20kb",
     name: "Compress to 20KB",
-    description: "Compress an image to 20 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 20 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1192,7 +1209,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-between-20kb-to-50kb",
     name: "Compress 20KBâ€“50KB",
-    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 50 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1202,7 +1219,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-25kb",
     name: "JPEG to 25KB",
-    description: "Compress an image to 25 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 25 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1212,7 +1229,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-30kb",
     name: "JPEG to 30KB",
-    description: "Compress an image to 30 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 30 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1222,7 +1239,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-40kb",
     name: "JPEG to 40KB",
-    description: "Compress an image to 40 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 40 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1232,7 +1249,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-50kb",
     name: "Compress to 50KB",
-    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 50 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1242,7 +1259,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-60kb",
     name: "Compress to 60KB",
-    description: "Compress an image to 60 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 60 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1252,7 +1269,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-70kb",
     name: "Compress to 70KB",
-    description: "Compress an image to 70 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 70 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1262,7 +1279,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-80kb",
     name: "Compress to 80KB",
-    description: "Compress an image to 80 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 80 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1272,7 +1289,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-90kb",
     name: "Compress to 90KB",
-    description: "Compress an image to 90 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 90 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1282,7 +1299,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "resize-image-to-50kb",
     name: "Resize to 50KB",
-    description: "Compress an image to 50 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 50 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1292,7 +1309,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-100kb",
     name: "Compress to 100KB",
-    description: "Compress an image to 100 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 100 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1302,7 +1319,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-150kb",
     name: "JPEG to 150KB",
-    description: "Compress an image to 150 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 150 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1312,7 +1329,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-200kb",
     name: "Compress to 200KB",
-    description: "Compress an image to 200 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 200 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1322,7 +1339,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "resize-image-to-200kb",
     name: "Resize to 200KB",
-    description: "Compress an image to 200 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 200 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1332,7 +1349,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-300kb",
     name: "JPEG to 300KB",
-    description: "Compress an image to 300 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 300 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1342,7 +1359,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-jpeg-to-500kb",
     name: "JPEG to 500KB",
-    description: "Compress an image to 500 KB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 500 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1352,7 +1369,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-1mb",
     name: "Compress to 1MB",
-    description: "Compress an image to 1 MB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 1 MB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
@@ -1362,13 +1379,73 @@ export const tools: ToolDefinition[] = [
   {
     slug: "compress-image-to-2mb",
     name: "Compress to 2MB",
-    description: "Compress an image to 2 MB or less while preserving its original pixel dimensions.",
+    description: "Compress an image to 2 MB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
     acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
     method: "Local browser Canvas API with fixed-target JPEG quality search",
     status: "browser"
-  }
+  },
+  {
+    slug: "crop-round-corners",
+    name: "Crop Round Corners",
+    description: "Round image corners with adjustable radius and transparent PNG or solid-background JPEG/WebP export.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Local HTML Canvas clipping",
+    status: "browser"
+  },
+  {
+    slug: "image-color-picker",
+    name: "Image Color Picker",
+    description: "Sample image pixels and inspect HEX, RGB, HSL and HSV values.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Local Canvas pixel sampling",
+    status: "browser"
+  },
+  {
+    slug: "edit-metadata",
+    name: "Edit Metadata",
+    description: "Create a metadata sidecar for an image. Embedded EXIF writing is not supported in this browser-only build.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Browser image inspection + JSON sidecar",
+    status: "browser"
+  },
+  {
+    slug: "remove-metadata",
+    name: "Remove Metadata",
+    description: "Re-encode an image to a clean PNG to remove source metadata where browser decoding supports it.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Browser Canvas re-encoding",
+    status: "browser"
+  },
+  {
+    slug: "blemishes-remover",
+    name: "Blemishes Remover",
+    description: "Apply basic local smoothing to small blemishes. This is not AI content-aware healing.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Browser Canvas pixel processing",
+    status: "browser"
+  },
+  {
+    slug: "a4-size",
+    name: "A4 Size",
+    description: "Fit an image to A4 print dimensions at 150 or 300 DPI with a selectable background.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/*"],
+    method: "Local HTML Canvas print sizing",
+    status: "browser"
+  },
 ] as ToolDefinition[];
 
 export const categories: { id: Category; label: string; href: string; description: string }[] = [

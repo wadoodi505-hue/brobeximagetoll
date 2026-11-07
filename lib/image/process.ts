@@ -46,25 +46,127 @@ export type ProcessSettings = {
   noiseReduction?: number;
 };
 
-export function loadImage(file: File): Promise<HTMLImageElement> {
+const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+const MAX_IMAGE_PIXELS = 80_000_000;
+const MAX_IMAGE_DIMENSION = 12_000;
+
+async function validateImageFile(file: File): Promise<void> {
+  if (!(file instanceof File)) {
+    throw new Error("Choose an image file to continue.");
+  }
+  if (file.size <= 0) {
+    throw new Error("The selected file is empty.");
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error("The image exceeds the 50 MB browser-processing limit.");
+  }
+  if (!file.type || !file.type.toLowerCase().startsWith("image/")) {
+    throw new Error("The selected file is not a supported image.");
+  }
+
+  // Validate file content instead of trusting the filename or browser MIME header.
+  const header = new Uint8Array(await file.slice(0, 512).arrayBuffer());
+  const ascii = (start: number, length: number) =>
+    String.fromCharCode(...header.slice(start, start + length));
+  const jpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+  const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+    .every((value, index) => header[index] === value);
+  const gif = ascii(0, 6) === "GIF87a" || ascii(0, 6) === "GIF89a";
+  const webp = ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP";
+  const bmp = ascii(0, 2) === "BM";
+  const tiff = (header[0] === 0x49 && header[1] === 0x49 && header[2] === 0x2a && header[3] === 0x00) || (header[0] === 0x4d && header[1] === 0x4d && header[2] === 0x00 && header[3] === 0x2a);
+  const avif = ascii(4, 4) === "ftyp" &&
+    ["avif", "avis", "heic", "heix", "mif1", "msf1"].includes(ascii(8, 4));
+  const textHeader = new TextDecoder().decode(header).trimStart().toLowerCase();
+  const svg = textHeader.startsWith("<svg") ||
+    (textHeader.startsWith("<?xml") && textHeader.includes("<svg"));
+  if (!(jpeg || png || gif || webp || bmp || tiff || avif || svg)) {
+    throw new Error("The file content is not a recognized image format. Choose a genuine image file.");
+  }
+}
+
+export async function loadImage(file: File): Promise<HTMLImageElement> {
+  try {
+    await validateImageFile(file);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    let url: string;
+    try {
+      url = URL.createObjectURL(file);
+    } catch {
+      reject(new Error("The browser could not create an image preview."));
+      return;
+    }
+
     const image = new Image();
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+    };
 
     image.onload = () => {
-      URL.revokeObjectURL(url);
+      cleanup();
+      if (
+        !Number.isFinite(image.naturalWidth) ||
+        !Number.isFinite(image.naturalHeight) ||
+        image.naturalWidth < 1 ||
+        image.naturalHeight < 1
+      ) {
+        reject(new Error("The selected file has invalid image dimensions."));
+        return;
+      }
+      if (
+        image.naturalWidth > MAX_IMAGE_DIMENSION ||
+        image.naturalHeight > MAX_IMAGE_DIMENSION ||
+        image.naturalWidth * image.naturalHeight > MAX_IMAGE_PIXELS
+      ) {
+        reject(
+          new Error("This image is too large to process safely in your browser. Resize it or choose an image under 80 megapixels."),
+        );
+        return;
+      }
       resolve(image);
     };
 
     image.onerror = () => {
-      URL.revokeObjectURL(url);
+      cleanup();
       reject(
-        new Error("This file could not be decoded as a supported image."),
+        new Error("This file could not be decoded as a supported image. Check that it is a genuine, uncorrupted image file."),
       );
     };
 
     image.src = url;
   });
+}
+
+function applyPngQuality(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  quality: number,
+): void {
+  // Canvas PNG encoding is lossless and ignores its quality argument. Apply
+  // controlled RGB quantization so the shared quality slider also works for PNG.
+  const normalized = Math.max(0.4, Math.min(1, quality));
+  if (normalized >= 0.999) return;
+
+  const levels = Math.max(16, Math.round(16 + ((normalized - 0.4) / 0.6) * 240));
+  const step = 255 / (levels - 1);
+  const image = context.getImageData(0, 0, width, height);
+  const pixels = image.data;
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    pixels[index] = Math.round(pixels[index] / step) * step;
+    pixels[index + 1] = Math.round(pixels[index + 1] / step) * step;
+    pixels[index + 2] = Math.round(pixels[index + 2] / step) * step;
+  }
+
+  context.putImageData(image, 0, 0);
 }
 
 function canvasBlob(
@@ -169,7 +271,7 @@ export async function processImage(
   file: File,
   settings: ProcessSettings,
 ): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
-  if (!file.size) throw new Error("The selected file is empty.");
+  validateImageFile(file);
 
   // Export a PNG inside a standards-compatible SVG document.
   if (settings.operation === "png-to-svg") {
@@ -266,14 +368,20 @@ export async function processImage(
     sw = Math.max(1, Math.min(srcW - sx, Math.round(settings.cropWidth || srcW)));
     sh = Math.max(1, Math.min(srcH - sy, Math.round(settings.cropHeight || srcH)));
 
-    if (settings.operation === "square-crop" || settings.operation === "circle") {
+    if (
+      settings.operation === "square-crop" ||
+      settings.operation === "circle" ||
+      settings.operation === "triangle-crop" ||
+      settings.operation === "shape-crop"
+    ) {
       const side = Math.min(sw, sh);
+
       sx += Math.floor((sw - side) / 2);
       sy += Math.floor((sh - side) / 2);
+
       sw = side;
       sh = side;
     }
-
     if (settings.operation === "aspect-ratio-crop") {
       const ratio = 16 / 9;
 
@@ -312,37 +420,66 @@ export async function processImage(
     ? Math.max(0, settings.borderWidth || 0)
     : 0;
 
-  const canvas = document.createElement("canvas");
-  canvas.width = width + border * 2;
-  canvas.height = height + border * 2;
+  const outputWidth = width + border * 2;
+  const outputHeight = height + border * 2;
+  if (
+    !Number.isSafeInteger(outputWidth) ||
+    !Number.isSafeInteger(outputHeight) ||
+    outputWidth < 1 ||
+    outputHeight < 1 ||
+    outputWidth > MAX_IMAGE_DIMENSION ||
+    outputHeight > MAX_IMAGE_DIMENSION ||
+    outputWidth * outputHeight > MAX_IMAGE_PIXELS
+  ) {
+    throw new Error("The requested output dimensions are too large for safe browser processing.");
+  }
 
-  const ctx = canvas.getContext("2d", { alpha: true });
+  const canvas = document.createElement("canvas");
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+
+  const ctx = canvas.getContext("2d", { alpha: true, colorSpace: "srgb" });
   if (!ctx) throw new Error("Canvas is unavailable in this browser.");
 
-  if (settings.operation === "circle") {
+  // Shape cropping: pixels outside the selected shape stay transparent.
+  if (
+    settings.operation === "circle" ||
+    settings.operation === "triangle-crop" ||
+    settings.operation === "shape-crop"
+  ) {
     ctx.beginPath();
-    ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
-    ctx.clip();
-  }
-  if (settings.operation === "triangle-crop") {
-    ctx.beginPath();
-    ctx.moveTo(width / 2, 0);
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.closePath();
-    ctx.clip();
-  }
 
-  if (settings.operation === "shape-crop") {
-    const inset = width * 0.25;
-    ctx.beginPath();
-    ctx.moveTo(inset, 0);
-    ctx.lineTo(width - inset, 0);
-    ctx.lineTo(width, height / 2);
-    ctx.lineTo(width - inset, height);
-    ctx.lineTo(inset, height);
-    ctx.lineTo(0, height / 2);
-    ctx.closePath();
+    if (settings.operation === "circle") {
+      const radius = Math.min(width, height) / 2;
+
+      ctx.arc(
+        width / 2,
+        height / 2,
+        radius,
+        0,
+        Math.PI * 2,
+      );
+
+      ctx.closePath();
+    }
+
+    if (settings.operation === "triangle-crop") {
+      ctx.moveTo(width / 2, 0);
+      ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
+      ctx.closePath();
+    }
+
+    if (settings.operation === "shape-crop") {
+      ctx.moveTo(width * 0.25, 0);
+      ctx.lineTo(width * 0.75, 0);
+      ctx.lineTo(width, height * 0.5);
+      ctx.lineTo(width * 0.75, height);
+      ctx.lineTo(width * 0.25, height);
+      ctx.lineTo(0, height * 0.5);
+      ctx.closePath();
+    }
+
     ctx.clip();
   }
 
@@ -386,7 +523,7 @@ export async function processImage(
     small.width = Math.max(1, Math.ceil(width / size));
     small.height = Math.max(1, Math.ceil(height / size));
 
-    const smallCtx = small.getContext("2d");
+    const smallCtx = small.getContext("2d", { colorSpace: "srgb" });
     if (!smallCtx) throw new Error("Canvas is unavailable.");
 
     smallCtx.drawImage(
@@ -446,6 +583,13 @@ export async function processImage(
       ? settings.format || "image/webp"
       : "image/png";
 
+  if (
+    type === "image/png" &&
+    (settings.operation === "compress" || settings.operation === "convert")
+  ) {
+    applyPngQuality(ctx, canvas.width, canvas.height, settings.quality ?? 0.82);
+  }
+
   const blob = await canvasBlob(
     canvas,
     type,
@@ -471,9 +615,13 @@ export async function processImages(
   files: File[],
   layout: "horizontal" | "vertical" = "horizontal",
 ): Promise<{ blob: Blob; width: number; height: number; mime: string }> {
-  if (files.length < 2) {
+  if (!Array.isArray(files) || files.length < 2) {
     throw new Error("Choose at least two images to combine.");
   }
+  if (files.length > 20) {
+    throw new Error("Choose no more than 20 images at once.");
+  }
+  files.forEach(validateImageFile);
 
   const images = await Promise.all(files.map(loadImage));
   const maxDimension = 12000;
@@ -517,7 +665,7 @@ export async function processImages(
   canvas.width = width;
   canvas.height = height;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
   if (!ctx) throw new Error("Canvas is unavailable in this browser.");
 
   ctx.fillStyle = "#ffffff";
