@@ -12291,3 +12291,369 @@ body {
 .crop-dimensions {
   display: none !important;
 }
+
+/* ==========================================================================
+   BROBEX IMAGE WORKSPACE — MOBILE STICKY PREVIEW
+   Mobile-only presentation layer. Processing and desktop layout are untouched.
+   ========================================================================== */
+@media (max-width: 767px) {
+  .tool-workspace-shell {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tool-workspace-shell .workspace {
+    width: min(100%, 430px);
+    max-width: 430px;
+    margin-inline: auto;
+    padding: 12px;
+    overflow: visible !important;
+    isolation: isolate;
+    border-radius: 18px;
+  }
+
+  .tool-workspace-shell .workspace-columns {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px !important;
+    width: 100%;
+    overflow: visible !important;
+  }
+
+  /* Let the visual preview and its controls participate in the full-height
+     workspace flow. This gives native sticky positioning the full workspace
+     as its containing block, so it releases at the workspace's natural end. */
+  .tool-workspace-shell .workspace-columns > .preview-panel:not(.unblur-preview-panel) {
+    display: contents !important;
+  }
+
+  .tool-workspace-shell .preview-sticky-region {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 64px);
+    z-index: 30;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 52svh;
+    min-height: 230px;
+    max-height: 55svh;
+    padding: 10px;
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 16px;
+    background: #111820;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .24);
+  }
+
+  .tool-workspace-shell .preview-sticky-region .panel-heading {
+    flex: 0 0 auto;
+    margin: 0;
+    color: #e2e8f0;
+    font-size: 12px;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .preview-canvas,
+  .tool-workspace-shell .preview-sticky-region .crop-editor-viewport {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    height: auto;
+    margin: 0;
+    padding: 6px;
+    overflow: hidden;
+    border-color: rgba(148, 163, 184, .2);
+    border-radius: 10px;
+    background-color: #0b1118;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .preview-canvas img,
+  .tool-workspace-shell .preview-sticky-region .preview-canvas canvas,
+  .tool-workspace-shell .preview-sticky-region .crop-editor-stage > img,
+  .tool-workspace-shell .preview-sticky-region .crop-preview-stage img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-editor-stage {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-editor-stage > img {
+    max-height: calc(52svh - 115px);
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-preview-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-preview-stage img {
+    max-height: calc(52svh - 115px);
+  }
+
+  .tool-workspace-shell .workspace-columns > .settings-panel {
+    order: 20;
+    width: 100%;
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .tool-workspace-shell .workspace-columns > .flip-rotation-controls,
+  .tool-workspace-shell .workspace-columns > .crop-controls {
+    order: 10;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel label,
+  .tool-workspace-shell .workspace-columns .settings-grid label {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel input:not([type="checkbox"]):not([type="range"]):not([type="color"]),
+  .tool-workspace-shell .workspace-columns .settings-panel select {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel button,
+  .tool-workspace-shell .workspace-columns .crop-controls button,
+  .tool-workspace-shell .workspace-columns .flip-rotation-controls button {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .tool-workspace-shell .workspace-columns .settings-panel input[type="range"],
+  .tool-workspace-shell .workspace-columns .flip-rotation-controls input[type="range"] {
+    min-height: 32px;
+    touch-action: pan-y;
+  }
+
+  .tool-workspace-shell .workspace-columns .crop-editor-stage,
+  .tool-workspace-shell .workspace-columns .crop-selection,
+  .tool-workspace-shell .workspace-columns .crop-handle {
+    touch-action: none;
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel {
+    position: relative;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    order: 0;
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel .unblur-comparison {
+    max-height: 52svh;
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel img {
+    max-height: 48svh;
+    object-fit: contain;
+  }
+
+  .tool-workspace-shell .workspace-columns::after {
+    content: "";
+    display: block;
+    height: 18px;
+    flex: 0 0 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tool-workspace-shell .workspace {
+    padding: 9px;
+  }
+
+  .tool-workspace-shell .preview-sticky-region {
+    height: 50svh;
+    min-height: 215px;
+    padding: 8px;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel {
+    display: contents !important;
+  }
+
+  .tool-workspace-shell .preview-sticky-region.unblur-sticky-region {
+    justify-content: flex-start;
+    gap: 7px;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-preview-header {
+    flex: 0 0 auto;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-preview-header h3 {
+    margin: 2px 0;
+    font-size: 14px;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-preview-header p {
+    font-size: 11px;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-mode-switch {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-comparison {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    height: auto;
+  }
+
+  .tool-workspace-shell .unblur-sticky-region .unblur-comparison img {
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .tool-workspace-shell .workspace-columns > .unblur-preview-footer,
+  .tool-workspace-shell .workspace-columns > .unblur-output-specs,
+  .tool-workspace-shell .workspace-columns > .unblur-comparison-control {
+    width: 100%;
+    order: 10;
+  }
+}
+
+
+/* BROBEX — compact live-preview presentation (visual-only; editor logic unchanged) */
+.brobex-live-preview-panel {
+  padding: 14px !important;
+  min-width: 0;
+}
+
+.brobex-live-preview-stage {
+  min-height: 220px !important;
+  max-height: 440px !important;
+  padding: 8px;
+}
+
+.brobex-live-preview-stage canvas,
+.brobex-live-preview-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.brobex-live-preview-header strong {
+  font-size: 13px !important;
+  letter-spacing: -0.01em;
+}
+
+.brobex-live-preview-header p {
+  font-size: 10px !important;
+  margin-top: 3px !important;
+}
+
+.brobex-live-preview-overview {
+  margin-top: 12px !important;
+}
+
+.brobex-live-preview-actions button {
+  min-height: 36px !important;
+  padding: 8px 11px !important;
+  gap: 6px !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 850px) {
+  .brobex-live-preview-panel {
+    padding: 12px !important;
+  }
+
+  .brobex-live-preview-stage {
+    min-height: 190px !important;
+    max-height: 40svh !important;
+  }
+
+  .brobex-live-preview-stage canvas,
+  .brobex-live-preview-stage img {
+    max-height: 38svh;
+  }
+
+  .brobex-live-preview-header {
+    margin-bottom: 9px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .brobex-live-preview-panel {
+    padding: 10px !important;
+    border-radius: 13px !important;
+  }
+
+  .brobex-live-preview-stage {
+    min-height: 170px !important;
+    max-height: 36svh !important;
+    border-radius: 9px !important;
+  }
+
+  .brobex-live-preview-stage canvas,
+  .brobex-live-preview-stage img {
+    max-height: 34svh;
+  }
+
+  .brobex-live-preview-overview > div:first-child {
+    margin-bottom: 7px !important;
+    font-size: 11px !important;
+  }
+
+  .brobex-live-preview-actions button {
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 10.5px !important;
+  }
+}
+
+/* Slightly reduce the shared mobile sticky preview height across image tools. */
+@media (max-width: 767px) {
+  .tool-workspace-shell .preview-sticky-region {
+    height: 45svh;
+    max-height: 48svh;
+  }
+
+  .tool-workspace-shell .preview-sticky-region .crop-editor-stage > img,
+  .tool-workspace-shell .preview-sticky-region .crop-preview-stage img {
+    max-height: calc(45svh - 105px);
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel .unblur-comparison {
+    max-height: 45svh;
+  }
+
+  .tool-workspace-shell .workspace-columns > .preview-panel.unblur-preview-panel img {
+    max-height: 42svh;
+  }
+}

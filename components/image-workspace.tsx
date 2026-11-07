@@ -986,6 +986,7 @@ if (!canProcess || !op) {
           >
             {op === "unblur" ? (
               <>
+                <div className="preview-sticky-region unblur-sticky-region">
                 <div className="unblur-preview-header">
                   <div>
                     <span className="eyebrow">IMAGE RESTORATION STUDIO</span>
@@ -1054,7 +1055,9 @@ if (!canProcess || !op) {
                     </>
                   )}
 
-                  {previewMode === "compare" && result && (
+                  </div>
+
+                {previewMode === "compare" && result && (
                     <>
                       <span className="unblur-image-label original-label">
                         ORIGINAL
@@ -1122,7 +1125,7 @@ if (!canProcess || !op) {
               </>
             ) : (
               <>
-
+                <div className="preview-sticky-region">
                   {tool.slug === "crop-image" && (
                     <div className="crop-mode-selector" aria-label="Choose crop shape">
                       {([
@@ -1264,6 +1267,8 @@ if (!canProcess || !op) {
                       </div>
                     )}
                   </div>
+
+                </div>
 
                   {op === "flip" && (
                     <section className="flip-rotation-controls">

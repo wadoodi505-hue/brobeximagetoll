@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
     useCallback,
@@ -1116,14 +1116,14 @@ export function ColorizePhotoWorkspace() {
                     gap: 18,
                     alignItems: "start",
                 }}>
-                    <div style={{ ...panelStyle, overflow: "hidden" }}>
-                        <div style={{
+                    <div className="brobex-live-preview-panel" style={{ ...panelStyle, overflow: "hidden" }}>
+                        <div className="brobex-live-preview-header" style={{
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
                             gap: 10,
                             flexWrap: "wrap",
-                            marginBottom: 14,
+                            marginBottom: 12,
                         }}>
                             <div>
                                 <strong style={{ fontSize: 14 }}>
@@ -1149,12 +1149,12 @@ export function ColorizePhotoWorkspace() {
                             </button>
                         </div>
 
-                        <div style={{
+                        <div className="brobex-live-preview-stage" style={{
                             position: "relative",
                             display: "grid",
                             placeItems: "center",
-                            minHeight: 280,
-                            maxHeight: 650,
+                            minHeight: 220,
+                            maxHeight: 440,
                             overflow: "hidden",
                             borderRadius: 10,
                             background: "var(--soft)",
@@ -1165,7 +1165,7 @@ export function ColorizePhotoWorkspace() {
                                 style={{
                                     display: showOriginal ? "none" : "block",
                                     maxWidth: "100%",
-                                    maxHeight: 650,
+                                    maxHeight: 440,
                                     width: "100%",
                                     height: "auto",
                                     objectFit: "contain",
@@ -1179,7 +1179,7 @@ export function ColorizePhotoWorkspace() {
                                     style={{
                                         display: "block",
                                         maxWidth: "100%",
-                                        maxHeight: 650,
+                                        maxHeight: 440,
                                         objectFit: "contain",
                                     }}
                                 />
@@ -1203,7 +1203,7 @@ export function ColorizePhotoWorkspace() {
                             )}
                         </div>
 
-                        <div style={{ marginTop: 18 }}>
+                        <div className="brobex-live-preview-overview" style={{ marginTop: 12 }}>
                             <div style={{
                                 display: "flex",
                                 justifyContent: "space-between",
@@ -1218,9 +1218,9 @@ export function ColorizePhotoWorkspace() {
                                 </span>
                             </div>
 
-                            <div style={{
+                            <div className="brobex-live-preview-actions" style={{
                                 display: "flex",
-                                gap: 8,
+                                gap: 7,
                                 flexWrap: "wrap",
                             }}>
                                 <button
