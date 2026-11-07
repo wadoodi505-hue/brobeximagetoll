@@ -12812,3 +12812,237 @@ body {
 
 /* Keep intentional before/after comparison controls in their own component;
    this fix only normalizes ordinary original/live preview stages. */
+
+
+/* ==========================================================================
+   BROBEX CROP IMAGE — PROFESSIONAL SHAPE-LOCKED EDITOR
+   Visual refinement only; crop coordinates and export remain image-pixel based.
+   ========================================================================== */
+
+.crop-mode-selector {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 8px !important;
+  width: 100%;
+  margin: 0 0 14px !important;
+}
+
+.crop-mode-button {
+  min-width: 0 !important;
+  min-height: 72px;
+  gap: 6px !important;
+  padding: 9px 5px !important;
+  border-radius: 11px !important;
+  font-size: 11px !important;
+  font-weight: 600;
+  line-height: 1.2;
+  background: var(--surface, #171717);
+  border-color: var(--border, #343434);
+  color: var(--foreground, #f4f4f4);
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.crop-mode-button svg {
+  width: 25px !important;
+  height: 25px !important;
+  flex: 0 0 auto;
+}
+
+.crop-mode-button:hover {
+  transform: translateY(-1px);
+  border-color: #c77b53 !important;
+  color: #c77b53 !important;
+  background: color-mix(in srgb, #c77b53 8%, var(--surface, #171717)) !important;
+}
+
+.crop-mode-button.active {
+  border-color: #c77b53 !important;
+  color: #c77b53 !important;
+  background: color-mix(in srgb, #c77b53 12%, var(--surface, #171717)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #c77b53 35%, transparent);
+}
+
+.crop-mode-button:focus-visible,
+.crop-selection:focus-visible,
+.crop-handle:focus-visible {
+  outline: 2px solid #c77b53;
+  outline-offset: 3px;
+}
+
+.crop-editor-viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 230px;
+  max-height: min(52svh, 520px);
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border, #343434);
+  border-radius: 13px;
+  background:
+    linear-gradient(45deg, rgb(127 127 127 / 7%) 25%, transparent 25%, transparent 75%, rgb(127 127 127 / 7%) 75%),
+    linear-gradient(45deg, rgb(127 127 127 / 7%) 25%, transparent 25%, transparent 75%, rgb(127 127 127 / 7%) 75%),
+    var(--surface, #171717);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+.crop-editor-stage {
+  isolation: isolate;
+  flex: 0 1 auto;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: visible;
+}
+
+.crop-editor-stage > img {
+  max-width: 100%;
+  max-height: min(48svh, 480px);
+  object-fit: contain;
+}
+
+.crop-selection {
+  border: 0 !important;
+  box-shadow: 0 0 0 9999px rgb(3 7 12 / 64%);
+  background: transparent;
+  touch-action: none;
+}
+
+.crop-selection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid #c77b53;
+  border-radius: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgb(0 0 0 / 65%));
+}
+
+.crop-selection-square-crop::before,
+.crop-selection-circle::before {
+  border-radius: 50%;
+}
+
+.crop-selection-triangle-crop::before {
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  border: 0;
+  background: #c77b53;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+}
+
+.crop-selection-shape-crop::before {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  border: 0;
+  background: #c77b53;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+}
+
+.crop-selection-square-crop,
+.crop-selection-circle,
+.crop-selection-triangle-crop,
+.crop-selection-shape-crop {
+  aspect-ratio: 1 / 1;
+}
+
+.crop-handle {
+  width: 13px !important;
+  height: 13px !important;
+  border: 2px solid #c77b53 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+}
+
+.crop-handle-n,
+.crop-handle-s {
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 999px !important;
+}
+
+.crop-handle-e,
+.crop-handle-w {
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999px !important;
+}
+
+.crop-dimensions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px 12px;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #343434);
+  border-radius: 10px;
+  background: var(--surface, #171717);
+  color: var(--foreground, #f4f4f4);
+  font-size: 11px;
+}
+
+.crop-dimensions strong {
+  color: #c77b53;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.crop-editor-viewport + .crop-dimensions + .hint {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .crop-mode-selector {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px !important;
+  }
+
+  .crop-mode-button {
+    min-height: 60px;
+    flex-direction: row !important;
+    justify-content: center;
+    gap: 7px !important;
+    padding: 8px !important;
+  }
+
+  .crop-mode-button svg {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  .crop-editor-viewport {
+    min-height: 185px;
+    max-height: 38svh;
+    padding: 7px;
+  }
+
+  .crop-editor-stage > img {
+    max-height: 34svh;
+  }
+
+  .crop-dimensions {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crop-mode-button {
+    transition: none !important;
+  }
+}

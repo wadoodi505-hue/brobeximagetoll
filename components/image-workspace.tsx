@@ -94,7 +94,12 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     let nextW = width;
     let nextH = height;
 
-    if (next === "square-crop" || next === "circle") {
+    if (
+      next === "square-crop" ||
+      next === "circle" ||
+      next === "triangle-crop" ||
+      next === "shape-crop"
+    ) {
       nextW = Math.min(width, height);
       nextH = nextW;
     } else if (next === "aspect-ratio-crop") {
@@ -148,42 +153,107 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     const dy = ((event.clientY - drag.startY) / rect.height) * height;
     const mode = drag.mode;
 
+    if (mode === "move") {
+      const x = Math.max(0, Math.min(width - drag.w, drag.x + dx));
+      const y = Math.max(0, Math.min(height - drag.h, drag.y + dy));
+      setCropX(Math.round(x));
+      setCropY(Math.round(y));
+      return;
+    }
+
+    const lockedRatio =
+      cropMode === "square-crop" ||
+      cropMode === "circle" ||
+      cropMode === "triangle-crop" ||
+      cropMode === "shape-crop"
+        ? 1
+        : cropMode === "aspect-ratio-crop"
+          ? 16 / 9
+          : null;
+
     let x = drag.x;
     let y = drag.y;
     let w = drag.w;
     let h = drag.h;
 
-    if (mode === "move") {
-      x = Math.max(0, Math.min(width - w, drag.x + dx));
-      y = Math.max(0, Math.min(height - h, drag.y + dy));
-    } else {
+    if (!lockedRatio) {
       if (mode.includes("w")) {
         const right = drag.x + drag.w;
         x = Math.max(0, Math.min(right - 1, drag.x + dx));
         w = right - x;
       }
-
       if (mode.includes("e")) {
         w = Math.max(1, Math.min(width - drag.x, drag.w + dx));
       }
-
       if (mode.includes("n")) {
         const bottom = drag.y + drag.h;
         y = Math.max(0, Math.min(bottom - 1, drag.y + dy));
         h = bottom - y;
       }
-
       if (mode.includes("s")) {
         h = Math.max(1, Math.min(height - drag.y, drag.h + dy));
       }
+    } else {
+      const hasWest = mode.includes("w");
+      const hasEast = mode.includes("e");
+      const hasNorth = mode.includes("n");
+      const hasSouth = mode.includes("s");
+      const isCorner = (hasWest || hasEast) && (hasNorth || hasSouth);
+
+      // Keep the opposite edge/corner anchored while resizing. Side handles
+      // resize around the opposite side's center; corner handles keep the
+      // opposite corner fixed.
+      const anchorX = hasWest
+        ? drag.x + drag.w
+        : hasEast
+          ? drag.x
+          : drag.x + drag.w / 2;
+      const anchorY = hasNorth
+        ? drag.y + drag.h
+        : hasSouth
+          ? drag.y
+          : drag.y + drag.h / 2;
+
+      let targetW = drag.w;
+      if (hasWest) targetW = drag.w - dx;
+      if (hasEast) targetW = drag.w + dx;
+
+      if (!hasWest && !hasEast) {
+        const targetH = hasNorth ? drag.h - dy : drag.h + dy;
+        targetW = targetH * lockedRatio;
+      } else if (isCorner) {
+        const targetH = hasNorth ? drag.h - dy : drag.h + dy;
+        const widthFromHeight = targetH * lockedRatio;
+        // Use the pointer's strongest movement so diagonal dragging feels
+        // predictable without ever changing the selected aspect ratio.
+        if (Math.abs(widthFromHeight - drag.w) > Math.abs(targetW - drag.w)) {
+          targetW = widthFromHeight;
+        }
+      }
+
+      const maxW = Math.min(
+        hasWest ? anchorX : hasEast ? width - anchorX : 2 * Math.min(anchorX, width - anchorX),
+        (hasNorth ? anchorY : hasSouth ? height - anchorY : 2 * Math.min(anchorY, height - anchorY)) * lockedRatio,
+      );
+      const minW = Math.min(24, maxW);
+      targetW = Math.max(minW, Math.min(maxW, targetW));
+      w = targetW;
+      h = w / lockedRatio;
+
+      if (hasWest) x = anchorX - w;
+      else if (hasEast) x = anchorX;
+      else x = anchorX - w / 2;
+
+      if (hasNorth) y = anchorY - h;
+      else if (hasSouth) y = anchorY;
+      else y = anchorY - h / 2;
     }
 
-    setCropX(Math.round(x));
-    setCropY(Math.round(y));
-    setCropW(Math.round(w));
-    setCropH(Math.round(h));
+    setCropX(Math.round(Math.max(0, Math.min(width - w, x))));
+    setCropY(Math.round(Math.max(0, Math.min(height - h, y))));
+    setCropW(Math.round(Math.max(1, Math.min(width, w))));
+    setCropH(Math.round(Math.max(1, Math.min(height, h))));
   }
-
   function endCropDrag() {
     cropDragRef.current = null;
   }
@@ -1186,7 +1256,8 @@ if (!canProcess || !op) {
                           />
 
                           <div
-                            className="crop-selection"
+                            className={`crop-selection crop-selection-${cropMode}`}
+                            data-crop-mode={cropMode}
                             style={{
                               clipPath: cropMode === "circle" ? "circle(50%)" : cropMode === "triangle-crop" ? "polygon(50% 0%, 100% 100%, 0% 100%)" : cropMode === "shape-crop" ? "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)" : "none",
                               left: `${(cropX / Math.max(1, width)) * 100}%`,
