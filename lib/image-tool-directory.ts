@@ -43,9 +43,8 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Rotate & Flip Image", "flip-image"),
       item("Add Text to Image", "add-text-to-image"),
       item("Crop Image", "crop-image", "Free crop, square, 16:9, triangle, hexagon and circular image cropping."),
-      item("Crop Round Corners"),
+      item("Crop Round Corners", "crop-round-corners"),
       item("Resize Image Dimensions", "resize-image-dimensions"),
-      item("Combine Multiple Images", "combine-images"),
       item("Combine Multiple Images", "combine-images"),
       item("Photos to Video"),
       item("JPG to MP4"),
@@ -53,10 +52,10 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Word to JPG"),
       item("MP4 to JPG"),
       item("Split Image into Grid", "image-splitter"),
-      item("Image Color Picker"),
-      item("Edit Metadata"),
+      item("Image Color Picker", "image-color-picker"),
+      item("Edit Metadata", "edit-metadata"),
       item("View Image Properties & Metadata", "view-metadata"),
-      item("Remove Metadata"),
+      item("Remove Metadata", "remove-metadata"),
 
     ]
   },
@@ -79,10 +78,10 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Pixelate Image", "pixelate-image"),
       item("Add Image Border", "add-border-to-image"),
       item("AI Face Generator"),
-      item("Blemishes Remover"),
+      item("Blemishes Remover", "blemishes-remover"),
       item("Retouch Image", "colorize-photo"),
       item("Add Text to Image", "add-text-to-image"),
-      item("Overlay Images", "add-images-to-image")
+      item("Overlay Images", "overlay-images")
     ]
   },
   {
@@ -108,7 +107,7 @@ const curatedToolCategories: DirectoryCategory[] = [
   {
     name: "Resize Other Official Sizes",
     tools: [
-      item("A4 Size"),
+      item("A4 Size", "a4-size"),
       item("SSC Photo Resize"),
       item("PAN Card"),
       item("UPSC Photo"),

@@ -13961,3 +13961,15 @@ h1,h2,h3,h4,h5,h6,p,label,legend,small,strong,span { color:inherit; }
 :root[data-theme="light"] .tool-page-shell,
 :root[data-theme="light"] .category-page,
 :root[data-theme="light"] .container { color:#000000; }
+
+
+/* Phase 2: overlay editor and palette export controls */
+.overlay-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.overlay-upload-grid .advanced-upload{min-width:0;text-align:center;min-height:112px}
+.overlay-upload-grid .advanced-upload input[type=file]{display:none}
+.palette-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.palette-swatches button{width:38px;height:38px;min-width:38px;border:2px solid var(--at-border);border-radius:9px;cursor:pointer}
+.advanced-controls button,.visio-results button{min-height:44px}
+.advanced-controls input[type=range]{min-height:32px;touch-action:pan-y}
+.advanced-upload{min-height:112px}
+@media(max-width:560px){.overlay-upload-grid{grid-template-columns:1fr}.overlay-upload-grid .advanced-upload{min-height:92px}}

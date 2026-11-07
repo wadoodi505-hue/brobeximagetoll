@@ -1,4 +1,4 @@
-﻿
+
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -126,6 +126,8 @@ export function PhotoCleanupWorkspace() {
   const busyRef = useRef(false);
   const dimensionsRef = useRef<ImageDimensions | null>(null);
   const pendingPreviewRef = useRef<string | null>(null);
+  const activePreviewRef = useRef<string | null>(null);
+  const activeResultRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectionVersionRef = useRef(0);
   const engineAttemptRef = useRef(0);
@@ -145,7 +147,17 @@ export function PhotoCleanupWorkspace() {
   const [engineRequested, setEngineRequested] = useState(false);
 
   const clearResult = useCallback(() => {
+    if (activeResultRef.current) {
+      revokeObjectUrl(activeResultRef.current);
+      activeResultRef.current = null;
+    }
     setResultUrl("");
+  }, []);
+
+  useEffect(() => () => {
+    if (pendingPreviewRef.current) revokeObjectUrl(pendingPreviewRef.current);
+    if (activePreviewRef.current) revokeObjectUrl(activePreviewRef.current);
+    if (activeResultRef.current) revokeObjectUrl(activeResultRef.current);
   }, []);
 
   // Load OpenCV through its browser runtime, avoiding a Node.js import
@@ -427,9 +439,11 @@ export function PhotoCleanupWorkspace() {
       dimensionsRef.current = { width, height };
       pendingPreviewRef.current = null;
 
+      if (activePreviewRef.current) revokeObjectUrl(activePreviewRef.current);
+      activePreviewRef.current = url;
       setPreview(url);
       setFileName(file.name);
-      setResultUrl("");
+      clearResult();
       setError("");
       setMessage("Paint over the unwanted object to select it.");
     };
@@ -688,7 +702,8 @@ export function PhotoCleanupWorkspace() {
       });
 
       const nextResultUrl = URL.createObjectURL(blob);
-
+      if (activeResultRef.current) revokeObjectUrl(activeResultRef.current);
+      activeResultRef.current = nextResultUrl;
       setResultUrl(nextResultUrl);
       setMessage(
         "Processing complete. Compare the result with your original image before downloading."
@@ -740,9 +755,13 @@ export function PhotoCleanupWorkspace() {
     drawingRef.current = false;
     selectionVersionRef.current += 1;
 
+    if (activePreviewRef.current) {
+      revokeObjectUrl(activePreviewRef.current);
+      activePreviewRef.current = null;
+    }
     setPreview("");
     setFileName("");
-    setResultUrl("");
+    clearResult();
     setError("");
     setMessage("Choose an image to start.");
 

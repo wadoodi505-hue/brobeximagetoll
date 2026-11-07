@@ -203,7 +203,7 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "aspect-ratio-crop",
     "name": "Aspect Ratio Crop",
-    "description": "Create a centered 16:9 crop for widescreen layouts.",
+    "description": "Crop images to a selectable aspect ratio with adjustable horizontal and vertical framing.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": ["image/*"],
@@ -278,7 +278,7 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "combine-images",
     "name": "Combine Images",
-    "description": "Combine multiple images into a vertical composition",
+    "description": "Combine multiple images into horizontal, vertical, grid and featured compositions with spacing, margins, background and image-format export.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
@@ -291,15 +291,25 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "add-images-to-image",
     "name": "Add Images to Image",
-    "description": "Overlay/compose multiple images; current workspace combines uploaded images vertically",
+    "description": "Arrange multiple images into horizontal, vertical, grid or featured compositions with adjustable spacing, margins and export format.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Browser Canvas API (local rendering and export)",
+    "method": "Browser Canvas collage workspace (local rendering and export)",
     "status": "browser",
     "operation": "combine"
+  },
+  {
+    slug: "overlay-images",
+    name: "Overlay Images",
+    description: "Place one image over another with adjustable opacity, scale, horizontal and vertical position, and PNG, JPEG or WebP export.",
+    category: "image",
+    icon: "Layers",
+    acceptedTypes: ["image/*"],
+    method: "Browser ImageBitmap + Canvas API",
+    status: "browser"
   },
   {
     "slug": "make-round-image",
@@ -310,7 +320,7 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Canvas circular clipping with transparent PNG export",
     "status": "browser",
     "operation": "circle"
   },
@@ -323,7 +333,7 @@ export const tools: ToolDefinition[] = [
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Canvas circular clipping with transparent PNG export",
     "status": "browser",
     "operation": "circle"
   },
@@ -378,7 +388,7 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "view-metadata",
     "name": "View Metadata",
-    "description": "Inspect image dimensions, MIME type, size, and browser-exposed properties",
+    "description": "Inspect image dimensions, file properties, readable JPEG EXIF description/artist/copyright fields and ICC profile markers.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
@@ -1004,7 +1014,7 @@ export const tools: ToolDefinition[] = [
       "*/*"
     ],
     "method": "Legacy VSD signature detection with VSDX conversion guidance",
-    "status": "browser"
+    "status": "integration"
   },
   {
     "slug": "vsd-to-pptx",
@@ -1016,7 +1026,7 @@ export const tools: ToolDefinition[] = [
       "*/*"
     ],
     "method": "Legacy VSD signature detection with VSDX conversion guidance",
-    "status": "browser"
+    "status": "integration"
   },
   {
     "slug": "vsd-to-jpg",
@@ -1028,7 +1038,7 @@ export const tools: ToolDefinition[] = [
       "*/*"
     ],
     "method": "Legacy VSD signature detection with VSDX conversion guidance",
-    "status": "browser"
+    "status": "integration"
   },
   {
     "slug": "vsdx-to-pdf",
@@ -1045,38 +1055,38 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "vsdx-to-docx",
     "name": "VSDX to DOCX",
-    "description": "Extract page text from VSDX packages into an editable Word document.",
+    "description": "Inspect VSDX XML and extract text; faithful DOCX conversion is not available without a Visio-compatible rendering engine.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Client-side JSZip package inspection and document generation",
-    "status": "browser"
+    "method": "VSDX package inspection only; full conversion requires a Visio-compatible server engine",
+    "status": "integration"
   },
   {
     "slug": "vsdx-to-pptx",
     "name": "VSDX to PPTX",
-    "description": "Create a text-based PowerPoint presentation from extracted VSDX page text.",
+    "description": "Inspect VSDX XML and extract text; faithful PPTX conversion is not available without a Visio-compatible rendering engine.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Client-side JSZip package inspection and document generation",
-    "status": "browser"
+    "method": "VSDX package inspection only; full conversion requires a Visio-compatible server engine",
+    "status": "integration"
   },
   {
     "slug": "vsdx-to-jpg",
     "name": "VSDX to JPG",
-    "description": "Export text contact sheets for VSDX pages; full Visio geometry rendering is not available.",
+    "description": "Inspect VSDX XML and extract text; faithful JPG rendering is not available without a Visio-compatible rendering engine.",
     "category": "file",
     "icon": "WandSparkles",
     "acceptedTypes": [
       "*/*"
     ],
-    "method": "Client-side JSZip package inspection and document generation",
-    "status": "browser"
+    "method": "VSDX package inspection only; full conversion requires a Visio-compatible server engine",
+    "status": "integration"
   },
   {
     "slug": "general-file-converter",
@@ -1409,11 +1419,11 @@ export const tools: ToolDefinition[] = [
   {
     slug: "edit-metadata",
     name: "Edit Metadata",
-    description: "Create a metadata sidecar for an image. Embedded EXIF writing is not supported in this browser-only build.",
+    description: "Edit JPEG EXIF description, artist and copyright fields; export a JSON sidecar for other image formats.",
     category: "image",
     icon: "Image",
     acceptedTypes: ["image/*"],
-    method: "Browser image inspection + JSON sidecar",
+    method: "Browser JPEG EXIF APP1 writer + JSON sidecar fallback",
     status: "browser"
   },
   {

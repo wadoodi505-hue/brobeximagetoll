@@ -8,6 +8,7 @@ import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-work
 import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
 import { CollageMakerWorkspace } from "@/components/collage-maker-workspace";
+import { OverlayImagesWorkspace } from "@/components/overlay-images-workspace";
 import { SignatureGeneratorWorkspace } from "@/components/signature-generator-workspace";
 import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
@@ -163,7 +164,7 @@ export default async function ToolPage({
   const exactTargetTool = getExactTargetTool(tool.slug);
 
   const advancedToolSlugs = new Set([
-    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata",
+    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata", "view-metadata",
     "blemishes-remover", "a4-size", "profile-photo-maker", "aspect-ratio-crop",
     "vsd-to-docx", "vsd-to-pptx", "vsd-to-jpg",
     "vsdx-to-docx", "vsdx-to-pptx", "vsdx-to-jpg",
@@ -199,6 +200,10 @@ export default async function ToolPage({
       <FontAwesomeToPngWorkspace />
     ) : tool.slug === "image-splitter" ? (
       <ImageSplitterWorkspace />
+    ) : tool.slug === "combine-images" || tool.slug === "add-images-to-image" ? (
+      <CollageMakerWorkspace />
+    ) : tool.slug === "overlay-images" ? (
+      <OverlayImagesWorkspace />
     ) : tool.slug === "collage-maker" ? (
       <CollageMakerWorkspace />
     ) : tool.slug === "signature-generator" ? (
