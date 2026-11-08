@@ -101,7 +101,7 @@ export async function writeJpegExif(file: File, fields: ImageMetadataFields): Pr
   app1.set([0xff,0xe1,(segmentLength >>> 8) & 255,segmentLength & 255]);
   app1.set(payload, 4);
 
-  const chunks: Uint8Array[] = [bytes.slice(0, 2), app1];
+  const chunks: BlobPart[] = [bytes.slice(0, 2) as BlobPart, app1 as BlobPart];
   let offset = 2;
   while (offset + 4 < bytes.length && bytes[offset] === 0xff) {
     const marker = bytes[offset + 1];
@@ -111,9 +111,9 @@ export async function writeJpegExif(file: File, fields: ImageMetadataFields): Pr
     const segmentEnd = offset + 2 + length;
     const isExif = marker === 0xe1 &&
       String.fromCharCode(...bytes.slice(offset + 4, offset + 10)) === "Exif\u0000\u0000";
-    if (!isExif) chunks.push(bytes.slice(offset, segmentEnd));
+    if (!isExif) chunks.push(bytes.slice(offset, segmentEnd) as BlobPart);
     offset = segmentEnd;
   }
-  chunks.push(bytes.slice(offset));
+  chunks.push(bytes.slice(offset) as BlobPart);
   return new Blob(chunks, { type: "image/jpeg" });
 }

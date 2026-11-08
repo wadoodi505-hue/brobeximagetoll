@@ -53,7 +53,10 @@ export async function readVisioFile(file: File): Promise<VisioPackage> {
       ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
       ext === "gif" ? "image/gif" :
       ext === "svg" ? "image/svg+xml" : "application/octet-stream";
-    return { name: path, blob: new Blob([await entry.async("uint8array")], { type: mime }) };
+    const bytes = await entry.async("uint8array");
+    const blobBuffer = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(blobBuffer).set(bytes);
+    return { name: path, blob: new Blob([blobBuffer], { type: mime }) };
   }));
 
   return {
