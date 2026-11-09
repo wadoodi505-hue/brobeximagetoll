@@ -20,14 +20,19 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Passport & ID Photo Maker", "passport-photo-maker", "Prepare passport and ID photos with common document dimensions."),
       item("Compress Image to Target KB", "compress-image-size", "Reduce file size to meet upload limits and sharing requirements."),
       item("Resize Image Dimensions", "resize-image-dimensions", "Set exact pixel width and height for your image."),
+      item("Bulk Image Resizer", "bulk-image-resizer", "Resize multiple images and download them together as a ZIP archive."),
       item("Text to Handwriting Converter", undefined, "Turn typed text into a handwriting-style image."),
       item("Extract Text from Image (OCR)", "image-to-text", "Recognize text in photos and make it editable."),
       item("Create Photo Collages", "collage-maker", "Arrange multiple photos into one collage layout."),
       item("Signature Generator", "signature-generator", "Draw or type a digital signature and export a transparent PNG."),
       item("Increase Image File Size", "increase-image-file-size", "Adjust image output size for a required file limit."),
       item("Manual Photo Enhancement", "upscale-image", "Improve image dimensions with browser-based resampling."),
-      item("Signature Image Resizer", undefined, "Resize a signature image to specified dimensions."),
-      item("Resize Image in Centimeters", undefined, "Prepare images using physical dimensions in centimeters."),
+      item(
+        "Signature Image Resizer",
+        "signature-image-resizer",
+        "Resize a signature image to exact print dimensions in centimeters and DPI."
+      ),
+      item("Resize Image in Centimeters", "signature-image-resizer", "Prepare images using physical dimensions in centimeters and print DPI."),
       item("Resize Photo to 3.5 Ã— 4.5 cm", undefined, "Create a photo at the common 3.5 Ã— 4.5 cm size.")
     ]
   },

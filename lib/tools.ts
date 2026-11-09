@@ -122,6 +122,16 @@ export const tools: ToolDefinition[] = [
     "operation": "resize"
   },
   {
+    slug: "bulk-image-resizer",
+    name: "Bulk Image Resizer",
+    description: "Resize multiple JPEG, PNG and WebP images in your browser with batch progress and one-click ZIP export.",
+    category: "image",
+    icon: "Images",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp"],
+    method: "Local Canvas API + JSZip client-side archive",
+    status: "browser"
+  },
+  {
     "slug": "compress-image-size",
     "name": "Compress Image to Target KB",
     "description": "Compress an image to a custom maximum file size with format, quality, dimension and before-and-after preview controls.",
@@ -370,6 +380,23 @@ export const tools: ToolDefinition[] = [
     icon: "PenLine",
     acceptedTypes: [],
     method: "Local HTML Canvas API (no API key or server upload)",
+    status: "browser"
+  },
+  {
+    slug: "signature-image-resizer",
+    name: "Signature Image Resizer",
+    description:
+      "Resize handwritten signature images to exact pixel dimensions with aspect-ratio locking, transparent backgrounds, live preview, and local image export.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/gif",
+      "image/bmp"
+    ],
+    method: "Local browser Canvas API",
     status: "browser"
   },
   {

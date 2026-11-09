@@ -54,9 +54,7 @@ export function ImageToolDirectory() {
                   );
                   return state.href ? (
                     <Link className="directory-tool" href={state.href} key={`${tool.slug}-${index}`}>{content}</Link>
-                  ) : (
-                    <div className="directory-tool directory-tool--unavailable" key={`${tool.name}-${index}`} aria-label={`${tool.name}, currently unavailable`}>{content}</div>
-                  );
+                  ) : null;
                 })}
               </div>
             </section>
@@ -77,6 +75,7 @@ const quickLinks = [
   { label: "Passport Photo", slug: "passport-photo-maker" },
   { label: "Blur Background", slug: "blur-background" },
   { label: "Resize Image", slug: "resize-image-dimensions" },
+  { label: "Bulk Image Resizer", slug: "bulk-image-resizer" },
   { label: "Image to Text", slug: "image-to-text" }
 ];
 

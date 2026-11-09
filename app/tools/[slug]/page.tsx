@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { getToolMetadata } from "@/lib/tool-seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import { SignatureImageResizerWorkspace } from "@/components/signature-image-resizer-workspace";
+import { DimensionResizerWorkspace } from "@/components/dimension-resizer-workspace";
+import { BulkResizerWorkspace } from "@/components/bulk-resizer-workspace";
 import { FontAwesomeToPngWorkspace } from "@/components/font-awesome-to-png-workspace";
 import { ChartMakerWorkspace } from "@/components/chart-maker-workspace";
 import { ImageSplitterWorkspace } from "@/components/image-splitter-workspace";
@@ -226,6 +228,12 @@ export default async function ToolPage({
       <PdfWorkspace tool={tool} />
     ) : tool.slug === "increase-image-file-size" ? (
       <IncreaseImageFileSizeWorkspace />
+    ) : tool.slug === "signature-image-resizer" ? (
+      <SignatureImageResizerWorkspace />
+    ) : tool.slug === "resize-image-dimensions" ? (
+      <DimensionResizerWorkspace />
+    ) : tool.slug === "bulk-image-resizer" ? (
+      <BulkResizerWorkspace />
     ) : tool.category === "image" ? (
       <ImageWorkspace tool={tool} />
     ) : tool.category === "write" ? (
