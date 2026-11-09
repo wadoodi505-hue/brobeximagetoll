@@ -14351,4 +14351,25 @@ span {
   .overlay-upload-grid .advanced-upload {
     min-height: 92px
   }
+}/* BROBEX — Increase Image File Size disabled states */
+
+.increase-size-workspace .isw-settings button:disabled,
+.increase-size-workspace .isw-settings input:disabled,
+.increase-size-workspace .isw-settings select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.increase-size-workspace .isw-download-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(0.35);
+}
+
+.increase-size-workspace .isw-download-button:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: auto;
 }

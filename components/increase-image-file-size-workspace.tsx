@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -37,6 +37,8 @@ export function IncreaseImageFileSizeWorkspace() {
   const [sourceInfo, setSourceInfo] = useState<ImageInfo | null>(null);
   const [resultInfo, setResultInfo] = useState<ImageInfo | null>(null);
   const [targetKb, setTargetKb] = useState(2048);
+  const [targetUnit, setTargetUnit] = useState<"KB" | "MB">("KB");
+  const [resultUrl, setResultUrl] = useState("");
   const [outputFormat, setOutputFormat] = useState<"original" | "image/jpeg" | "image/png" | "image/webp">("original");
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -49,13 +51,25 @@ export function IncreaseImageFileSizeWorkspace() {
     };
   }, [sourceUrl]);
 
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
+
+  function invalidateResult() {
+    setResultBlob(null);
+    setResultInfo(null);
+    setResultUrl("");
+    setNotice("");
+  }
+
   async function acceptFile(nextFile?: File) {
     if (!nextFile) return;
 
     setError("");
     setNotice("");
-    setResultBlob(null);
-    setResultInfo(null);
+    invalidateResult();
 
     if (!nextFile.type.startsWith("image/")) {
       setError("Choose a valid image file.");
@@ -101,12 +115,13 @@ export function IncreaseImageFileSizeWorkspace() {
 
     setBusy(true);
     setError("");
-    setNotice("");
+    invalidateResult();
 
     try {
       const generated = await increaseImageFileSize(file, targetKb * 1024, outputFormat);
 
       setResultBlob(generated.blob);
+      setResultUrl(URL.createObjectURL(generated.blob));
       setResultInfo({
         width: generated.width,
         height: generated.height,
@@ -139,6 +154,7 @@ export function IncreaseImageFileSizeWorkspace() {
     setSourceInfo(null);
     setResultInfo(null);
     setResultBlob(null);
+    setResultUrl("");
     setError("");
     setNotice("");
     setSourceUrl("");
@@ -242,18 +258,76 @@ export function IncreaseImageFileSizeWorkspace() {
             <div className="isw-target-row">
               <input
                 id="isw-target"
+                disabled={busy}
                 type="number"
-                min="1"
-                max="51200"
-                value={targetKb}
-                onChange={(event) =>
-                  setTargetKb(
-                    Math.max(1, Math.min(51200, Number(event.target.value) || 1))
-                  )
+                min={targetUnit === "MB" ? "0.01" : "1"}
+                max={targetUnit === "MB" ? "50" : "51200"}
+                step={targetUnit === "MB" ? "0.01" : "1"}
+                value={
+                  targetUnit === "MB"
+                    ? Number((targetKb / 1024).toFixed(2))
+                    : targetKb
                 }
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  if (!Number.isFinite(value) || value <= 0) return;
+
+                  const converted = Math.round(
+                    value * (targetUnit === "MB" ? 1024 : 1)
+                  );
+
+                  setTargetKb(Math.max(1, Math.min(51200, converted)));
+                  invalidateResult();
+                  invalidateResult();
+                }}
               />
-              <span>KB</span>
+
+              <div
+                className="isw-unit-switch"
+                style={{
+                  display: "flex",
+                  gap: "4px",
+                  padding: "4px",
+                  borderRadius: "10px",
+                  background: "var(--isw-control-bg, #f1f1f1)",
+                  flexShrink: 0
+                }}
+              >
+                {(["KB", "MB"] as const).map((unit) => (
+                  <button
+                    key={unit}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setTargetUnit(unit);
+                      invalidateResult();
+                      invalidateResult();
+                    }}
+                    style={{
+                      border: "none",
+                      borderRadius: "7px",
+                      padding: "8px 12px",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      background:
+                        targetUnit === unit ? "#c77b53" : "transparent",
+                      color: targetUnit === unit ? "#ffffff" : "inherit"
+                    }}
+                  >
+                    {unit}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <small className="isw-format-hint">
+              Maximum target: 50 MB. Your selected size is{" "}
+              {targetUnit === "MB"
+                ? `${(targetKb / 1024).toFixed(2)} MB`
+                : `${targetKb.toLocaleString()} KB`}
+              .
+            </small>
 
             <div className="isw-presets">
               {[100, 200, 500, 1024, 2048].map((value) => (
@@ -261,7 +335,8 @@ export function IncreaseImageFileSizeWorkspace() {
                   type="button"
                   key={value}
                   className={targetKb === value ? "active" : ""}
-                  onClick={() => setTargetKb(value)}
+                  disabled={busy}
+                  onClick={() => { setTargetKb(value); invalidateResult(); }}
                 >
                   {value >= 1024 ? `${value / 1024} MB` : `${value} KB`}
                 </button>
@@ -273,10 +348,14 @@ export function IncreaseImageFileSizeWorkspace() {
             <select
               id="isw-output-format"
               className="isw-format-select"
+              disabled={busy}
               value={outputFormat}
-              onChange={(event) =>
-                setOutputFormat(event.target.value as "original" | "image/jpeg" | "image/png" | "image/webp")
-              }
+              onChange={(event) => {
+                setOutputFormat(
+                  event.target.value as "original" | "image/jpeg" | "image/png" | "image/webp"
+                );
+                invalidateResult();
+              }}
             >
               <option value="original">
                 Original format (recommended)
@@ -349,8 +428,8 @@ export function IncreaseImageFileSizeWorkspace() {
 
               <div className="isw-preview-card">
                 <div className="isw-preview-image">
-                  {sourceUrl ? (
-                    <img src={sourceUrl} alt="Preserved original image preview" />
+                  {resultUrl ? (
+                    <img src={resultUrl} alt="Generated increased image preview" />
                   ) : (
                     <div className="isw-preview-empty">
                       <ImageIcon size={30} />
@@ -402,19 +481,36 @@ export function IncreaseImageFileSizeWorkspace() {
               </div>
             )}
 
-            {resultBlob && (
-              <button
-                type="button"
-                className="isw-download-button"
-                onClick={download}
-              >
-                <Download size={17} /> Download increased image
-              </button>
-            )}
+            <button
+              type="button"
+              className="isw-download-button"
+              disabled={!resultBlob || busy}
+              onClick={download}
+              title={
+                resultBlob
+                  ? "Download the processed image"
+                  : "Process the image with your current settings first"
+              }
+              style={{
+                opacity: !resultBlob || busy ? 0.45 : 1,
+                cursor: !resultBlob || busy ? "not-allowed" : "pointer"
+              }}
+            >
+              <Download size={17} />
+              {busy
+                ? "Processing image..."
+                : resultBlob
+                  ? "Download increased image"
+                  : "Process image to enable download"}
+            </button>
           </div>
         </div>
       )}
     </section>
   );
 }
+
+
+
+
 
