@@ -220,7 +220,7 @@ export default async function ToolPage({
       <ColorizePhotoWorkspace />
     ) : tool.slug === "photo-cleanup" ? (
       <PhotoCleanupWorkspace />
-    ) : tool.slug === "remove-objects-from-photo" ? (
+    ) : (tool.slug === "remove-objects-from-photo" || tool.slug === "blur-any-object") ? (
       <RemoveObjectsWorkspace />
     ) : tool.slug === "upscale-image" ? (
       <UpscaleWorkspace />

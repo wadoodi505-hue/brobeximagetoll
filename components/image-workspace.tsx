@@ -15,6 +15,7 @@ import {
   Maximize2,
 } from "lucide-react";
 import type { ToolDefinition } from "@/types/tools";
+import { removeImageBackground } from "@/lib/ai/remove-background";
 import {
   formatBytes,
   processImage,
@@ -341,7 +342,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const autoCompressFileRef = useRef<File | null>(null);
   const compressionSettingsRef = useRef({ format, quality });
 
-  const op = tool.slug === "crop-image" ? cropMode : tool.operation;
+  const op = tool.slug === "crop-image" ? cropMode : (["blur-image", "blur-background", "remove-background-from-image", "make-background-transparent"].includes(tool.slug) ? "blur" : tool.operation);
 
   useEffect(() => {
     if (op !== "text" || !preview || !textCanvasRef.current) return;
@@ -468,7 +469,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     textDragRef.current = false;
   }
 
-  const canProcess = tool.status === "browser" && !!op;
+  const canProcess = tool.status === "browser" && (!!op || ["blur-background", "remove-background-from-image", "make-background-transparent"].includes(tool.slug));
 
   // Revoke the previous preview/result URL whenever it changes or the
   // workspace unmounts. This also covers reset and replacement uploads.
@@ -717,7 +718,40 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
         return;
       }
-if (!canProcess || !op) {
+// Browser AI segmentation powers transparent cutouts and background blur.
+      if (["remove-background-from-image", "make-background-transparent", "blur-background"].includes(tool.slug)) {
+        const cutout = await removeImageBackground(file);
+        if (currentOperation !== operationId.current) return;
+        let outputBlob: Blob = cutout;
+        if (tool.slug === "blur-background") {
+          const source = await createImageBitmap(file);
+          const foreground = await createImageBitmap(cutout);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = source.width; canvas.height = source.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas is unavailable in this browser.");
+            ctx.save(); ctx.filter = `blur(${Math.max(2, Math.min(40, blurAmount * 2))}px)`;
+            ctx.drawImage(source, 0, 0, canvas.width, canvas.height); ctx.restore();
+            const subject = document.createElement("canvas");
+            subject.width = canvas.width; subject.height = canvas.height;
+            const subjectCtx = subject.getContext("2d");
+            if (!subjectCtx) throw new Error("Could not create the subject layer.");
+            subjectCtx.drawImage(source, 0, 0, subject.width, subject.height);
+            subjectCtx.globalCompositeOperation = "destination-in";
+            subjectCtx.drawImage(foreground, 0, 0, subject.width, subject.height);
+            ctx.drawImage(subject, 0, 0);
+            outputBlob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Background blur export failed.")), format, quality / 100));
+          } finally { source.close(); foreground.close(); }
+        }
+        if (currentOperation !== operationId.current) return;
+        const nextUrl = URL.createObjectURL(outputBlob);
+        setResult(nextUrl); setResultBlob(outputBlob); setPreviewMode("compare");
+        setMessage(tool.slug === "blur-background" ? `Background blurred and foreground preserved. Output: ${formatBytes(outputBlob.size)}.` : `Background removed. Transparent cutout created (${formatBytes(outputBlob.size)}).`);
+        return;
+      }
+
+      if (!canProcess || !op) {
         throw new Error(
           "This tool does not have a browser operation configured.",
         );
@@ -1925,7 +1959,7 @@ if (!canProcess || !op) {
               </>
             )}
 
-            {op === "blur" && (
+            {op === "blur" && tool.slug !== "remove-background-from-image" && tool.slug !== "make-background-transparent" && (
               <label>
                 Blur amount: {blurAmount}px
                 <input

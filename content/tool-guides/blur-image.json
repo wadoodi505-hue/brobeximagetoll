@@ -1,0 +1,38 @@
+{
+  "slug": "blur-image",
+  "title": "Blur Image",
+  "keywords": [
+    "blur image",
+    "image editing",
+    "BROBEX Image Studio"
+  ],
+  "about": "Apply adjustable Gaussian blur to the entire image. The browser canvas applies the blur locally and keeps the source image unchanged.",
+  "steps": [
+    "Choose a JPG, PNG, or WebP image up to 20 MB, or drag it into the upload area.",
+    "Review the original preview and adjust the controls available for this tool.",
+    "Run the operation and wait for the browser to finish processing.",
+    "Compare the result with the original and inspect edges or details.",
+    "Download the processed image when the preview looks correct."
+  ],
+  "capabilities": "Canvas Gaussian blur with adjustable intensity and PNG, JPEG, or WebP export.",
+  "benefits": "This browser workspace keeps the operation, preview, and export controls together. The original source file is not overwritten; inspect the output before using it elsewhere.",
+  "limitations": "Strong blur removes detail and cannot be reversed from the exported image.",
+  "faqs": [
+    {
+      "question": "What does Blur Image do?",
+      "answer": "Apply adjustable Gaussian blur to the entire image. The browser canvas applies the blur locally and keeps the source image unchanged."
+    },
+    {
+      "question": "Are my images uploaded?",
+      "answer": "Image editing and export run in your browser. The background-removal model may need to download model assets the first time it runs."
+    },
+    {
+      "question": "Which formats can I export?",
+      "answer": "Choose an available PNG, JPEG, or WebP output format. Transparency is preserved only by PNG or WebP."
+    },
+    {
+      "question": "Will every image produce perfect edges?",
+      "answer": "No. Results depend on image quality, contrast, subject complexity, and browser memory. Review the preview before downloading."
+    }
+  ]
+}

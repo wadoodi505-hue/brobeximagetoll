@@ -1,0 +1,7 @@
+Delete these obsolete route override files so the shared [slug] tool page is used:
+- app/tools/blur-background/page.tsx
+- app/tools/remove-background-from-image/page.tsx
+- app/tools/blur-any-object/page.tsx
+- app/tools/make-background-transparent/page.tsx
+
+Do not delete the folders or other files unless they are empty. The ZIP does not contain these old route files.

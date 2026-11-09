@@ -1,5 +1,6 @@
 import type { ToolGuideData } from "@/components/tool-guide";
 import signatureGeneratorGuide from "@/content/tool-guides/signature-generator.json";
+import guide107 from "@/content/tool-guides/blur-image.json";
 import guide0 from "@/content/tool-guides/remove-background-from-image.json";
 import guide1 from "@/content/tool-guides/upscale-image.json";
 import guide2 from "@/content/tool-guides/colorize-photo.json";
@@ -114,6 +115,7 @@ import convertMbToKbGuide from "@/content/tool-guides/convert-mb-to-kb.json";
 import convertKbToMbGuide from "@/content/tool-guides/convert-kb-to-mb.json";
 
 export const toolGuides: Record<string, ToolGuideData> = {
+  "blur-image": guide107,
   "signature-generator": signatureGeneratorGuide,
   "increase-image-file-size": increaseImageFileSizeGuide,
   "convert-mb-to-kb": convertMbToKbGuide,

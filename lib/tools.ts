@@ -59,9 +59,20 @@ export const tools: ToolDefinition[] = [
     "status": "browser"
   },
   {
+    slug: "blur-image",
+    name: "Blur Image",
+    description: "Apply adjustable Gaussian blur to the entire image with a live preview and local export.",
+    category: "image",
+    icon: "Image",
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/avif"],
+    method: "Local browser Canvas API Gaussian blur",
+    status: "browser",
+    operation: "blur"
+  },
+  {
     "slug": "blur-any-object",
-    "name": "Blur Any Object",
-    "description": "Paint over any object or area to apply adjustable blur with a brush and eraser.",
+    "name": "Remove Object from Photo",
+    "description": "Select unwanted objects with a brush and use the browser inpainting workspace to reconstruct the selected area.",
     "category": "image",
     "icon": "Brush",
     "acceptedTypes": [
