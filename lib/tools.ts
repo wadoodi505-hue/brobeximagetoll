@@ -1,4 +1,4 @@
-import type { ToolDefinition, Category } from "@/types/tools";
+﻿import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
     slug: "upscale-image",
     name: "Upscale Image",
     description:
-      "Increase pixel dimensions by 2Ã—, 3Ã—, or 4Ã— using browser resampling. This enlarges the image but does not recreate missing detail.",
+      "Increase pixel dimensions by 2Ãƒâ€”, 3Ãƒâ€”, or 4Ãƒâ€” using browser resampling. This enlarges the image but does not recreate missing detail.",
     category: "image",
     icon: "WandSparkles",
     acceptedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"],
@@ -1189,15 +1189,17 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "increase-image-file-size",
     "name": "Increase Image File Size",
-    "description": "Increase an image's exported file size using adjustable encoding quality and image scaling.",
+    "description": "Increase an image file's size to meet a minimum file-size requirement without resizing the original image.",
     "category": "image",
     "icon": "FileImage",
     "acceptedTypes": [
       "image/jpeg",
       "image/png",
-      "image/webp"
+      "image/webp",
+      "image/gif",
+      "image/avif"
     ],
-    "method": "Local browser Canvas API",
+    "method": "Local browser image processing with format-aware metadata padding and Canvas conversion",
     "status": "browser"
   },
   {
@@ -1256,7 +1258,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "compress-jpeg-between-20kb-to-50kb",
-    name: "Compress 20KBâ€“50KB",
+    name: "Compress 20KBÃ¢â‚¬â€œ50KB",
     description: "Compress an image to 50 KB or less while retaining original dimensions whenever the target can be met.",
     category: "image",
     icon: "FileImage",
@@ -1504,6 +1506,7 @@ export const categories: { id: Category; label: string; href: string; descriptio
   { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
+
 
 
 
