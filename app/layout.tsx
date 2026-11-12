@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
@@ -20,10 +19,6 @@ export const metadata: Metadata = {
     "Use free online image tools to edit, resize, crop, compress, convert, and optimize images. Explore practical browser-based utilities from BROBEX.",
 
   applicationName: "BROBEX Image Tools",
-
-  other: {
-    "google-adsense-account": "ca-pub-2771980465268081",
-  },
 
   alternates: {
     canonical: "/",
@@ -73,6 +68,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta
+          name="google-adsense-account"
+          content="ca-pub-2771980465268081"
+        />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2771980465268081"
+          crossOrigin="anonymous"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `try { var savedTheme = localStorage.getItem("brobex-theme"); var preferredTheme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.dataset.theme = preferredTheme; } catch (e) { document.documentElement.dataset.theme = "light"; }`,
@@ -85,7 +89,6 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </ThemeProvider>
-                <Script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2771980465268081" crossOrigin="anonymous" strategy="beforeInteractive" />
         <Analytics />
       </body>
     </html>
