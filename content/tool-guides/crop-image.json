@@ -3,40 +3,53 @@
   "title": "Crop Image",
   "keywords": [
     "crop image",
-    "image editing",
+    "online image cropper",
+    "aspect ratio crop",
+    "circle crop",
+    "triangle crop",
+    "hexagon crop",
+    "exact pixel crop",
     "BROBEX Image Studio"
   ],
-  "about": "Crop Image is a focused BROBEX Image Studio tool for image editing. Crop an image using coordinates and dimensions It is intended for people who need a practical way to prepare, inspect, or transform digital content without navigating an unrelated editor. The exact result depends on the source file, the controls exposed by this page, and the processing method used by the current implementation. Review the workspace before selecting a file so the input and expected output are clear.",
+  "about": "Crop photos and graphics with precise framing controls. Drag the selection to reposition it, resize its edges and corners, or enter exact X and Y coordinates and output dimensions in source pixels. Choose a free crop, square, common social-media and photo aspect ratios, or a circle, triangle or hexagon cutout. Processing runs locally in your browser; your original file is not changed.",
   "steps": [
-    "Read the accepted file types and upload limits displayed in the workspace before starting.",
-    "Select a source file using the file picker or drag-and-drop area when supported. Confirm the preview matches the file you intended to edit.",
-    "Review the controls provided by this exact tool. Adjust only the settings that are available; other BROBEX tools may have different controls.",
-    "Start the operation and wait for the actual processing result. Browser-based operations depend on device memory and supported browser APIs; integration-dependent operations require their configured service.",
-    "Inspect the output preview and check edges, colors, transparency, dimensions, or layout as relevant to this operation. Download the result when the workspace provides a working download action."
+    "Upload a JPG, PNG or WebP image up to the workspace limit, or drop it into the upload area.",
+    "Choose Free, 1:1 Square, 16:9, 9:16, 4:5, 4:3, 3:2, Triangle, Hexagon or Circle.",
+    "Drag inside the selection to move it. Drag a corner or edge handle to resize it; use the X, Y, Width and Height fields for exact pixel values.",
+    "Review the output dimensions and choose PNG, JPG or WebP for rectangular crops. Circle, triangle and hexagon crops export as PNG to preserve transparency.",
+    "Select Crop Image, inspect the result, then download your cropped copy. The source image remains unchanged."
   ],
-  "capabilities": "The registered processing method for this tool is Canvas API. The tool accepts the formats listed in the workspace. Its intended task is crop an image using coordinates and dimensions. Only controls and output choices visible in the current workspace should be treated as supported. The tool does not silently add unrelated editing features, and an operation that needs a provider cannot be considered available until that integration is configured and tested.",
-  "benefits": "This workflow can make a repetitive image editing task more approachable by keeping the relevant action in one place. It may be useful when preparing images for websites, forms, documents, presentations, archives, or everyday sharing, depending on the selected operation. Working from a copy is recommended whenever the original file is important. A quick review of the output helps catch quality changes, unsupported content, or formatting differences before the file is used elsewhere.",
-  "limitations": "Supported input types are the formats listed in the workspace. Browser processing can be affected by device memory, browser version, image dimensions, and file complexity. This tool is registered as browser-based, but its provider-dependent behavior must still be checked against the actual workspace before relying on it. Conversion and compression can change quality, metadata, transparency, color handling, or layout. Always verify the exported file in its intended destination. BROBEX cannot guarantee acceptance by third-party services or official application portals.",
+  "capabilities": "The Crop Image workspace supports freeform rectangular cropping, square cropping, 16:9 landscape, 9:16 portrait, 4:5 portrait, 4:3 and 3:2 aspect ratios, plus circular, triangular and hexagonal transparent cutouts. The selection can be moved and resized with pointer or touch input. Exact X position, Y position, width and height are available in source-image pixels. Rectangular crops can be exported as PNG, JPG or WebP; lossy formats include a quality control. Shaped crops export as PNG to preserve transparent exterior pixels. Cropping and encoding use the browser Canvas API on the user's device.",
+  "benefits": "Prepare profile pictures, social posts, stories, thumbnails, product images, document photos and creative assets with a consistent frame. Aspect-ratio presets reduce unwanted platform cropping, while exact pixel controls help match required dimensions. Transparent shape exports are useful for profile graphics, stickers and layered designs.",
+  "limitations": "Cropping removes pixels outside the selected area; it does not enlarge or sharpen the remaining image. The output cannot contain more source detail than the selected region. JPG does not support transparency, so circle, triangle and hexagon exports are PNG. Large images may take longer to process depending on browser memory and device performance. The original file is not overwritten.",
   "faqs": [
     {
-      "question": "What does Crop Image do?",
-      "answer": "Crop an image using coordinates and dimensions"
+      "question": "Can I crop to an exact pixel size?",
+      "answer": "Yes. Enter the X position, Y position, width and height in pixels. The selection and output dimensions update to match the values within the source image boundaries."
     },
     {
-      "question": "Which files can I use?",
-      "answer": "Use only supported files. The registered accepted types are the formats listed in the workspace; the workspace may also show additional upload limits or browser restrictions."
+      "question": "Which aspect ratios are available?",
+      "answer": "Free, 1:1, 16:9, 9:16, 4:5, 4:3 and 3:2 are available, along with triangle, hexagon and circle shapes."
     },
     {
-      "question": "How do I get the best result?",
-      "answer": "Start with a clear, correctly oriented source file and review the available settings before processing. Inspect the actual output rather than relying only on the preview or filename."
+      "question": "Can I move and resize the crop area?",
+      "answer": "Yes. Drag inside the selected frame to move it. Drag its edge or corner handles to resize it. You can also focus the frame and use the arrow keys for precise movement; hold Shift to move in larger steps."
     },
     {
-      "question": "Will the result always match the original quality?",
-      "answer": "Not necessarily. Editing, conversion, resizing, and compression can affect detail, color, transparency, metadata, or layout. Keep an untouched copy of important source files."
+      "question": "Can I download a circular or shaped crop with transparent corners?",
+      "answer": "Yes. Circle, triangle and hexagon crops are exported as PNG so the pixels outside the shape remain transparent."
     },
     {
-      "question": "Is processing available right now?",
-      "answer": "The registry identifies this tool as browser-based. Availability still depends on the controls and processing path currently present in its workspace; do not treat a result as complete unless the tool produces it."
+      "question": "Which output formats can I use?",
+      "answer": "Rectangular crops support PNG, JPG and WebP. PNG preserves image data without lossy compression, while JPG and WebP offer adjustable quality. Shaped crops use PNG for transparency."
+    },
+    {
+      "question": "Does cropping change my original image?",
+      "answer": "No. BROBEX creates a separate cropped download in your browser. Your original file remains unchanged."
+    },
+    {
+      "question": "Does cropping improve image quality?",
+      "answer": "No. Cropping changes the framing by removing pixels around the selected area. It does not add detail or increase resolution."
     }
   ]
 }

@@ -53,57 +53,6 @@ type Metadata = {
 };
 
 type PreviewMode = "compare" | "original" | "enhanced";
-function getCropPreviewClipPath(
-  mode: string,
-  x: number,
-  y: number,
-  cropWidth: number,
-  cropHeight: number,
-  imageWidth: number,
-  imageHeight: number,
-): string {
-  const px = (value: number) => (value / imageWidth) * 100;
-  const py = (value: number) => (value / imageHeight) * 100;
-
-  const left = px(x);
-  const top = py(y);
-  const right = px(x + cropWidth);
-  const bottom = py(y + cropHeight);
-
-  const centerX = px(x + cropWidth / 2);
-  const centerY = py(y + cropHeight / 2);
-
-  if (mode === "circle") {
-    return `ellipse(${px(cropWidth / 2)}% ${py(cropHeight / 2)}% at ${centerX}% ${centerY}%)`;
-  }
-
-  if (mode === "triangle-crop") {
-    return `polygon(
-      ${centerX}% ${top}%,
-      ${right}% ${bottom}%,
-      ${left}% ${bottom}%
-    )`;
-  }
-
-  if (mode === "shape-crop") {
-    return `polygon(
-      ${px(x + cropWidth * 0.25)}% ${top}%,
-      ${px(x + cropWidth * 0.75)}% ${top}%,
-      ${right}% ${centerY}%,
-      ${px(x + cropWidth * 0.75)}% ${bottom}%,
-      ${px(x + cropWidth * 0.25)}% ${bottom}%,
-      ${left}% ${centerY}%
-    )`;
-  }
-
-  return `polygon(
-    ${left}% ${top}%,
-    ${right}% ${top}%,
-    ${right}% ${bottom}%,
-    ${left}% ${bottom}%
-  )`;
-}
-
 export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [file, setFile] = useState<File | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -126,6 +75,9 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [cropH, setCropH] = useState(600);
   type CropMode = "crop" | "square-crop" | "aspect-ratio-crop" | "triangle-crop" | "shape-crop" | "circle";
   const [cropMode, setCropMode] = useState<CropMode>("crop");
+  const [cropAspectRatio, setCropAspectRatio] = useState(16 / 9);
+  const [cropFormat, setCropFormat] = useState("image/png");
+  const [cropQuality, setCropQuality] = useState(92);
   const cropStageRef = useRef<HTMLDivElement>(null);
 
   const cropDragRef = useRef<{
@@ -138,8 +90,10 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     h: number;
   } | null>(null);
 
-  function selectCropMode(next: CropMode) {
+  function selectCropMode(next: CropMode, ratio = 16 / 9) {
     setCropMode(next);
+    if (next === "aspect-ratio-crop") setCropAspectRatio(ratio);
+    if (["circle", "triangle-crop", "shape-crop"].includes(next)) setCropFormat("image/png");
     if (width < 1 || height < 1) return;
 
     let nextW = width;
@@ -154,7 +108,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
       nextW = Math.min(width, height);
       nextH = nextW;
     } else if (next === "aspect-ratio-crop") {
-      const ratio = 16 / 9;
       if (width / height > ratio) {
         nextH = height;
         nextW = Math.round(height * ratio);
@@ -169,6 +122,36 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     setCropX(Math.floor((width - nextW) / 2));
     setCropY(Math.floor((height - nextH) / 2));
   }
+
+  function updateCropField(field: "x" | "y" | "width" | "height", rawValue: number) {
+    if (!Number.isFinite(rawValue)) return;
+    const value = Math.floor(rawValue);
+    const ratio = cropMode === "aspect-ratio-crop" ? cropAspectRatio :
+      ["square-crop", "circle", "triangle-crop", "shape-crop"].includes(cropMode) ? 1 : null;
+
+    if (field === "x") {
+      setCropX(Math.max(0, Math.min(Math.max(0, width - cropW), value)));
+      return;
+    }
+    if (field === "y") {
+      setCropY(Math.max(0, Math.min(Math.max(0, height - cropH), value)));
+      return;
+    }
+    if (field === "width") {
+      const maxWidth = Math.max(1, width - cropX);
+      const maxByHeight = ratio ? Math.floor((height - cropY) * ratio) : maxWidth;
+      const nextWidth = Math.max(1, Math.min(maxWidth, maxByHeight, value));
+      setCropW(nextWidth);
+      if (ratio) setCropH(Math.max(1, Math.min(height - cropY, Math.round(nextWidth / ratio))));
+      return;
+    }
+    const maxHeight = Math.max(1, height - cropY);
+    const maxByWidth = ratio ? Math.floor((width - cropX) / ratio) : maxHeight;
+    const nextHeight = Math.max(1, Math.min(maxHeight, maxByWidth, value));
+    setCropH(nextHeight);
+    if (ratio) setCropW(Math.max(1, Math.min(width - cropX, Math.round(nextHeight * ratio))));
+  }
+
   function beginCropDrag(
     event: React.PointerEvent,
     mode: string,
@@ -219,7 +202,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
       cropMode === "shape-crop"
         ? 1
         : cropMode === "aspect-ratio-crop"
-          ? 16 / 9
+          ? cropAspectRatio
           : null;
 
     let x = drag.x;
@@ -309,7 +292,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     cropDragRef.current = null;
   }
 
-  const [flipX, setFlipX] = useState(false);
+  const [flipX, setFlipX] = useState(true);
   const [flipY, setFlipY] = useState(false);
   const [text, setText] = useState("");
   const [textSize, setTextSize] = useState(36);
@@ -334,7 +317,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   // Professional before/after comparison.
   const [comparison, setComparison] = useState(50);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("compare");
-  const cropPreviewMode = true;
 
   const [metadata, setMetadata] = useState<Metadata | null>(null);
 
@@ -511,8 +493,12 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     image.onload = () => {
       setWidth(image.naturalWidth);
       setHeight(image.naturalHeight);
+      setCropX(0);
+      setCropY(0);
       setCropW(image.naturalWidth);
       setCropH(image.naturalHeight);
+      setCropMode("crop");
+      setCropAspectRatio(16 / 9);
       URL.revokeObjectURL(url);
     };
 
@@ -546,12 +532,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
-    // A newly uploaded image must remain unchanged until the user enables a flip.
-    if (tool.slug === "flip-image") {
-      setFlipX(false);
-      setFlipY(false);
-      setRotation(0);
-    }
     setFile(next);
     setFiles([next]);
     setPreview(URL.createObjectURL(next));
@@ -580,12 +560,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
-    // Keep the original orientation when a new image is uploaded to Rotate & Flip.
-    if (tool.slug === "flip-image") {
-      setFlipX(false);
-      setFlipY(false);
-      setRotation(0);
-    }
     setFiles(chosen);
     setFile(chosen[0]);
     setPreview(URL.createObjectURL(chosen[0]));
@@ -783,12 +757,13 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
         operation: op,
         width: outputWidth,
         height: outputHeight,
-        quality: quality / 100,
-        format,
+        quality: tool.slug === "crop-image" ? cropQuality / 100 : quality / 100,
+        format: tool.slug === "crop-image" && ["circle", "triangle-crop", "shape-crop"].includes(cropMode) ? "image/png" : tool.slug === "crop-image" ? cropFormat : format,
         cropX,
         cropY,
         cropWidth: cropW,
         cropHeight: cropH,
+        aspectRatio: cropAspectRatio,
         flipX,
         flipY,
         text,
@@ -820,6 +795,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
       if (op === "unblur") {
         setMessage(
           `Enhancement complete: ${output.width} × ${output.height} pixels. PNG output · ${formatBytes(output.blob.size)}. Your image was processed locally.`,
+        );
+      } else if (tool.slug === "crop-image") {
+        const outputFormat = output.mime === "image/jpeg" ? "JPG" : output.mime === "image/webp" ? "WebP" : "PNG";
+        setMessage(
+          `Crop complete · ${output.width} × ${output.height} px · ${outputFormat} · ${formatBytes(output.blob.size)}. Your original image is unchanged.`,
         );
       } else {
         setMessage(
@@ -889,9 +869,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     const suffix =
       tool.slug === "compress-image-size"
         ? "-compressed"
-        : op === "unblur"
-          ? "-enhanced-4k"
-          : "-processed";
+        : tool.slug === "crop-image"
+          ? "-cropped"
+          : op === "unblur"
+            ? "-enhanced-4k"
+            : "-processed";
 
     return `${baseName}${suffix}.${extension}`;
   }, [file, resultBlob, format, op, tool.slug]);
@@ -912,13 +894,17 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
           <h2>
             {op === "unblur"
               ? "Unblur & enhance to 4K"
-              : "Upload and process"}
+              : tool.slug === "crop-image"
+                ? "Upload an image to crop"
+                : "Upload and process"}
           </h2>
 
           <p>
             {op === "unblur"
               ? "One-click sharpening, controlled noise reduction and UHD-sized export in your browser."
-              : "Your image stays in this browser for supported operations."}
+              : tool.slug === "crop-image"
+                ? "Frame your image precisely with drag handles, aspect-ratio presets and pixel-level controls."
+                : "Your image stays in this browser for supported operations."}
           </p>
         </div>
 
@@ -1288,40 +1274,41 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                 <div className="preview-sticky-region">
                   {tool.slug === "crop-image" && (
                     <div className="crop-mode-selector" aria-label="Choose crop shape">
-                      {([
-                        ["crop", "Free"],
-                        ["square-crop", "Square"],
-                        ["aspect-ratio-crop", "16:9"],
-                        ["triangle-crop", "Triangle"],
-                        ["shape-crop", "Hexagon"],
-                        ["circle", "Circle"],
-                      ] as [CropMode, string][]).map(([mode, label]) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          className={`crop-mode-button ${cropMode === mode ? "active" : ""}`}
-                          disabled={busy}
-                          aria-pressed={cropMode === mode}
-                          onClick={() => selectCropMode(mode)}
-                        >
-                          <svg viewBox="0 0 32 32" aria-hidden="true">
-                            {mode === "circle" ? (
-                              <circle cx="16" cy="16" r="11" />
-                            ) : mode === "triangle-crop" ? (
-                              <polygon points="16,4 28,27 4,27" />
-                            ) : mode === "shape-crop" ? (
-                              <polygon points="9,4 23,4 30,16 23,28 9,28 2,16" />
-                            ) : mode === "aspect-ratio-crop" ? (
-                              <rect x="3" y="8" width="26" height="16" rx="2" />
-                            ) : mode === "square-crop" ? (
-                              <rect x="5" y="5" width="22" height="22" rx="2" />
-                            ) : (
-                              <rect x="3" y="3" width="26" height="26" rx="2" />
-                            )}
-                          </svg>
-                          <span>{label}</span>
-                        </button>
-                      ))}
+                      {[
+                        { key: "free", mode: "crop" as CropMode, label: "Free", icon: "free" },
+                        { key: "square", mode: "square-crop" as CropMode, label: "1:1 Square", icon: "square" },
+                        { key: "16-9", mode: "aspect-ratio-crop" as CropMode, ratio: 16 / 9, label: "16:9", icon: "wide" },
+                        { key: "9-16", mode: "aspect-ratio-crop" as CropMode, ratio: 9 / 16, label: "9:16", icon: "tall" },
+                        { key: "4-5", mode: "aspect-ratio-crop" as CropMode, ratio: 4 / 5, label: "4:5", icon: "tall" },
+                        { key: "4-3", mode: "aspect-ratio-crop" as CropMode, ratio: 4 / 3, label: "4:3", icon: "wide" },
+                        { key: "3-2", mode: "aspect-ratio-crop" as CropMode, ratio: 3 / 2, label: "3:2", icon: "wide" },
+                        { key: "triangle", mode: "triangle-crop" as CropMode, label: "Triangle", icon: "triangle" },
+                        { key: "hexagon", mode: "shape-crop" as CropMode, label: "Hexagon", icon: "hexagon" },
+                        { key: "circle", mode: "circle" as CropMode, label: "Circle", icon: "circle" },
+                      ].map((preset) => {
+                        const active = cropMode === preset.mode && (preset.mode !== "aspect-ratio-crop" || cropAspectRatio === preset.ratio);
+                        return (
+                          <button
+                            key={preset.key}
+                            type="button"
+                            className={`crop-mode-button ${active ? "active" : ""}`}
+                            disabled={busy}
+                            aria-pressed={active}
+                            onClick={() => selectCropMode(preset.mode, preset.ratio)}
+                          >
+                            <svg viewBox="0 0 32 32" aria-hidden="true">
+                              {preset.icon === "circle" ? <circle cx="16" cy="16" r="11" /> :
+                               preset.icon === "triangle" ? <polygon points="16,4 28,27 4,27" /> :
+                               preset.icon === "hexagon" ? <polygon points="9,4 23,4 30,16 23,28 9,28 2,16" /> :
+                               preset.icon === "square" ? <rect x="5" y="5" width="22" height="22" rx="2" /> :
+                               preset.icon === "tall" ? <rect x="8" y="3" width="16" height="26" rx="2" /> :
+                               preset.icon === "wide" ? <rect x="3" y="8" width="26" height="16" rx="2" /> :
+                               <rect x="3" y="3" width="26" height="26" rx="2" />}
+                            </svg>
+                            <span>{preset.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                   <div className="panel-heading">
@@ -1348,6 +1335,16 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                           <div
                             className={`crop-selection crop-selection-${cropMode}`}
                             data-crop-mode={cropMode}
+                            role="group"
+                            tabIndex={0}
+                            aria-label="Crop selection. Use arrow keys to move the crop area; hold Shift to move faster."
+                            onKeyDown={(event) => {
+                              const step = event.shiftKey ? 10 : 1;
+                              if (event.key === "ArrowLeft") { event.preventDefault(); setCropX((value) => Math.max(0, value - step)); }
+                              if (event.key === "ArrowRight") { event.preventDefault(); setCropX((value) => Math.min(width - cropW, value + step)); }
+                              if (event.key === "ArrowUp") { event.preventDefault(); setCropY((value) => Math.max(0, value - step)); }
+                              if (event.key === "ArrowDown") { event.preventDefault(); setCropY((value) => Math.min(height - cropH, value + step)); }
+                            }}
                             style={{
                               clipPath: cropMode === "circle" ? "circle(50%)" : cropMode === "triangle-crop" ? "polygon(50% 0%, 100% 100%, 0% 100%)" : cropMode === "shape-crop" ? "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)" : "none",
                               left: `${(cropX / Math.max(1, width)) * 100}%`,
@@ -1379,7 +1376,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                       </div>
 
                       <p className="hint">
-                        Drag inside the frame to move it. Drag its edges or corners to resize.
+                        Drag inside the frame to move it; drag an edge or corner to resize. Focus the frame and use arrow keys to nudge 1 px, or Shift + arrow for 10 px.
                       </p>
                     </>
                   ) : (
@@ -1406,31 +1403,15 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                         )}
                     </div>
                   )}
-                  <div className={`preview-canvas ${op === "text" || op === "flip" ? "text-editor-hidden-preview" : ""}`}>
-                    {preview && (
-                      <div className="crop-preview-stage">
-                          <img
-                            src={preview}
-                            alt="Live shape crop preview"
-                            style={
-                              cropPreviewMode
-                                ? {
-                                  clipPath: getCropPreviewClipPath(
-                                    cropMode,
-                                    cropX,
-                                    cropY,
-                                    cropW,
-                                    cropH,
-                                    Math.max(1, width),
-                                    Math.max(1, height),
-                                  ),
-                                }
-                                : undefined
-                            }
-                          />
-                      </div>
-                    )}
-                  </div>
+                  {!(["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "")) && (
+                    <div className={`preview-canvas ${op === "text" || op === "flip" ? "text-editor-hidden-preview" : ""}`}>
+                      {preview && (
+                        <div className="crop-preview-stage">
+                          <img src={preview} alt="Live image preview" />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 </div>
 
@@ -1496,74 +1477,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     </section>
                   )}
 
-                  {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && (
-                    <div className="settings-grid crop-controls">
-                      <div className="crop-controls-heading">
-                        <strong>Crop dimensions</strong>
-                        <span>Fine-tune your selection in pixels.</span>
-                      </div>
 
-                      {(
-                        [
-                          ["X position", cropX, setCropX, width],
-                          ["Y position", cropY, setCropY, height],
-                          ["Width (px)", cropW, setCropW, width - cropX],
-                          ["Height (px)", cropH, setCropH, height - cropY],
-                        ] as [
-                          string,
-                          number,
-                          (value: number) => void,
-                          number,
-                        ][]
-                      ).map(([label, value, setter, max]) => (
-                        <label key={label}>
-                          {label}
-                          <input
-                            type="number"
-                            min={label.includes("position") ? 0 : 1}
-                            max={Math.max(1, max)}
-                            step="1"
-                            value={value}
-                            disabled={busy}
-                            onChange={(event) => {
-                              const next = Number(event.target.value);
-                              if (!Number.isFinite(next)) return;
-
-                              const limit = Math.max(0, max);
-
-                              setter(
-                                Math.max(
-                                  label.includes("position") ? 0 : 1,
-                                  Math.min(limit, Math.floor(next)),
-                                ),
-                              );
-                            }}
-                          />
-                        </label>
-                      ))}
-
-                      <div className="crop-actions">
-                        <button
-                          type="button"
-                          className="button button-light"
-                          disabled={busy}
-                          onClick={() => {
-                            setCropX(0);
-                            setCropY(0);
-                            setCropW(width);
-                            setCropH(height);
-                          }}
-                        >
-                          <RotateCcw size={14} />
-                          Reset selection
-                        </button>
-
-                        <span>
-                          {cropW} × {cropH} px
-                        </span>
-                      </div>
-                    </div>
-                  )}
 
               </>
             )}
@@ -1750,60 +1664,94 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
             )}
 
 
-            {["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "") && (
-              <div className="settings-grid crop-controls">
+            {tool.slug === "crop-image" && (
+              <section className="crop-controls" aria-labelledby="crop-settings-title">
                 <div className="crop-controls-heading">
-                  <strong>Crop settings</strong>
-                  <span>Set the exact area you want to keep.</span>
+                  <span className="eyebrow">PRECISE FRAMING</span>
+                  <strong id="crop-settings-title">Crop dimensions</strong>
+                  <span>Fine-tune the selection using exact source-image pixels.</span>
                 </div>
 
-                {(
-                  [
-                    ["X position", cropX, setCropX],
-                    ["Y position", cropY, setCropY],
-                    ["Width (px)", cropW, setCropW],
-                    ["Height (px)", cropH, setCropH],
-                  ] as [string, number, (value: number) => void][]
-                ).map(([label, value, setter]) => (
-                  <label key={label}>
-                    {label}
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={value}
-                      onChange={(event) =>
-                        setter(Math.max(0, Math.floor(Number(event.target.value) || 0)))
-                      }
-                    />
-        </label>
-                ))}
+                <div className="crop-coordinate-grid">
+                  {[
+                    { label: "X position", value: cropX, max: Math.max(0, width - cropW) },
+                    { label: "Y position", value: cropY, max: Math.max(0, height - cropH) },
+                    { label: "Width", value: cropW, max: Math.max(1, width - cropX) },
+                    { label: "Height", value: cropH, max: Math.max(1, height - cropY) },
+                  ].map((field) => (
+                    <label key={field.label}>
+                      <span>{field.label}</span>
+                      <div className="crop-number-field">
+                        <input
+                          type="number"
+                          min={field.label.includes("position") ? 0 : 1}
+                          max={field.max}
+                          step="1"
+                          value={field.value}
+                          disabled={busy}
+                          onChange={(event) => {
+                            const parsed = Number(event.target.value);
+                            if (!Number.isFinite(parsed)) return;
+                            const key = field.label === "X position" ? "x" : field.label === "Y position" ? "y" : field.label === "Width" ? "width" : "height";
+                            updateCropField(key, parsed);
+                          }}
+                        />
+                        <small>px</small>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="crop-output-summary">
+                  <span>Output dimensions</span>
+                  <strong>{cropW} × {cropH} px</strong>
+                  <span>Source: {width} × {height} px</span>
+                </div>
+
+                <div className="crop-export-settings">
+                  <label>
+                    <span>Export format</span>
+                    <select
+                      value={cropFormat}
+                      onChange={(event) => setCropFormat(event.target.value)}
+                      disabled={busy || ["circle", "triangle-crop", "shape-crop"].includes(cropMode)}
+                    >
+                      <option value="image/png">PNG · Lossless</option>
+                      <option value="image/jpeg">JPG · Smaller file</option>
+                      <option value="image/webp">WebP · Efficient</option>
+                    </select>
+                  </label>
+                  {!["circle", "triangle-crop", "shape-crop"].includes(cropMode) && cropFormat !== "image/png" && (
+                    <label className="crop-quality-control">
+                      <span>Quality <strong>{cropQuality}%</strong></span>
+                      <input type="range" min="50" max="100" step="1" value={cropQuality} onChange={(event) => setCropQuality(Number(event.target.value))} disabled={busy} />
+                    </label>
+                  )}
+                  {["circle", "triangle-crop", "shape-crop"].includes(cropMode) && (
+                    <p className="crop-transparency-note">Shaped crops are exported as PNG to preserve transparent corners.</p>
+                  )}
+                </div>
 
                 <div className="crop-actions">
                   <button
                     type="button"
+                    className="button button-light"
+                    disabled={busy}
                     onClick={() => {
                       setCropX(0);
                       setCropY(0);
-                      if (preview) {
-                        const image = new Image();
-                        image.onload = () => {
-                          setCropW(image.naturalWidth);
-                          setCropH(image.naturalHeight);
-                        };
-                        image.src = preview;
-                      }
+                      setCropW(width);
+                      setCropH(height);
+                      setCropMode("crop");
                     }}
                   >
+                    <RotateCcw size={14} />
                     Reset crop
                   </button>
-                  <span>
-                    Output: {cropW} × {cropH} px
-                  </span>
+                  <span>Drag the frame to reposition it</span>
                 </div>
-              </div>
+              </section>
             )}
-
 
             {op === "flip" && (
               <>
@@ -2022,6 +1970,8 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                     <WandSparkles size={16} />
                     Enhance to 4K
                   </>
+                ) : tool.slug === "crop-image" ? (
+                  "Crop image"
                 ) : (
                   "Process image"
                 )}
@@ -2045,7 +1995,13 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                 download={outputName}
               >
                 <Download size={16} />
-                {op === "png-to-svg" ? "Download SVG file" : "Download compressed image"}
+                {op === "png-to-svg"
+                  ? "Download SVG file"
+                  : tool.slug === "crop-image"
+                    ? "Download cropped image"
+                    : tool.slug === "compress-image-size"
+                      ? "Download compressed image"
+                      : "Download processed image"}
               </a>
             )}
 

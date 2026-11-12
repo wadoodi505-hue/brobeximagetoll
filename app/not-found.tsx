@@ -1,2 +1,16 @@
-import Link from "next/link";
-export default function NotFound(){return <div className="container not-found"><span className="eyebrow">404 · NOT FOUND</span><h1>This tool could not be found.</h1><p>The link may be incorrect, or the tool may have moved.</p><Link className="button button-dark" href="/">Back to Image Tools</Link></div>}
+export default function NotFound() {
+      return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+                  <h2 className="text-2xl font-bold mb-2">Page Not Found</h2>
+                  <p className="text-muted-foreground mb-4">
+                        Could not find the requested resource.
+                  </p>
+                  <a
+                        href="/"
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                  >
+                        Return Home
+                  </a>
+            </div>
+      );
+}

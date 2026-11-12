@@ -178,7 +178,7 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "crop-image",
     "name": "Crop Image",
-    "description": "Crop an image using coordinates and dimensions",
+    "description": "Crop images freely or to popular aspect ratios and custom pixel dimensions. Move and resize the crop frame, create circle, triangle and hexagon cutouts, and export locally.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
@@ -273,13 +273,13 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "add-text-to-image",
     "name": "Add Text to an Image",
-    "description": "Add multiple editable text layers with custom fonts, colors, outlines, shadows, backgrounds, rotation, positioning and high-quality export.",
+    "description": "Add customizable text to an image",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Browser Canvas API (multi-layer text editor and local image export)",
+    "method": "Canvas API",
     "status": "browser",
     "operation": "text"
   },

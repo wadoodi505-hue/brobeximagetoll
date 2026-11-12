@@ -27,6 +27,7 @@ export type ProcessSettings = {
   cropY?: number;
   cropWidth?: number;
   cropHeight?: number;
+  aspectRatio?: number;
   flipX?: boolean;
   flipY?: boolean;
   rotation?: number;
@@ -383,7 +384,9 @@ export async function processImage(
       sh = side;
     }
     if (settings.operation === "aspect-ratio-crop") {
-      const ratio = 16 / 9;
+      const ratio = Number.isFinite(settings.aspectRatio) && (settings.aspectRatio || 0) > 0
+        ? settings.aspectRatio!
+        : 16 / 9;
 
       if (sw / sh > ratio) {
         const adjustedWidth = Math.max(1, Math.round(sh * ratio));
@@ -578,10 +581,32 @@ export async function processImage(
     );
   }
 
-  const type =
-    settings.operation === "compress" || settings.operation === "convert"
-      ? settings.format || "image/webp"
-      : "image/png";
+  const exportCropOperations = [
+    "crop",
+    "square-crop",
+    "aspect-ratio-crop",
+    "triangle-crop",
+    "shape-crop",
+    "circle",
+  ];
+  const isTransparentShape = ["circle", "triangle-crop", "shape-crop"].includes(settings.operation);
+  const type = isTransparentShape
+    ? "image/png"
+    : cropOperations.includes(settings.operation)
+      ? settings.format || "image/png"
+      : settings.operation === "compress" || settings.operation === "convert"
+        ? settings.format || "image/webp"
+        : "image/png";
+
+  // JPEG has no alpha channel. Use a clean white matte rather than allowing
+  // transparent canvas pixels to become browser-dependent black pixels.
+  if (exportCropOperations.includes(settings.operation) && type === "image/jpeg") {
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
 
   if (
     type === "image/png" &&

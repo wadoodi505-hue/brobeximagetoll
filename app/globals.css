@@ -12295,9 +12295,12 @@ body {
   cursor: not-allowed;
 }
 
-.crop-controls,
+.crop-controls {
+  display: grid !important;
+}
+
 .crop-dimensions {
-  display: none !important;
+  display: flex !important;
 }
 
 /* ==========================================================================
@@ -12830,7 +12833,7 @@ body {
 
 .crop-mode-selector {
   display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: stretch;
   justify-content: stretch;
   gap: 8px !important;
@@ -12932,7 +12935,6 @@ body {
   filter: drop-shadow(0 0 3px rgb(0 0 0 / 65%));
 }
 
-.crop-selection-square-crop::before,
 .crop-selection-circle::before {
   border-radius: 50%;
 }
@@ -13015,23 +13017,177 @@ body {
   line-height: 1.5;
 }
 
+/* Precise crop controls and export settings */
+.tool-workspace-shell .settings-panel .crop-controls {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--border, #343434);
+  border-radius: 16px;
+  background: var(--surface, #171717);
+}
+
+.crop-controls-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.crop-controls-heading strong {
+  font-size: 16px;
+  letter-spacing: -.02em;
+}
+
+.crop-controls-heading>span:last-child {
+  color: var(--muted, #888);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.crop-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crop-coordinate-grid label,
+.crop-export-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: var(--foreground, #f4f4f4);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.crop-number-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border, #343434);
+  border-radius: 10px;
+  background: var(--background, #101010);
+}
+
+.crop-number-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 0;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  color: var(--foreground, #f4f4f4);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.crop-number-field small {
+  color: var(--muted, #999);
+  font-size: 11px;
+}
+
+.crop-output-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, #c77b53 35%, var(--border, #343434));
+  border-radius: 11px;
+  background: color-mix(in srgb, #c77b53 8%, var(--surface, #171717));
+  font-size: 11px;
+}
+
+.crop-output-summary strong {
+  color: #d99a76;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.crop-output-summary span:last-child {
+  width: 100%;
+  color: var(--muted, #999);
+}
+
+.crop-export-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.crop-export-settings select {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 1px solid var(--border, #343434);
+  border-radius: 10px;
+  background: var(--background, #101010);
+  color: var(--foreground, #f4f4f4);
+}
+
+.crop-quality-control span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.crop-quality-control input {
+  width: 100%;
+  accent-color: #c77b53;
+}
+
+.crop-transparency-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: color-mix(in srgb, #c77b53 9%, transparent);
+  color: var(--muted, #aaa);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.tool-workspace-shell .settings-panel .crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--muted, #999);
+  font-size: 11px;
+}
+
+.crop-selection:focus-visible {
+  outline: 2px solid #f1b18e;
+  outline-offset: 4px;
+}
+
 @media (max-width: 767px) {
   .crop-mode-selector {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px !important;
   }
 
   .crop-mode-button {
-    min-height: 60px;
-    flex-direction: row !important;
+    min-height: 52px;
+    flex-direction: column !important;
     justify-content: center;
-    gap: 7px !important;
-    padding: 8px !important;
+    gap: 4px !important;
+    padding: 5px 2px !important;
+    font-size: 9px !important;
   }
 
   .crop-mode-button svg {
-    width: 21px !important;
-    height: 21px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 
   .crop-editor-viewport {
@@ -13047,6 +13203,14 @@ body {
   .crop-dimensions {
     align-items: flex-start;
     justify-content: flex-start;
+  }
+
+  .tool-workspace-shell .settings-panel .crop-controls {
+    padding: 14px;
+  }
+
+  .crop-coordinate-grid {
+    gap: 9px;
   }
 }
 
@@ -14372,38 +14536,4 @@ span {
   opacity: 1;
   cursor: pointer;
   pointer-events: auto;
-}
-/* BROBEX responsive AdSense placement — kept outside sticky tool previews. */
-.brobex-adsense-placement {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin: 26px auto;
-  padding: 10px 0;
-  overflow: hidden;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.brobex-adsense-label {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--muted, #71717a);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .14em;
-}
-
-.brobex-adsense-placement .adsbygoogle {
-  display: block;
-  width: 100%;
-  min-height: 90px;
-  margin-inline: auto;
-}
-
-@media (max-width: 520px) {
-  .brobex-adsense-placement {
-    margin: 18px auto;
-    padding-inline: 0;
-  }
 }

@@ -47,7 +47,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Add Text to Image", "add-text-to-image"),
       item("Rotate & Flip Image", "flip-image"),
       item("Add Text to Image", "add-text-to-image"),
-      item("Crop Image", "crop-image", "Free crop, square, 16:9, triangle, hexagon and circular image cropping."),
+      item("Crop Image", "crop-image", "Crop freely or use 1:1, 16:9, 9:16, 4:5, 4:3 and 3:2 presets. Fine-tune pixel dimensions and export transparent shapes."),
       item("Crop Round Corners", "crop-round-corners"),
       item("Resize Image Dimensions", "resize-image-dimensions"),
       item("Combine Multiple Images", "combine-images"),
