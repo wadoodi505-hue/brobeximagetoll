@@ -273,13 +273,13 @@ export const tools: ToolDefinition[] = [
   {
     "slug": "add-text-to-image",
     "name": "Add Text to an Image",
-    "description": "Add customizable text to an image",
+    "description": "Add multiple editable text layers with custom fonts, colors, outlines, shadows, backgrounds, rotation, positioning and high-quality export.",
     "category": "image",
     "icon": "Image",
     "acceptedTypes": [
       "image/*"
     ],
-    "method": "Canvas API",
+    "method": "Browser Canvas API (multi-layer text editor and local image export)",
     "status": "browser",
     "operation": "text"
   },

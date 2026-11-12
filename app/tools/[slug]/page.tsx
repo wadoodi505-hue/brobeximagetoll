@@ -16,6 +16,7 @@ import { ColorizePhotoWorkspace } from "@/components/colorize-photo-workspace";
 import { UpscaleWorkspace } from "@/components/upscale-workspace";
 import { TiffToTextWorkspace } from "@/components/tiff-to-text-workspace";
 import { ImageWorkspace } from "@/components/image-workspace";
+import { AddTextToImageWorkspace } from "@/components/add-text-to-image-workspace";
 import { IncreaseImageFileSizeWorkspace } from "@/components/increase-image-file-size-workspace";
 import { ImageCompressionWorkspace } from "@/components/image-compression-workspace";
 import { FileSizeConverterWorkspace } from "@/components/file-size-converter-workspace";
@@ -33,6 +34,7 @@ import { ToolSearch } from "@/components/tool-search";
 import { getTool, tools, categories } from "@/lib/tools";
 import { getToolGuide } from "@/content/tool-guides";
 import { ToolGuide } from "@/components/tool-guide";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export function generateStaticParams() {
   const toolParams = tools
@@ -173,7 +175,9 @@ export default async function ToolPage({
   ]);
 
   const workspace =
-    advancedToolSlugs.has(tool.slug) ? (
+    tool.slug === "add-text-to-image" ? (
+      <AddTextToImageWorkspace />
+    ) : advancedToolSlugs.has(tool.slug) ? (
       <AdvancedImageToolsWorkspace slug={tool.slug} title={tool.name} />
     ) :
     exactTargetTool ? (
@@ -312,6 +316,8 @@ export default async function ToolPage({
           <div className="tool-workspace-shell">
             {workspace}
           </div>
+
+          <AdSenseUnit />
 
           <div className="privacy-line">
             <span className="privacy-line-mark" aria-hidden="true" />
