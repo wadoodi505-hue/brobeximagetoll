@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 const siteUrl = "https://brobeximagetolls.vercel.app";
 
+
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
@@ -16,9 +18,53 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Use free online image tools to edit, resize, crop, compress, convert, and optimize images. Explore practical browser-based utilities from BROBEX.",
+    "Edit, resize, crop, compress, convert, and optimize images online for free with BROBEX Image Tools. Fast, easy-to-use image utilities for creators, developers, and businesses.",
 
   applicationName: "BROBEX Image Tools",
+
+  authors: [
+    {
+      name: "BROBEX",
+      url: siteUrl,
+    },
+  ],
+
+  creator: "BROBEX",
+  publisher: "BROBEX",
+
+  category: "Technology",
+
+  keywords: [
+    "BROBEX",
+    "BROBEX Image Tools",
+    "free online image tools",
+    "image editor online",
+    "image compressor",
+    "compress image online",
+    "resize image online",
+    "crop image online",
+    "convert image online",
+    "image format converter",
+    "photo editing tools",
+    "online image optimizer",
+    "free photo tools",
+    "image resizer",
+    "PNG tools",
+    "JPG tools",
+    "WebP converter",
+    "browser-based image editor",
+  ],
+
+  icons: {
+    icon: [
+      {
+        url: "/brobex-logo.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/brobex-logo.png",
+    apple: "/brobex-logo.png",
+  },
 
   alternates: {
     canonical: "/",
@@ -28,17 +74,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "BROBEX Image Tools",
+    url: siteUrl,
     title: "Free Online Image Tools | BROBEX Image Tools",
     description:
-      "Edit, resize, crop, compress, and convert images with practical online tools from BROBEX.",
-    url: siteUrl,
+      "Discover free online tools to edit, resize, crop, compress, convert, and optimize images with BROBEX Image Tools.",
+    images: [
+      {
+        url: "/brobex-logo.png",
+        width: 512,
+        height: 512,
+        alt: "BROBEX Image Tools Logo",
+      },
+    ],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Free Online Image Tools | BROBEX Image Tools",
     description:
-      "Explore practical online tools to edit, resize, crop, compress, and convert images.",
+      "Edit, resize, crop, compress, and convert images online for free with BROBEX Image Tools.",
+    images: ["/brobex-logo.png"],
+    creator: "@brobex",
   },
 
   robots: {
@@ -52,7 +108,13 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+
+  other: {
+    "contact:email": "brobex.ffx@gmail.com",
+    "brand": "BROBEX",
+  },
 };
+
 
 export const viewport: Viewport = {
   themeColor: "#ffffff",
