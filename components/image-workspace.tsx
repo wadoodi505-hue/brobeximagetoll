@@ -309,7 +309,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     cropDragRef.current = null;
   }
 
-  const [flipX, setFlipX] = useState(true);
+  const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
   const [text, setText] = useState("");
   const [textSize, setTextSize] = useState(36);
@@ -546,6 +546,12 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
+    // A newly uploaded image must remain unchanged until the user enables a flip.
+    if (tool.slug === "flip-image") {
+      setFlipX(false);
+      setFlipY(false);
+      setRotation(0);
+    }
     setFile(next);
     setFiles([next]);
     setPreview(URL.createObjectURL(next));
@@ -574,6 +580,12 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
+    // Keep the original orientation when a new image is uploaded to Rotate & Flip.
+    if (tool.slug === "flip-image") {
+      setFlipX(false);
+      setFlipY(false);
+      setRotation(0);
+    }
     setFiles(chosen);
     setFile(chosen[0]);
     setPreview(URL.createObjectURL(chosen[0]));
