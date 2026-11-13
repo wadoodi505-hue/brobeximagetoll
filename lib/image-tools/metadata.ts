@@ -1,10 +1,14 @@
 export type ImageMetadataFields = {
+  title?: string;
+  dateTime?: string;
   description?: string;
   artist?: string;
   copyright?: string;
 };
 
 const EXIF_TAGS = {
+  0x010d: "title",
+  0x0132: "dateTime",
   0x010e: "description",
   0x013b: "artist",
   0x8298: "copyright",
@@ -64,6 +68,8 @@ export async function writeJpegExif(file: File, fields: ImageMetadataFields): Pr
     throw new Error("Embedded EXIF editing currently supports JPEG files only. For PNG/WebP, export the metadata sidecar instead.");
   }
   const candidates: Array<[number, string | undefined]> = [
+    [0x010d, fields.title],
+    [0x0132, fields.dateTime],
     [0x010e, fields.description],
     [0x013b, fields.artist],
     [0x8298, fields.copyright],

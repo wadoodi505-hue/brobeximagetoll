@@ -168,7 +168,7 @@ export default async function ToolPage({
   const exactTargetTool = getExactTargetTool(tool.slug);
 
   const advancedToolSlugs = new Set([
-    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata", "view-metadata",
+    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata", "view-metadata", "add-border-to-image",
     "blemishes-remover", "a4-size", "profile-photo-maker", "aspect-ratio-crop",
     "vsd-to-docx", "vsd-to-pptx", "vsd-to-jpg",
     "vsdx-to-docx", "vsdx-to-pptx", "vsdx-to-jpg",

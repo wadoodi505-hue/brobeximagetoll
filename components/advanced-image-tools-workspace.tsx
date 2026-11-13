@@ -16,6 +16,7 @@ const labels: Record<string,string> = {
   "edit-metadata":"Edit Metadata","remove-metadata":"Remove Metadata",
   "blemishes-remover":"Blemishes Remover","a4-size":"A4 Size",
   "profile-photo-maker":"Circular Profile Photo Maker","aspect-ratio-crop":"Aspect Ratio Crop",
+  "add-border-to-image":"Add Image Border",
   "view-metadata":"View Image Properties & Metadata",
 };
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
@@ -42,6 +43,13 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const previewUrl = useRef("");
   const [file,setFile] = useState<File|null>(null);
   const [url,setUrl] = useState("");
+  const [originalUrl,setOriginalUrl] = useState("");
+  const [previewMode,setPreviewMode] = useState<"edited"|"original">("edited");
+  const [canvasRevision,setCanvasRevision] = useState(0);
+  const [borderWidth,setBorderWidth] = useState(24);
+  const [borderColor,setBorderColor] = useState("#ffffff");
+  const [titleField,setTitleField] = useState("");
+  const [dateTime,setDateTime] = useState("");
   const [error,setError] = useState("");
   const [message,setMessage] = useState("");
   const [format,setFormat] = useState<ExportFormat>("image/png");
@@ -58,6 +66,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const [sample,setSample] = useState<Record<string,string>|null>(null);
   const [palette,setPalette] = useState<string[]>([]);
   const [brushSize,setBrushSize] = useState(24);
+  const [brushCursor,setBrushCursor] = useState<{x:number;y:number}|null>(null);
   const [metadata,setMetadata] = useState<Record<string,string>|null>(null);
   const [pkg,setPkg] = useState<VisioPackage|null>(null);
   const [busy,setBusy] = useState(false);
@@ -65,6 +74,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const isProfile = slug === "profile-photo-maker";
 
   useEffect(() => () => { if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); }, []);
+  useEffect(() => () => { if (originalUrl) URL.revokeObjectURL(originalUrl); }, [originalUrl]);
 
   function setPreview(blob: Blob) {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
@@ -73,11 +83,48 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     setUrl(next);
   }
 
+  // Keep the edited preview synchronized with controls; the original remains untouched.
+  useEffect(() => {
+    const source = canvasRef.current;
+    if (!file || !source || !["crop-round-corners", "aspect-ratio-crop", "add-border-to-image"].includes(slug)) return;
+    let cancelled = false;
+    const render = async () => {
+      let out = document.createElement("canvas");
+      out.width = source.width; out.height = source.height;
+      const ctx = out.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(source, 0, 0);
+      if (slug === "crop-round-corners") out = makeRoundedCanvas(out, [radius, radius, radius, radius]);
+      if (slug === "aspect-ratio-crop") {
+        const [rw, rh] = ratio.split(":").map(Number);
+        const w = out.width, h = out.height;
+        let cw = w, ch = Math.round(w * rh / rw);
+        if (ch > h) { ch = h; cw = Math.round(h * rw / rh); }
+        const sx = Math.round((w - cw) * frameX / 100);
+        const sy = Math.round((h - ch) * frameY / 100);
+        const cropped = document.createElement("canvas"); cropped.width = cw; cropped.height = ch;
+        const cctx = cropped.getContext("2d"); if (!cctx) return;
+        cctx.drawImage(out, sx, sy, cw, ch, 0, 0, cw, ch); out = cropped;
+      }
+      if (slug === "add-border-to-image") {
+        const bordered = document.createElement("canvas");
+        bordered.width = out.width + borderWidth * 2; bordered.height = out.height + borderWidth * 2;
+        const bctx = bordered.getContext("2d"); if (!bctx) return;
+        bctx.fillStyle = borderColor; bctx.fillRect(0, 0, bordered.width, bordered.height);
+        bctx.drawImage(out, borderWidth, borderWidth); out = bordered;
+      }
+      const blob = await canvasBlob(out, "image/png");
+      if (!cancelled) setPreview(blob);
+    };
+    void render();
+    return () => { cancelled = true; };
+  }, [file, canvasRevision, slug, radius, ratio, frameX, frameY, borderWidth, borderColor]);
+
   async function choose(next?: File) {
     if (!next || busy) return;
     setError(""); setMessage(""); setMetadata(null); setSample(null); setPalette([]); setPkg(null);
     if (previewUrl.current) { URL.revokeObjectURL(previewUrl.current); previewUrl.current = ""; }
-    setUrl(""); setFile(next);
+    setUrl(""); setOriginalUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setFile(next);
     if (isVisio) {
       setBusy(true);
       try {
@@ -93,7 +140,13 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
       const {canvas} = await imageCanvas(next);
       if (canvas.width * canvas.height > MAX_PIXELS) throw new Error("This image exceeds the 50-megapixel browser processing limit.");
       canvasRef.current = canvas;
-      setPreview(await canvasBlob(canvas,"image/png"));
+      setCanvasRevision((value) => value + 1);
+      const originalBlob = await canvasBlob(canvas,"image/png");
+      const original = URL.createObjectURL(originalBlob);
+      setOriginalUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return original; });
+      setPreviewMode("edited");
+      setRadius(90); setRatio("1:1"); setFrameX(50); setFrameY(50);
+      setPreview(originalBlob);
       if (slug === "view-metadata") {
         const exif = next.type === "image/jpeg" || next.name.toLowerCase().endsWith(".jpg") || next.name.toLowerCase().endsWith(".jpeg")
           ? await readJpegExif(next) : {};
@@ -113,6 +166,8 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
       }
       if (slug === "edit-metadata" && (next.type === "image/jpeg" || /\.jpe?g$/i.test(next.name))) {
         const exif = await readJpegExif(next);
+        setTitleField(exif.title || "");
+        setDateTime(exif.dateTime || "");
         setDescription(exif.description || "");
         setAuthor(exif.artist || "");
         setCopyright(exif.copyright || "");
@@ -141,7 +196,13 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         let cw=w,ch=Math.round(w*rh/rw); if(ch>h){ch=h;cw=Math.round(h*rw/rh);}
         const c=document.createElement("canvas"); c.width=cw;c.height=ch;
         const x=c.getContext("2d"); if(!x)throw new Error("Canvas is unavailable.");
-        x.drawImage(out,(w-cw)/2,(h-ch)/2,cw,ch,0,0,cw,ch);out=c;
+        const sx=Math.round((w-cw)*frameX/100), sy=Math.round((h-ch)*frameY/100);
+        x.drawImage(out,sx,sy,cw,ch,0,0,cw,ch);out=c;
+      }
+      if (slug === "add-border-to-image") {
+        const c=document.createElement("canvas"); c.width=out.width+borderWidth*2; c.height=out.height+borderWidth*2;
+        const x=c.getContext("2d"); if(!x) throw new Error("Canvas is unavailable.");
+        x.fillStyle=borderColor; x.fillRect(0,0,c.width,c.height); x.drawImage(out,borderWidth,borderWidth); out=c;
       }
       if (slug === "a4-size") {
         const dims=a4Dimensions(dpi); const c=document.createElement("canvas");c.width=dims.width;c.height=dims.height;
@@ -169,18 +230,18 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
       const {canvas}=await imageCanvas(file);
       const blob=await canvasBlob(canvas,format);
       downloadBlob(blob,`${safeName(file.name)}-metadata-removed.${format==="image/jpeg"?"jpg":format.split("/")[1]}`);
-      setMessage("A fresh canvas-rendered image was exported. Source metadata segments are not copied into the new file; browser color management may alter color values slightly.");
+      setMessage("Success: a newly encoded image was downloaded without the source EXIF metadata. Browser color management may slightly change pixel values.");
     } catch(e) { setError(e instanceof Error?e.message:"Metadata removal failed."); }
   }
 
   async function editMetadata() {
     if (!file) return;
     try {
-      const fields={description,artist:author,copyright};
+      const fields={title:titleField,dateTime,description,artist:author,copyright};
       if (file.type==="image/jpeg" || /\.jpe?g$/i.test(file.name)) {
         const blob=await writeJpegExif(file,fields);
         downloadBlob(blob,`${safeName(file.name)}-metadata-edited.jpg`);
-        setMessage("Embedded JPEG EXIF description, artist and copyright fields were written. Other EXIF/IPTC/XMP fields are not edited.");
+        setMessage("Success: JPEG EXIF title, date/time, description, author and copyright fields were written. Other EXIF/IPTC/XMP fields are not edited.");
       } else {
         const sidecar={sourceFile:file.name,...fields,createdAt:new Date().toISOString(),note:"This format is not supported for embedded metadata writing in this browser tool. The original image is unchanged."};
         downloadBlob(new Blob([JSON.stringify(sidecar,null,2)],{type:"application/json"}),`${safeName(file.name)}.metadata.json`);
@@ -209,11 +270,12 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     const ctx=c.getContext("2d",{willReadFrequently:true});if(!ctx)return;
     const sx=x-r*2.4>=0?x-r*2.4:Math.min(c.width-1,x+r*2.4);
     const sy=y;
-    const patch=ctx.getImageData(Math.max(0,Math.floor(sx-r)),Math.max(0,Math.floor(sy-r)),Math.max(1,Math.min(c.width-Math.max(0,Math.floor(sx-r)),Math.ceil(r*2))),Math.max(1,Math.min(c.height-Math.max(0,Math.floor(sy-r)),Math.ceil(r*2))));
-    const source=document.createElement("canvas");source.width=patch.width;source.height=patch.height;
-    source.getContext("2d")!.putImageData(patch,0,0);
+    const patch=document.createElement("canvas"); patch.width=Math.max(1,Math.ceil(r*2)); patch.height=Math.max(1,Math.ceil(r*2));
+    const patchCtx=patch.getContext("2d"); if(!patchCtx)return;
+    patchCtx.drawImage(c,Math.max(0,Math.min(c.width-patch.width,Math.floor(sx-r))),Math.max(0,Math.min(c.height-patch.height,Math.floor(sy-r))),patch.width,patch.height,0,0,patch.width,patch.height);
     ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
-    ctx.globalAlpha=0.82;ctx.drawImage(source,0,0,patch.width,patch.height,Math.max(0,x-r),Math.max(0,y-r),r*2,r*2);ctx.restore();
+    ctx.globalAlpha=0.9;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+    ctx.drawImage(patch,Math.max(0,x-r),Math.max(0,y-r),r*2,r*2);ctx.restore();
     setPreview(await canvasBlob(c,"image/png"));
     setMessage("Clone-stamp spot applied. This is a basic local brush, not AI content-aware healing.");
   }
@@ -231,13 +293,32 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     <div className="advanced-tools-head"><span className="advanced-tools-mark"><Wand2 size={19}/></span><div><h2>{titleText}</h2><p>Private, browser-based processing. Your selected files are processed locally.</p></div></div>
     <input ref={input} type="file" hidden accept={isVisio?".vsd,.vsdx,application/vnd.ms-visio.drawing,application/vnd.ms-visio.drawing.main+xml":"image/png,image/jpeg,image/webp,image/gif,image/avif"} onChange={e=>{void choose(e.target.files?.[0]);e.currentTarget.value="";}}/>
     <button className="advanced-upload" type="button" onClick={()=>input.current?.click()}><UploadCloud size={20}/><span>{file?file.name:"Choose a file or click to upload"}</span><small>{isVisio?"VSD / VSDX · inspection only":"JPEG · PNG · WebP · GIF · AVIF · max 30 MB"}</small></button>
-    {file&&!isVisio&&url&&<div className="advanced-preview"><img src={url} alt="Uploaded image preview" onClick={clickHandler} style={{cursor:clickHandler?"crosshair":"default",touchAction:"manipulation"}}/><span>{file.name} · {(file.size/1024).toFixed(1)} KB · {canvasRef.current?.width} × {canvasRef.current?.height}px</span></div>}
+    {file&&!isVisio&&url&&<div className="advanced-preview">
+      {["crop-round-corners","aspect-ratio-crop","add-border-to-image"].includes(slug)&&<div className="advanced-action-row" role="group" aria-label="Preview image">
+        <button type="button" aria-pressed={previewMode==="original"} onClick={()=>setPreviewMode("original")}>Original Image</button>
+        <button type="button" aria-pressed={previewMode==="edited"} onClick={()=>setPreviewMode("edited")}>Edited Image</button>
+      </div>}
+      <div className="advanced-preview-stage" style={{position:"relative",display:"inline-block",maxWidth:"100%"}}
+        onMouseMove={e=>{if(slug!=="blemishes-remover")return;const r=e.currentTarget.getBoundingClientRect();setBrushCursor({x:e.clientX-r.left,y:e.clientY-r.top});}}
+        onMouseLeave={()=>setBrushCursor(null)}>
+        <img src={previewMode==="original"&&originalUrl?originalUrl:url} alt={previewMode==="original"?"Original uploaded image":"Live edited image preview"} onClick={clickHandler} style={{cursor:clickHandler?"crosshair":"default",touchAction:"manipulation",display:"block"}}/>
+        {slug==="blemishes-remover"&&brushCursor&&<span aria-hidden="true" style={{position:"absolute",left:brushCursor.x,top:brushCursor.y,width:brushSize,height:brushSize,border:"1.5px solid currentColor",borderRadius:"50%",transform:"translate(-50%,-50%)",pointerEvents:"none",boxShadow:"0 0 0 1px rgba(255,255,255,.8)"}}/>}
+      </div>
+      <span>{file.name} · {(file.size/1024).toFixed(1)} KB · {canvasRef.current?.width} × {canvasRef.current?.height}px</span></div>}
     {file&&!isVisio&&<div className="advanced-controls">
       {slug==="crop-round-corners"&&<><label>Corner radius <input type="range" min="0" max="500" value={radius} onChange={e=>setRadius(+e.target.value)}/><b>{radius}px</b></label><label>JPEG background <input type="color" value={bg} onChange={e=>setBg(e.target.value)}/></label></>}
+      {slug==="add-border-to-image"&&<><label>Border width <input type="range" min="0" max="200" value={borderWidth} onChange={e=>setBorderWidth(+e.target.value)}/><b>{borderWidth}px</b></label><label>Border color <input type="color" value={borderColor} onChange={e=>setBorderColor(e.target.value)}/></label></>}
       {slug==="aspect-ratio-crop"&&<><label>Aspect ratio <select value={ratio} onChange={e=>setRatio(e.target.value)}>{["1:1","4:3","3:2","16:9","9:16","3:4","2:3","5:4","4:5"].map(v=><option key={v}>{v}</option>)}</select></label><label>Horizontal crop position <input type="range" min="0" max="100" value={frameX} onChange={e=>setFrameX(+e.target.value)}/><b>{frameX}%</b></label><label>Vertical crop position <input type="range" min="0" max="100" value={frameY} onChange={e=>setFrameY(+e.target.value)}/><b>{frameY}%</b></label></>}
       {isProfile&&<><p>Output is always a true transparent circular PNG. Adjust zoom and framing before export.</p><label>Zoom <input type="range" min="1" max="3" step=".05" value={zoom} onChange={e=>setZoom(+e.target.value)}/><b>{zoom.toFixed(2)}×</b></label><label>Horizontal framing <input type="range" min="0" max="100" value={frameX} onChange={e=>setFrameX(+e.target.value)}/><b>{frameX}%</b></label><label>Vertical framing <input type="range" min="0" max="100" value={frameY} onChange={e=>setFrameY(+e.target.value)}/><b>{frameY}%</b></label></>}
       {slug==="a4-size"&&<><label>Print resolution <select value={dpi} onChange={e=>setDpi(+e.target.value)}><option value="150">150 DPI</option><option value="300">300 DPI</option></select></label><label>Page background <input type="color" value={bg} onChange={e=>setBg(e.target.value)}/></label><p>Output page: {a4Dimensions(dpi).width} × {a4Dimensions(dpi).height}px at {dpi} DPI (A4 portrait).</p></>}
-      {slug==="edit-metadata"&&<><label>Image description<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Description"/></label><label>Artist<input value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Author name"/></label><label>Copyright<input value={copyright} onChange={e=>setCopyright(e.target.value)} placeholder="Copyright notice"/></label><p>JPEG files receive embedded EXIF fields. Other formats produce a JSON sidecar; their image binary is not modified.</p></>}
+      {slug==="edit-metadata"&&<div className="metadata-editor" aria-label="Image metadata fields">
+        <p>Update the descriptive metadata below. Embedded EXIF writing is supported for JPEG; other formats receive a downloadable JSON sidecar.</p>
+        <label>Title<input value={titleField} onChange={e=>setTitleField(e.target.value)} placeholder="Image title"/></label>
+        <label>Author<input value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Creator or author"/></label>
+        <label>Description<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe this image"/></label>
+        <label>Copyright<input value={copyright} onChange={e=>setCopyright(e.target.value)} placeholder="Copyright notice"/></label>
+        <label>Date &amp; time<input type="text" value={dateTime} onChange={e=>setDateTime(e.target.value)} placeholder="YYYY:MM:DD HH:MM:SS"/></label>
+      </div>}
       {slug==="view-metadata"&&metadata&&<div className="sample-values"><div><b>Image properties and readable metadata</b>{Object.entries(metadata).map(([k,v])=><span key={k}>{k}: {v}</span>)}</div></div>}
       {slug==="image-color-picker"&&<><p>Tap/click any pixel in the preview to sample its exact source-image color.</p>{sample&&<div className="sample-values"><i style={{background:sample.hex}}/><div><b>{sample.hex}</b><span>{sample.rgb} · {sample.hsl} · {sample.hsv}</span></div><button type="button" onClick={()=>navigator.clipboard.writeText(sample.hex)}><Copy size={15}/> Copy HEX</button></div>}<div className="advanced-action-row">{(["css","json","txt"] as const).map(k=><button key={k} type="button" disabled={!palette.length} onClick={()=>exportPalette(k)}>Export {k.toUpperCase()}</button>)}</div>{palette.length>0&&<div className="palette-swatches">{palette.map(v=><button key={v} title={v} style={{background:v}} onClick={()=>navigator.clipboard.writeText(v)} aria-label={`Copy ${v}`}/>)}</div>}</>}
       {slug==="blemishes-remover"&&<><p>Click/tap a small mark in the preview to apply a local clone-stamp patch. Use small brush sizes for best control; this is not AI healing.</p><label>Brush size <input type="range" min="6" max="80" value={brushSize} onChange={e=>setBrushSize(+e.target.value)}/><b>{brushSize}px</b></label></>}

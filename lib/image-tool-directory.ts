@@ -37,7 +37,7 @@ const curatedToolCategories: DirectoryCategory[] = [
     ]
   },
   {
-    name: "Basic Editing",
+    name: "Image Editing",
     tools: [
       item("Blur Background", "blur-background", "Keep the detected subject sharp while softening the background."),
       item("Remove Background", "remove-background-from-image", "Create a transparent cutout using local browser AI segmentation."),
@@ -49,6 +49,8 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Add Text to Image", "add-text-to-image"),
       item("Crop Image", "crop-image", "Crop freely or use 1:1, 16:9, 9:16, 4:5, 4:3 and 3:2 presets. Fine-tune pixel dimensions and export transparent shapes."),
       item("Crop Round Corners", "crop-round-corners"),
+      item("Add Image Border", "add-border-to-image"),
+      item("Aspect Ratio Crop", "aspect-ratio-crop"),
       item("Resize Image Dimensions", "resize-image-dimensions"),
       item("Combine Multiple Images", "combine-images"),
       item("Photos to Video"),
@@ -78,7 +80,6 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Make Round Image", "make-round-image", "Create a circular image with transparent corners."),
       item("Blur Face", "blur-any-object"),
       item("Unblur Face"),
-      item("Add Image Border", "add-border-to-image"),
       item("Pixelate Image", "pixelate-image"),
       item("Pixelate Image", "pixelate-image"),
       item("Pixelate Image", "pixelate-image"),

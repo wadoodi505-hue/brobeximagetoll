@@ -292,7 +292,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     cropDragRef.current = null;
   }
 
-  const [flipX, setFlipX] = useState(true);
+  const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
   const [text, setText] = useState("");
   const [textSize, setTextSize] = useState(36);
@@ -532,6 +532,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
+    if (op === "flip") { setFlipX(false); setFlipY(false); setRotation(0); }
     setFile(next);
     setFiles([next]);
     setPreview(URL.createObjectURL(next));
@@ -560,6 +561,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     }
 
     setError("");
+    if (op === "flip") { setFlipX(false); setFlipY(false); setRotation(0); }
     setFiles(chosen);
     setFile(chosen[0]);
     setPreview(URL.createObjectURL(chosen[0]));
