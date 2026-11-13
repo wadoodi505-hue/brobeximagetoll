@@ -6,7 +6,7 @@ import {
   a4Dimensions, canvasBlob, colorValues, downloadBlob, imageCanvas, makeRoundedCanvas,
   type ExportFormat,
 } from "@/lib/image-tools/core";
-import { readJpegExif, writeJpegExif } from "@/lib/image-tools/metadata";
+import { readJpegExif, writeJpegExif, stripImageMetadata } from "@/lib/image-tools/metadata";
 import { readVisioFile, type VisioPackage } from "@/lib/image-tools/visio";
 
 type ToolProps = { slug: string; title: string };
@@ -63,6 +63,10 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const [author,setAuthor] = useState("");
   const [description,setDescription] = useState("");
   const [copyright,setCopyright] = useState("");
+  const [keywords,setKeywords] = useState("");
+  const [comment,setComment] = useState("");
+  const [software,setSoftware] = useState("BROBEX Image Tools");
+  const [quality,setQuality] = useState(92);
   const [sample,setSample] = useState<Record<string,string>|null>(null);
   const [palette,setPalette] = useState<string[]>([]);
   const [brushSize,setBrushSize] = useState(24);
@@ -83,18 +87,27 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     setUrl(next);
   }
 
-  // Keep the edited preview synchronized with controls; the original remains untouched.
+  // Preview work is scheduled through RAF and capped at 1000px. Full-resolution
+  // source pixels remain untouched and are only used by exportImage().
   useEffect(() => {
-    const source = canvasRef.current;
-    if (!file || !source || !["crop-round-corners", "aspect-ratio-crop", "add-border-to-image"].includes(slug)) return;
+    if (!file || !canvasRef.current || !["crop-round-corners", "aspect-ratio-crop", "add-border-to-image"].includes(slug)) return;
+    let frame = 0;
     let cancelled = false;
-    const render = async () => {
+    const render = () => {
+      const source = canvasRef.current;
+      if (!source || cancelled) return;
+      const scale = Math.min(1, 1000 / Math.max(source.width, source.height));
       let out = document.createElement("canvas");
-      out.width = source.width; out.height = source.height;
+      out.width = Math.max(1, Math.round(source.width * scale));
+      out.height = Math.max(1, Math.round(source.height * scale));
       const ctx = out.getContext("2d");
       if (!ctx) return;
-      ctx.drawImage(source, 0, 0);
-      if (slug === "crop-round-corners") out = makeRoundedCanvas(out, [radius, radius, radius, radius]);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(source, 0, 0, out.width, out.height);
+      if (slug === "crop-round-corners") {
+        out = makeRoundedCanvas(out, [radius * scale, radius * scale, radius * scale, radius * scale]);
+      }
       if (slug === "aspect-ratio-crop") {
         const [rw, rh] = ratio.split(":").map(Number);
         const w = out.width, h = out.height;
@@ -107,17 +120,19 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         cctx.drawImage(out, sx, sy, cw, ch, 0, 0, cw, ch); out = cropped;
       }
       if (slug === "add-border-to-image") {
+        const width = Math.max(0, Math.round(borderWidth * scale));
         const bordered = document.createElement("canvas");
-        bordered.width = out.width + borderWidth * 2; bordered.height = out.height + borderWidth * 2;
+        bordered.width = out.width + width * 2; bordered.height = out.height + width * 2;
         const bctx = bordered.getContext("2d"); if (!bctx) return;
         bctx.fillStyle = borderColor; bctx.fillRect(0, 0, bordered.width, bordered.height);
-        bctx.drawImage(out, borderWidth, borderWidth); out = bordered;
+        bctx.drawImage(out, width, width); out = bordered;
       }
-      const blob = await canvasBlob(out, "image/png");
-      if (!cancelled) setPreview(blob);
+      void canvasBlob(out, "image/png").then(blob => {
+        if (!cancelled) setPreview(blob);
+      }).catch(() => undefined);
     };
-    void render();
-    return () => { cancelled = true; };
+    frame = requestAnimationFrame(render);
+    return () => { cancelled = true; cancelAnimationFrame(frame); };
   }, [file, canvasRevision, slug, radius, ratio, frameX, frameY, borderWidth, borderColor]);
 
   async function choose(next?: File) {
@@ -152,15 +167,24 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
           ? await readJpegExif(next) : {};
         const bytes = new Uint8Array(await next.arrayBuffer());
         const raw = new TextDecoder().decode(bytes.slice(0, Math.min(bytes.length, 2_000_000)));
+        const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+        const divisor = gcd(canvas.width, canvas.height) || 1;
         setMetadata({
           "File name": next.name,
           "MIME type": next.type || "Not provided by browser",
           "File size": `${(next.size/1024).toFixed(2)} KB`,
           "Dimensions": `${canvas.width} × ${canvas.height} px`,
-          "Color profile": raw.includes("ICC_PROFILE") ? "Embedded ICC profile marker found" : "Not detected",
-          "EXIF description": exif.description || "Not present / not readable",
-          "EXIF artist": exif.artist || "Not present / not readable",
-          "EXIF copyright": exif.copyright || "Not present / not readable",
+          "Aspect ratio": `${canvas.width / divisor}:${canvas.height / divisor}`,
+          "Megapixels": `${((canvas.width * canvas.height) / 1_000_000).toFixed(2)} MP`,
+          "Color depth": "Browser-decoded RGB/RGBA; source bit depth not reliably exposed",
+          "Color profile": raw.includes("ICC_PROFILE") || raw.includes("iCCP") ? "Embedded ICC profile marker found" : "Not detected",
+          "Title": exif.title || "Not present / not readable",
+          "Description": exif.description || "Not present / not readable",
+          "Author": exif.artist || "Not present / not readable",
+          "Copyright": exif.copyright || "Not present / not readable",
+          "Date & time": exif.dateTime || "Not present / not readable",
+          "Keywords": exif.keywords || "Not present / not readable",
+          "Software": exif.software || "Not present / not readable",
           "GPS coordinates": "Not extracted by this browser workspace",
         });
       }
@@ -171,6 +195,9 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         setDescription(exif.description || "");
         setAuthor(exif.artist || "");
         setCopyright(exif.copyright || "");
+        setKeywords(exif.keywords || "");
+        setComment(exif.comment || "");
+        setSoftware(exif.software || "BROBEX Image Tools");
       }
       setMessage("Image loaded and signature-checked. Original file remains unchanged.");
     } catch (e) { setFile(null); setError(e instanceof Error ? e.message : "Image could not be opened."); }
@@ -217,7 +244,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         const x=flat.getContext("2d");if(!x)throw new Error("Canvas is unavailable.");
         x.fillStyle=bg;x.fillRect(0,0,flat.width,flat.height);x.drawImage(out,0,0);out=flat;
       }
-      const blob=await canvasBlob(out,chosenFormat);
+      const blob=await canvasBlob(out,chosenFormat,quality / 100);
       const ext=chosenFormat==="image/jpeg"?"jpg":chosenFormat.split("/")[1];
       downloadBlob(blob,`${safeName(file.name)}-brobex.${ext}`);
       setMessage(`Exported ${out.width} × ${out.height}px (${(blob.size/1024).toFixed(1)} KB). ${isProfile?"Transparent circular PNG export.":""}`);
@@ -227,17 +254,19 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   async function removeMetadata() {
     if (!file) return;
     try {
-      const {canvas}=await imageCanvas(file);
-      const blob=await canvasBlob(canvas,format);
-      downloadBlob(blob,`${safeName(file.name)}-metadata-removed.${format==="image/jpeg"?"jpg":format.split("/")[1]}`);
-      setMessage("Success: a newly encoded image was downloaded without the source EXIF metadata. Browser color management may slightly change pixel values.");
-    } catch(e) { setError(e instanceof Error?e.message:"Metadata removal failed."); }
+      const result = await stripImageMetadata(file);
+      const ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/webp" ? "webp" : "png";
+      downloadBlob(result.blob, `${safeName(file.name)}-metadata-removed.${ext}`);
+      setMessage(`Metadata scrub complete. ${result.removed} metadata segment(s)/chunk(s) removed; ${result.remaining} non-image structural segment(s) retained. Image pixels were not re-encoded.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Metadata removal failed.");
+    }
   }
 
   async function editMetadata() {
     if (!file) return;
     try {
-      const fields={title:titleField,dateTime,description,artist:author,copyright};
+      const fields={title:titleField,dateTime,description,artist:author,copyright,keywords,comment,software};
       if (file.type==="image/jpeg" || /\.jpe?g$/i.test(file.name)) {
         const blob=await writeJpegExif(file,fields);
         downloadBlob(blob,`${safeName(file.name)}-metadata-edited.jpg`);
@@ -280,6 +309,16 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     setMessage("Clone-stamp spot applied. This is a basic local brush, not AI content-aware healing.");
   }
 
+  function resetTool() {
+    setError(""); setMessage(""); setPreviewMode("edited");
+    setRadius(90); setBorderWidth(24); setBorderColor("#ffffff");
+    setRatio("1:1"); setFrameX(50); setFrameY(50);
+    setZoom(1); setDpi(300); setBg("#ffffff"); setFormat("image/png");
+    setBrushSize(24); setTitleField(""); setAuthor(""); setDescription("");
+    setCopyright(""); setDateTime(""); setKeywords(""); setComment(""); setSoftware("BROBEX Image Tools"); setQuality(92); setSample(null); setPalette([]);
+    if (file) setCanvasRevision(value => value + 1);
+  }
+
   function exportPalette(kind: "css"|"json"|"txt") {
     if (!palette.length) return;
     const content=kind==="json"?JSON.stringify(palette,null,2):kind==="css"?`:root {\n${palette.map((v,i)=>`  --brobex-color-${i+1}: ${v};`).join("\n")}\n}`:palette.join("\n");
@@ -318,12 +357,16 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         <label>Description<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe this image"/></label>
         <label>Copyright<input value={copyright} onChange={e=>setCopyright(e.target.value)} placeholder="Copyright notice"/></label>
         <label>Date &amp; time<input type="text" value={dateTime} onChange={e=>setDateTime(e.target.value)} placeholder="YYYY:MM:DD HH:MM:SS"/></label>
+        <label>Keywords<input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder="Comma-separated keywords"/></label>
+        <label>Comment<input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Additional comment"/></label>
+        <label>Software<input value={software} onChange={e=>setSoftware(e.target.value)} placeholder="Software name"/></label>
       </div>}
       {slug==="view-metadata"&&metadata&&<div className="sample-values"><div><b>Image properties and readable metadata</b>{Object.entries(metadata).map(([k,v])=><span key={k}>{k}: {v}</span>)}</div></div>}
       {slug==="image-color-picker"&&<><p>Tap/click any pixel in the preview to sample its exact source-image color.</p>{sample&&<div className="sample-values"><i style={{background:sample.hex}}/><div><b>{sample.hex}</b><span>{sample.rgb} · {sample.hsl} · {sample.hsv}</span></div><button type="button" onClick={()=>navigator.clipboard.writeText(sample.hex)}><Copy size={15}/> Copy HEX</button></div>}<div className="advanced-action-row">{(["css","json","txt"] as const).map(k=><button key={k} type="button" disabled={!palette.length} onClick={()=>exportPalette(k)}>Export {k.toUpperCase()}</button>)}</div>{palette.length>0&&<div className="palette-swatches">{palette.map(v=><button key={v} title={v} style={{background:v}} onClick={()=>navigator.clipboard.writeText(v)} aria-label={`Copy ${v}`}/>)}</div>}</>}
       {slug==="blemishes-remover"&&<><p>Click/tap a small mark in the preview to apply a local clone-stamp patch. Use small brush sizes for best control; this is not AI healing.</p><label>Brush size <input type="range" min="6" max="80" value={brushSize} onChange={e=>setBrushSize(+e.target.value)}/><b>{brushSize}px</b></label></>}
-      {slug!=="image-color-picker"&&slug!=="view-metadata"&&slug!=="edit-metadata"&&slug!=="remove-metadata"&&!isProfile&&<label>Export format <select value={format} onChange={e=>setFormat(e.target.value as ExportFormat)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option></select></label>}
+      {slug!=="image-color-picker"&&slug!=="view-metadata"&&slug!=="edit-metadata"&&slug!=="remove-metadata"&&!isProfile&&<><label>Export format <select value={format} onChange={e=>setFormat(e.target.value as ExportFormat)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option></select></label>{format!=="image/png"&&<label>Quality <input type="range" min="40" max="100" value={quality} onChange={e=>setQuality(+e.target.value)}/><b>{quality}%</b></label>}</>}
       <div className="advanced-action-row">
+        <button type="button" onClick={resetTool}><span>Reset</span></button>
         {slug==="remove-metadata"?<button className="advanced-primary" type="button" onClick={()=>void removeMetadata()}><Download size={17}/> Re-encode & download</button>:slug==="edit-metadata"?<button className="advanced-primary" type="button" onClick={()=>void editMetadata()}><Download size={17}/> Write metadata & download</button>:slug==="image-color-picker"||slug==="view-metadata"?null:<button className="advanced-primary" type="button" onClick={()=>void exportImage()}><Download size={17}/> Process & download</button>}
       </div>
     </div>}
