@@ -2,22 +2,61 @@ import type { Metadata } from "next";
 import type { ToolDefinition } from "@/types/tools";
 
 const SITE = "https://brobeximagetolls.vercel.app";
-const BRAND = "Brobex";
 
 type SeoCopy = { title: string; description: string; keywords: string[]; ogTitle?: string };
 
 const seoBySlug: Record<string, SeoCopy> = {
+  "bulk-image-resizer": {
+    title: "Bulk Image Resizer – Resize Multiple Images | BROBEX",
+    description: "Resize multiple JPG, PNG, and WebP images in one browser session. Track batch progress and export the resized images together in a ZIP file with BROBEX.",
+    keywords: ["bulk image resizer", "resize multiple images online", "batch image resizer", "bulk photo resize", "resize images in batch"],
+  },
+  "resize-image-dimensions": {
+    title: "Resize Image Dimensions – Exact Pixels Online | BROBEX",
+    description: "Change image width and height to exact pixel dimensions with optional aspect-ratio locking. Resize pictures online and export the result with BROBEX Image Tools.",
+    keywords: ["resize image dimensions", "resize image to exact pixels", "image resizer online", "change image width and height"],
+  },
+  "passport-photo-maker": {
+    title: "Passport Photo Maker Online – Free ID Photo Tool | BROBEX",
+    description: "Prepare passport and ID photos with adjustable framing, document photo settings, and browser-based JPG export. Check the required dimensions for your destination before use.",
+    keywords: ["passport photo maker", "passport size photo online", "ID photo maker", "passport photo resize", "document photo editor"],
+  },
+  "image-to-text": {
+    title: "Image to Text Converter – Free OCR Online | BROBEX",
+    description: "Extract editable text from images with browser-based OCR powered by Tesseract.js. Upload a supported image, review recognized text, and copy the result.",
+    keywords: ["image to text", "extract text from image", "OCR online", "photo to text converter", "image text extractor"],
+  },
+  "crop-image": {
+    title: "Crop Image Online – Free Photo Cropper | BROBEX",
+    description: "Crop pictures with freeform dimensions, popular aspect ratios, and supported shape cutouts. Preview your crop and export the edited image in your browser.",
+    keywords: ["crop image online", "free image cropper", "photo crop tool", "crop image to size", "shape image crop"],
+  },
+  "add-text-to-image": {
+    title: "Add Text to Image Online – Free Photo Editor | BROBEX",
+    description: "Add and position customizable text on pictures. Adjust text styling and placement in the BROBEX browser-based image editor, then export your design.",
+    keywords: ["add text to image", "write text on photo", "photo text editor", "add caption to picture", "image text maker"],
+  },
+  "webp-to-jpg": {
+    title: "Convert WebP to JPG Online Free – WebP Image Converter | BROBEX",
+    description: "Convert supported WebP images to JPG format online. Prepare a compatible image copy and review the exported file before using it elsewhere.",
+    keywords: ["WebP to JPG", "convert WebP to JPEG", "WebP image converter", "online WebP converter"],
+  },
+  "jpg-to-webp": {
+    title: "Convert JPG to WebP Online Free – Image Format Converter | BROBEX",
+    description: "Convert JPG and JPEG images to WebP format with the BROBEX image converter. Review output quality and file size after conversion.",
+    keywords: ["JPG to WebP", "JPEG to WebP converter", "convert JPG online", "WebP image converter"],
+  },
+  "compress-image-size": {
+    title: "Free Online Image Compressor | BROBEX",
+    description: "Compress JPG, PNG, and WebP images in your browser. Reduce file size while balancing visual quality, compare the result, and download the optimized image.",
+    keywords: ["image compressor online", "compress image without losing quality", "reduce image file size", "JPG compressor", "PNG optimizer", "WebP compressor"],
+    ogTitle: "Free Online Image Compressor – BROBEX Image Tools",
+  },
   "collage-maker": {
     title: "Free Online Photo Collage Maker: Create Photo Grids | Brobex",
     description: "Create photo collages online with grid and featured layouts. Arrange up to 20 photos, customize spacing, margins, corners and backgrounds, then export high-resolution PNG, JPG or WebP images.",
     keywords: ["photo collage maker", "create photo collage online", "picture collage maker", "photo grid maker", "combine photos into one image"],
     ogTitle: "Create Beautiful Photo Collages Online – BROBEX",
-  },
-  "compress-image-size": {
-    title: "Free Online Image Compressor: Reduce Image File Size | Brobex",
-    description: "Reduce image file size while balancing visual quality. Compress JPG, PNG, WebP, and other supported image formats with this free online image compressor.",
-    keywords: ["compress image size", "reduce image file size", "online image compressor", "optimize image"],
-    ogTitle: "Fast & Free Online Image Compressor – Brobex Tools",
   },
   "compress-jpeg-between-20kb-to-50kb": {
     title: "Compress JPEG Between 20KB to 50KB Online | Brobex",
@@ -157,25 +196,33 @@ function buildCopy(tool: ToolDefinition): SeoCopy {
 export function getToolMetadata(tool: ToolDefinition): Metadata {
   const copy = buildCopy(tool);
   const canonical = `${SITE}/tools/${tool.slug}`;
+  const description = tool.status === "integration"
+    ? `${tool.name} is listed in BROBEX Image Tools with its current setup requirements. This feature requires an external processing integration and is not currently available as a completed browser workflow.`
+    : copy.description;
   const ogTitle = copy.ogTitle ?? copy.title;
   return {
     title: { absolute: copy.title },
-    description: copy.description,
+    description,
     keywords: copy.keywords,
     alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: "BROBEX Image Tools",
       title: ogTitle,
-      description: copy.description,
+      description,
       url: canonical,
+      images: [{ url: `${SITE}/brobex-logo.webp`, width: 1254, height: 1254, alt: "BROBEX Image Tools logo" }],
     },
     twitter: {
       card: "summary",
       title: ogTitle,
-      description: copy.description,
+      description,
+      images: [`${SITE}/brobex-logo.webp`],
     },
-    robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+    authors: [{ name: "BROBEX", url: "https://brobexportfolio.vercel.app/" }],
+    creator: "BROBEX",
+    publisher: "BROBEX",
+    robots: { index: tool.status === "browser", follow: true, googleBot: { index: tool.status === "browser", follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   };
 }
 

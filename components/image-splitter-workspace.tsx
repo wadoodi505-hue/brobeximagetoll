@@ -519,7 +519,7 @@ export function ImageSplitterWorkspace() {
                                     type="button"
                                     onClick={splitImage}
                                     disabled={busy || tileCount > MAX_TILES || dimensions.width === 0}
-                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
                                 >
                                     {processing ? (
                                         <>

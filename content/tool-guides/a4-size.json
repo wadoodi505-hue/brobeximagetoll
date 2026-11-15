@@ -1,0 +1,33 @@
+{
+  "slug": "a4-size",
+  "title": "A4 Image Resizer",
+  "keywords": [
+    "fit images to a4 print size",
+    "BROBEX Image Studio"
+  ],
+  "about": "Fit an image to A4 paper proportions at 150 or 300 DPI, choose a background, and export a print-ready raster image.",
+  "steps": [
+    "Select a supported image in the A4 Size workspace.",
+    "Choose the available resolution setting: 150 DPI or 300 DPI.",
+    "Review the A4 preview and select the background treatment.",
+    "Process the image and inspect the resulting dimensions and framing.",
+    "Download the result and confirm print settings in your image viewer or print dialog."
+  ],
+  "capabilities": "A4 paper sizing, print image dimensions, and selectable background options are available in the browser canvas workspace.",
+  "benefits": "This workflow can make a4 image resizer tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "The output is a raster image, not a print guarantee. Confirm your printer settings, paper size, margins, and color handling before printing.",
+  "faqs": [
+    {
+      "question": "What does A4 Image Resizer do?",
+      "answer": "Fit an image to A4 paper proportions at 150 or 300 DPI, choose a background, and export a print-ready raster image."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

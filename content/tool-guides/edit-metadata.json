@@ -1,0 +1,33 @@
+{
+  "slug": "edit-metadata",
+  "title": "Edit Image Metadata",
+  "keywords": [
+    "edit jpeg exif details",
+    "BROBEX Image Studio"
+  ],
+  "about": "Edit supported JPEG EXIF description, artist, and copyright fields. For other image formats, the workspace can export a JSON sidecar rather than writing those fields into the image.",
+  "steps": [
+    "Select an image in a supported format.",
+    "Review the metadata fields that the workspace can edit.",
+    "Enter the description, artist, and copyright values you want to include.",
+    "Export the updated JPEG or the JSON sidecar offered for other formats.",
+    "Reopen the exported file in a metadata viewer to verify the result."
+  ],
+  "capabilities": "The registered method is a browser-side JPEG EXIF APP1 writer with a JSON sidecar fallback for other formats.",
+  "benefits": "This workflow can make edit image metadata tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "Metadata fields and format support are limited to those exposed by the workspace. A JSON sidecar is a separate file and does not modify metadata embedded in the original image. Verify the exported file with a metadata viewer.",
+  "faqs": [
+    {
+      "question": "What does Edit Image Metadata do?",
+      "answer": "Edit supported JPEG EXIF description, artist, and copyright fields. For other image formats, the workspace can export a JSON sidecar rather than writing those fields into the image."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

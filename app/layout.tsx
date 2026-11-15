@@ -13,19 +13,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: "Free Online Image Tools | BROBEX Image Tools",
+    default: "BROBEX Image Tools – Free Online Image Utilities & Editors",
     template: "%s | BROBEX Image Tools",
   },
 
   description:
-    "Edit, resize, crop, compress, convert, and optimize images online for free with BROBEX Image Tools. Fast, easy-to-use image utilities for creators, developers, and businesses.",
+    "Use free online image tools to compress, resize, crop, edit, and convert pictures in your browser. Explore practical image utilities from BROBEX.",
 
   applicationName: "BROBEX Image Tools",
 
   authors: [
     {
       name: "BROBEX",
-      url: siteUrl,
+      url: "https://brobexportfolio.vercel.app/",
     },
   ],
 
@@ -75,26 +75,26 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "BROBEX Image Tools",
     url: siteUrl,
-    title: "Free Online Image Tools | BROBEX Image Tools",
+    title: "BROBEX Image Tools – Free Online Image Utilities & Editors",
     description:
-      "Discover free online tools to edit, resize, crop, compress, convert, and optimize images with BROBEX Image Tools.",
+      "Free online tools to compress, resize, crop, edit, and convert images. Practical browser-based utilities from BROBEX.",
     images: [
       {
-        url: "/brobex-logo.png",
-        width: 512,
-        height: 512,
+        url: "/brobex-logo.webp",
+        width: 1254,
+        height: 1254,
         alt: "BROBEX Image Tools Logo",
       },
     ],
   },
 
   twitter: {
-    card: "summary",
-    title: "Free Online Image Tools | BROBEX Image Tools",
+    card: "summary_large_image",
+    title: "BROBEX Image Tools – Free Online Image Utilities & Editors",
     description:
-      "Edit, resize, crop, compress, and convert images online for free with BROBEX Image Tools.",
-    images: ["/brobex-logo.png"],
-    creator: "@brobex",
+      "Compress, resize, crop, edit, and convert images online with free BROBEX Image Tools.",
+    images: ["/brobex-logo.webp"],
+    creator: "BROBEX",
   },
 
   robots: {
@@ -112,6 +112,7 @@ export const metadata: Metadata = {
   other: {
     "contact:email": "brobex.ffx@gmail.com",
     "brand": "BROBEX",
+    "author:url": "https://brobexportfolio.vercel.app/",
   },
 };
 
@@ -130,6 +131,29 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "BROBEX",
+                url: "https://brobexportfolio.vercel.app/",
+                email: "brobex.ffx@gmail.com",
+                logo: `${siteUrl}/brobex-logo.webp`,
+                sameAs: ["https://brobexportfolio.vercel.app/"],
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "BROBEX Image Tools",
+                url: siteUrl,
+                publisher: { "@type": "Organization", name: "BROBEX", url: "https://brobexportfolio.vercel.app/" },
+              },
+            ]).replace(/</g, "\\u003c"),
+          }}
+        />
         <meta
           name="google-adsense-account"
           content="ca-pub-2771980465268081"

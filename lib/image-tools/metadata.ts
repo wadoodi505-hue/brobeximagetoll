@@ -87,7 +87,10 @@ export async function writeJpegExif(file: File, fields: ImageMetadataFields): Pr
     if (!text) continue;
     const encoded = new Uint8Array(new TextEncoder().encode(text));
     const data = new Uint8Array(encoded.length * 2 + 2);
-    for (let i = 0; i < encoded.length; i++) data[i * 2] = encoded[i];
+    for (let i = 0; i < encoded.length; i++) {
+      data[i * 2] = encoded[i];
+      data[i * 2 + 1] = 0;
+    }
     entries.push({ tag, type: 1, count: data.length, data });
   }
   if (fields.title?.trim() && !entries.some(e => e.tag === 0x010d)) {
@@ -195,4 +198,131 @@ export async function stripImageMetadata(file: File): Promise<{ blob: Blob; remo
     return { blob: new Blob(chunks, { type: "image/webp" }), removed, remaining };
   }
   throw new Error("Metadata-preserving binary cleanup is supported for JPEG, PNG and WebP files.");
+}
+
+
+function crc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngTextChunk(keyword: string, value: string): Uint8Array {
+  const encoder = new TextEncoder();
+  const key = encoder.encode(keyword);
+  const text = encoder.encode(value);
+  const data = new Uint8Array(key.length + 1 + text.length);
+  data.set(key);
+  data.set(text, key.length + 1);
+  const type = encoder.encode("tEXt");
+  const chunk = new Uint8Array(12 + data.length);
+  const view = new DataView(chunk.buffer);
+  view.setUint32(0, data.length, false);
+  chunk.set(type, 4);
+  chunk.set(data, 8);
+  view.setUint32(8 + data.length, crc32(chunk.subarray(4, 8 + data.length)), false);
+  return chunk;
+}
+
+/** Writes supported descriptive fields into the actual JPEG or PNG image file. */
+export async function writeImageMetadata(file: File, fields: ImageMetadataFields): Promise<Blob> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+  const isPng = bytes.length >= 8 && [137,80,78,71,13,10,26,10].every((v, i) => bytes[i] === v);
+
+  if (isJpeg) return writeJpegExif(file, fields);
+
+  if (isPng) {
+    const entries = ([
+      ["Title", fields.title || ""],
+      ["Description", fields.description || ""],
+      ["Author", fields.artist || ""],
+      ["Copyright", fields.copyright || ""],
+      ["Keywords", fields.keywords || ""],
+      ["Comment", fields.comment || ""],
+      ["Software", fields.software || ""],
+      ["Creation Time", fields.dateTime || ""],
+    ] as [string, string][]).filter(
+      (entry): entry is [string, string] => entry[1].trim().length > 0
+    );
+    if (!entries.length) throw new Error("Enter at least one metadata field before exporting.");
+
+    const chunks: BlobPart[] = [bytes.subarray(0, 8)];
+    let offset = 8;
+    let inserted = false;
+    while (offset + 12 <= bytes.length) {
+      const length = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, false);
+      const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+      const end = offset + 12 + length;
+      if (end > bytes.length) throw new Error("The PNG file contains an invalid chunk.");
+      // Replace prior descriptive text chunks so the downloaded values are unambiguous.
+      if (!["tEXt", "zTXt", "iTXt"].includes(type)) chunks.push(bytes.subarray(offset, end));
+      offset = end;
+      if (type === "IHDR" && !inserted) {
+        for (const [key, value] of entries) chunks.push(
+          new Uint8Array(pngTextChunk(key, value))
+        );
+        inserted = true;
+      }
+      if (type === "IEND") break;
+    }
+    if (!inserted) throw new Error("The PNG file is missing a valid IHDR chunk.");
+    return new Blob(chunks, { type: "image/png" });
+  }
+
+  throw new Error("Embedded metadata export is currently supported for JPEG and PNG images. WebP metadata writing is not available in this browser build; no JSON sidecar will be generated.");
+}
+
+
+/** Reads common descriptive metadata from JPEG EXIF and PNG tEXt/iTXt chunks. */
+export async function readImageMetadata(file: File): Promise<ImageMetadataFields> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) return readJpegExif(file);
+  const signature = [137,80,78,71,13,10,26,10];
+  if (!signature.every((v, i) => bytes[i] === v)) return {};
+  const result: ImageMetadataFields = {};
+  const names: Record<string, keyof ImageMetadataFields> = {
+    title: "title", description: "description", imageDescription: "description",
+    author: "artist", artist: "artist", copyright: "copyright",
+    keywords: "keywords", comment: "comment", software: "software",
+    "creation time": "dateTime",
+  };
+  const decoder = new TextDecoder();
+  let offset = 8;
+  while (offset + 12 <= bytes.length) {
+    const length = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, false);
+    const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+    const dataStart = offset + 8;
+    const end = dataStart + length + 4;
+    if (end > bytes.length) break;
+    if (type === "tEXt") {
+      const data = bytes.subarray(dataStart, dataStart + length);
+      const split = data.indexOf(0);
+      if (split > 0) {
+        const key = decoder.decode(data.subarray(0, split)).toLowerCase();
+        const target = names[key];
+        if (target) result[target] = decoder.decode(data.subarray(split + 1));
+      }
+    } else if (type === "iTXt") {
+      const data = bytes.subarray(dataStart, dataStart + length);
+      const zero = (from: number) => data.indexOf(0, from);
+      const keyEnd = zero(0);
+      if (keyEnd > 0 && keyEnd + 2 < data.length) {
+        const compressionFlag = data[keyEnd + 1];
+        let cursor = zero(keyEnd + 3) + 1; // language tag terminator
+        cursor = zero(cursor) + 1; // translated keyword terminator
+        if (cursor > 0 && cursor <= data.length && compressionFlag === 0) {
+          const key = decoder.decode(data.subarray(0, keyEnd)).toLowerCase();
+          const target = names[key];
+          if (target) result[target] = decoder.decode(data.subarray(cursor));
+        }
+      }
+    }
+    offset = end;
+    if (type === "IEND") break;
+  }
+  return result;
 }

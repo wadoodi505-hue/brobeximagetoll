@@ -79,6 +79,9 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const [cropFormat, setCropFormat] = useState("image/png");
   const [cropQuality, setCropQuality] = useState(92);
   const cropStageRef = useRef<HTMLDivElement>(null);
+  const cropSourceImageRef = useRef<HTMLImageElement>(null);
+  const cropOutputCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [cropPreviewRevision, setCropPreviewRevision] = useState(0);
 
   const cropDragRef = useRef<{
     mode: string;
@@ -325,6 +328,57 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   const compressionSettingsRef = useRef({ format, quality });
 
   const op = tool.slug === "crop-image" ? cropMode : (["blur-image", "blur-background", "remove-background-from-image", "make-background-transparent"].includes(tool.slug) ? "blur" : tool.operation);
+
+  useEffect(() => {
+    if (tool.slug !== "crop-image" || !preview) return;
+    let frame = 0;
+    let cancelled = false;
+    const draw = () => {
+      const image = cropSourceImageRef.current;
+      const canvas = cropOutputCanvasRef.current;
+      if (!image || !canvas || !image.complete || !image.naturalWidth || !image.naturalHeight) return;
+      const scale = Math.min(1, 700 / Math.max(cropW, cropH));
+      const outputWidth = Math.max(1, Math.round(cropW * scale));
+      const outputHeight = Math.max(1, Math.round(cropH * scale));
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.clearRect(0, 0, outputWidth, outputHeight);
+      if (cropMode === "circle") {
+        context.beginPath();
+        context.arc(outputWidth / 2, outputHeight / 2, Math.min(outputWidth, outputHeight) / 2, 0, Math.PI * 2);
+        context.clip();
+      } else if (cropMode === "triangle-crop") {
+        context.beginPath();
+        context.moveTo(outputWidth / 2, 0);
+        context.lineTo(outputWidth, outputHeight);
+        context.lineTo(0, outputHeight);
+        context.closePath();
+        context.clip();
+      } else if (cropMode === "shape-crop") {
+        context.beginPath();
+        context.moveTo(outputWidth * .25, 0);
+        context.lineTo(outputWidth * .75, 0);
+        context.lineTo(outputWidth, outputHeight * .5);
+        context.lineTo(outputWidth * .75, outputHeight);
+        context.lineTo(outputWidth * .25, outputHeight);
+        context.lineTo(0, outputHeight * .5);
+        context.closePath();
+        context.clip();
+      }
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      context.drawImage(image, cropX, cropY, cropW, cropH, 0, 0, outputWidth, outputHeight);
+    };
+    frame = requestAnimationFrame(() => {
+      if (!cancelled) draw();
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [tool.slug, preview, cropX, cropY, cropW, cropH, cropMode, cropPreviewRevision]);
 
   useEffect(() => {
     if (op !== "text" || !preview || !textCanvasRef.current) return;
@@ -1329,9 +1383,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                           onLostPointerCapture={endCropDrag}
                         >
                           <img
+                            ref={cropSourceImageRef}
                             src={preview}
                             alt="Drag the crop frame to select the image area"
                             draggable={false}
+                            onLoad={() => setCropPreviewRevision((value) => value + 1)}
                           />
 
                           <div
@@ -1377,8 +1433,13 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                         </span>
                       </div>
 
+                      <div className="crop-live-output" aria-live="polite">
+                        <div className="panel-heading">Live crop output</div>
+                        <canvas ref={cropOutputCanvasRef} aria-label="Exact cropped image output preview" />
+                      </div>
+
                       <p className="hint">
-                        Drag inside the frame to move it; drag an edge or corner to resize. Focus the frame and use arrow keys to nudge 1 px, or Shift + arrow for 10 px.
+                        Drag inside the frame to move it; drag an edge or corner to resize. The output preview updates as you move or resize the crop frame.
                       </p>
                     </>
                   ) : (

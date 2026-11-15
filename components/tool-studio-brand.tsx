@@ -35,7 +35,7 @@ export function ToolStudioBrand({
       <div className="brobex-studio-inner">
         <div className="brobex-studio-topline">
           <Link href="/" className="brobex-studio-brand" aria-label="BROBEX home">
-            <img src="/brobex-logo.png" alt="BROBEX" className="brand-mark" />
+            <img src="/brobex-logo.webp" alt="BROBEX Image Tools logo" width={42} height={42} decoding="async" className="brand-mark" />
             <span className="brobex-studio-brand-name">
               BROBEX<span>TOOLS</span>
             </span>
@@ -43,7 +43,7 @@ export function ToolStudioBrand({
           <span className="brobex-studio-product-label">DIGITAL TOOL STUDIO</span>
           <span className="brobex-studio-privacy-label">
             <i aria-hidden="true" />
-            PRIVATE WORKSPACE
+            {status === "browser" ? "BROWSER WORKSPACE" : "INTEGRATION REQUIRED"}
           </span>
         </div>
 

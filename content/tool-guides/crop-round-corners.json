@@ -1,0 +1,33 @@
+{
+  "slug": "crop-round-corners",
+  "title": "Crop Round Corners",
+  "keywords": [
+    "round image corners online",
+    "BROBEX Image Studio"
+  ],
+  "about": "Create rounded image corners with an adjustable radius and export a transparent PNG or a JPEG/WebP with a solid background.",
+  "steps": [
+    "Upload a supported image.",
+    "Adjust the corner radius using the controls provided.",
+    "Choose a transparent PNG output or select a solid background for JPEG/WebP.",
+    "Review all four corners in the preview.",
+    "Export the image and check transparency in a compatible viewer."
+  ],
+  "capabilities": "Local HTML Canvas clipping is used to apply rounded corners and prepare the exported image.",
+  "benefits": "This workflow can make crop round corners tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "Transparent corners are best preserved in PNG. JPEG does not support transparency, so choose a solid background for JPEG output. The visual result depends on the radius and output dimensions.",
+  "faqs": [
+    {
+      "question": "What does Crop Round Corners do?",
+      "answer": "Create rounded image corners with an adjustable radius and export a transparent PNG or a JPEG/WebP with a solid background."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

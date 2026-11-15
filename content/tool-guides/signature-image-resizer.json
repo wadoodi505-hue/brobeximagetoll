@@ -1,0 +1,33 @@
+{
+  "slug": "signature-image-resizer",
+  "title": "Signature Image Resizer",
+  "keywords": [
+    "resize signature images to exact pixels",
+    "BROBEX Image Studio"
+  ],
+  "about": "Resize handwritten signature images to exact pixel dimensions with aspect-ratio locking, transparent backgrounds, live preview, and local image export.",
+  "steps": [
+    "Upload a clear image of your handwritten signature in a supported format.",
+    "Set the required output width and height in pixels.",
+    "Keep aspect-ratio locking enabled to avoid distorting the signature unless exact stretching is intentional.",
+    "Review the preview and transparent background before exporting.",
+    "Download the image and check its dimensions and appearance at the intended size."
+  ],
+  "capabilities": "The registered workspace resizes signature images in the browser and provides pixel dimensions, aspect-ratio controls, transparent background handling, and image export.",
+  "benefits": "This workflow can make signature image resizer tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "A resized signature image is not a verified digital signature or an electronic signing certificate. Output quality depends on the source image, dimensions, and selected export format.",
+  "faqs": [
+    {
+      "question": "What does Signature Image Resizer do?",
+      "answer": "Resize handwritten signature images to exact pixel dimensions with aspect-ratio locking, transparent backgrounds, live preview, and local image export."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

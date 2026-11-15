@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -380,14 +380,6 @@ export function IncreaseImageFileSizeWorkspace() {
             </div>
 
             
-      <div className="isw-technical-warning" role="note">
-        <strong>Technical note:</strong>
-        Original format preserves the original image data by adding padding.
-        Choosing JPG, PNG, or WebP re-encodes the image and may change its
-        metadata or image data. Some upload services may remove padding or
-        reject files containing padded data. Please verify the downloaded
-        file before submitting it.
-      </div>
 <button
               type="button"
               className="isw-process-button"

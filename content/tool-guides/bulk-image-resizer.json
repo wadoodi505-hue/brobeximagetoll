@@ -1,0 +1,43 @@
+{
+  "slug": "bulk-image-resizer",
+  "title": "Bulk Image Resizer",
+  "keywords": [
+    "bulk image resizer",
+    "resize multiple images online",
+    "batch image resize",
+    "BROBEX Image Studio"
+  ],
+  "about": "Bulk Image Resizer prepares a batch of supported images at once. It is designed for users who need consistent image dimensions across several files, with batch progress and a ZIP export workflow.",
+  "steps": [
+    "Choose supported JPG, PNG, or WebP images in the upload area. Review the file limits shown by the workspace before selecting a large batch.",
+    "Set the output width and height or choose the available sizing mode. Keep aspect ratio enabled when you want to avoid stretching images.",
+    "Review the selected files and resize settings, then start the batch operation.",
+    "Wait for each file to finish processing and check the completed status and output dimensions.",
+    "Use the ZIP export control to download the processed batch. Open a few output files to verify dimensions and visual quality before using them."
+  ],
+  "capabilities": "The registered workspace uses the browser Canvas API for image resizing and JSZip for client-side ZIP export. Supported inputs are JPEG, PNG, and WebP. Actual results depend on the selected dimensions, source images, browser support, and available device memory.",
+  "benefits": "Batch processing can reduce repetitive work when preparing image sets for websites, product catalogs, documents, or social content. Applying one sizing rule to multiple images can help keep a collection consistent.",
+  "limitations": "Resizing changes pixel dimensions and may change image quality or file size. Very large batches or high-resolution images can use substantial device memory. The workspace lists supported formats and limits; unsupported formats should be converted separately. Review output files before replacing originals.",
+  "faqs": [
+    {
+      "question": "Can I resize multiple images at once?",
+      "answer": "Yes. Add multiple supported images, choose the sizing settings, process the batch, and export the completed files together when ZIP export is available."
+    },
+    {
+      "question": "Which formats are supported?",
+      "answer": "The registered workspace accepts JPEG, PNG, and WebP images."
+    },
+    {
+      "question": "Will resizing stretch my images?",
+      "answer": "Keep the aspect-ratio option enabled when you want to preserve the original proportions. Exact width and height without aspect-ratio locking can distort an image."
+    },
+    {
+      "question": "Are my images uploaded?",
+      "answer": "The registered workflow uses the browser Canvas API and JSZip for client-side processing. Check the current privacy notice and workspace behavior before using sensitive files."
+    },
+    {
+      "question": "Why might a large batch fail?",
+      "answer": "Browser memory and device resources can limit how many high-resolution images can be processed at once. Try smaller batches if the browser becomes unresponsive."
+    }
+  ]
+}

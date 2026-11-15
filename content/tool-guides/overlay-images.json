@@ -1,0 +1,33 @@
+{
+  "slug": "overlay-images",
+  "title": "Overlay Images",
+  "keywords": [
+    "layer one image over another",
+    "BROBEX Image Studio"
+  ],
+  "about": "Place one image over another with adjustable opacity, scale, and horizontal or vertical position, then export PNG, JPEG, or WebP.",
+  "steps": [
+    "Add the base image and the overlay image in the workspace.",
+    "Adjust the overlay scale and horizontal and vertical position.",
+    "Set opacity to control how strongly the overlay appears.",
+    "Review alignment and edges in the preview.",
+    "Export the flattened composition as PNG, JPEG, or WebP."
+  ],
+  "capabilities": "The registered workspace uses ImageBitmap and the Canvas API for local image layering and export.",
+  "benefits": "This workflow can make overlay images tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "The overlay result is a flattened exported image rather than an editable layered project. Output format affects transparency; JPEG requires a solid background.",
+  "faqs": [
+    {
+      "question": "What does Overlay Images do?",
+      "answer": "Place one image over another with adjustable opacity, scale, and horizontal or vertical position, then export PNG, JPEG, or WebP."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

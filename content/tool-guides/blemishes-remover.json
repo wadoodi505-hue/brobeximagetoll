@@ -1,0 +1,33 @@
+{
+  "slug": "blemishes-remover",
+  "title": "Blemishes Remover",
+  "keywords": [
+    "basic image blemish retouching",
+    "BROBEX Image Studio"
+  ],
+  "about": "Apply basic local smoothing to small blemishes using the browser canvas workspace. It is a simple retouching aid, not AI content-aware healing.",
+  "steps": [
+    "Choose a supported image and wait for the preview.",
+    "Use the available brush or smoothing controls to target a small blemish.",
+    "Apply the adjustment in small increments to preserve natural texture.",
+    "Inspect the result at full size and undo or reduce the effect if edges look artificial.",
+    "Export the retouched image when satisfied."
+  ],
+  "capabilities": "The tool provides local canvas pixel processing for basic smoothing on selected image areas, depending on the controls in the workspace.",
+  "benefits": "This workflow can make blemishes remover tasks more direct by keeping the relevant controls in one browser workspace. Review the exported result before using it in another application or service.",
+  "limitations": "This is not an AI healing or object reconstruction system. Strong smoothing can remove texture or create visible artifacts. Work on a copy and review at full size.",
+  "faqs": [
+    {
+      "question": "What does Blemishes Remover do?",
+      "answer": "Apply basic local smoothing to small blemishes using the browser canvas workspace. It is a simple retouching aid, not AI content-aware healing."
+    },
+    {
+      "question": "Does the tool upload my image?",
+      "answer": "The registered method for this tool is browser-based. Check the current privacy notice and the visible workspace behavior before using sensitive files."
+    },
+    {
+      "question": "How can I check the result?",
+      "answer": "Review the preview and open the downloaded file in its intended destination. For dimensions or metadata, use a suitable image properties or metadata viewer."
+    }
+  ]
+}

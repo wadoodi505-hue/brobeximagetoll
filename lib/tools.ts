@@ -1,4 +1,4 @@
-﻿import type { ToolDefinition, Category } from "@/types/tools";
+import type { ToolDefinition, Category } from "@/types/tools";
 
 export const tools: ToolDefinition[] = [
   {
@@ -1499,11 +1499,11 @@ export const tools: ToolDefinition[] = [
 ] as ToolDefinition[];
 
 export const categories: { id: Category; label: string; href: string; description: string }[] = [
-  { id: "pdf", label: "PDF", href: "/tools/pdf", description: "Organize, convert, and prepare PDF documents." },
-  { id: "image", label: "Image", href: "/tools/image", description: "Edit, optimize, and convert images in your browser." },
-  { id: "write", label: "Write", href: "/tools/write", description: "Writing utilities with clear provider setup states." },
-  { id: "video", label: "Video", href: "/tools/video", description: "Media conversion tools with documented processing requirements." },
-  { id: "file", label: "File", href: "/tools/file_conversion", description: "Convert specialist and general file formats." },
+  { id: "pdf", label: "PDF", href: "/tools/pdf", description: "Use online PDF tools to merge, split, compress, and convert PDF documents with clear processing and compatibility information." },
+  { id: "image", label: "Image", href: "/tools/image", description: "Explore free online image tools to compress, resize, crop, edit, optimize, and convert JPG, PNG, WebP, and other supported image formats." },
+  { id: "write", label: "Write", href: "/tools/write", description: "Explore online writing utilities for drafting, completing, and improving text, with provider requirements clearly identified." },
+  { id: "video", label: "Video", href: "/tools/video", description: "Browse video and media utilities with clear format support, processing requirements, and availability information." },
+  { id: "file", label: "File", href: "/tools/file_conversion", description: "Find online file converters for supported document, design, and media formats, with limitations and integration requirements clearly explained." },
 ];
 export function getTool(slug: string) { return tools.find((tool) => tool.slug === slug); }
 

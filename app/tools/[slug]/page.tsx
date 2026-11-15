@@ -70,12 +70,14 @@ export async function generateMetadata({
     return {
       title: `${category.label} Tools`,
       description: category.description,
-      alternates: {
-        canonical: category.href,
-      },
+      keywords: [`${category.label.toLowerCase()} tools`, `free ${category.label.toLowerCase()} tools online`, "BROBEX Image Tools"],
+      alternates: { canonical: category.href },
+      authors: [{ name: "BROBEX", url: "https://brobexportfolio.vercel.app/" }],
       openGraph: {
-        title: `${category.label} Tools | BROBEX`,
+        title: `${category.label} Tools | BROBEX Image Tools`,
         description: category.description,
+        url: `https://brobeximagetolls.vercel.app${category.href}`,
+        images: [{ url: "/brobex-logo.webp", width: 1254, height: 1254, alt: "BROBEX Image Tools logo" }],
       },
     };
   }
@@ -106,9 +108,27 @@ export default async function ToolPage({
     const listing = tools.filter(
       (tool) => tool.category === category.id
     );
+    const categorySchema = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: `${category.label} Tools | BROBEX Image Tools`,
+      description: category.description,
+      url: `https://brobeximagetolls.vercel.app${category.href}`,
+      isPartOf: { "@type": "WebSite", name: "BROBEX Image Tools", url: "https://brobeximagetolls.vercel.app/" },
+      author: { "@type": "Person", name: "BROBEX", url: "https://brobexportfolio.vercel.app/" },
+    };
+    const categoryBreadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://brobeximagetolls.vercel.app/" },
+        { "@type": "ListItem", position: 2, name: `${category.label} Tools`, item: `https://brobeximagetolls.vercel.app${category.href}` },
+      ],
+    };
 
     return (
       <div className="container category-page">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([categorySchema, categoryBreadcrumbSchema]).replace(/</g, "\\u003c") }} />
         <div className="page-title category-page-title">
           <div className="breadcrumb category-breadcrumb">
             <Link href="/">Home</Link> / {category.label} tools
@@ -125,8 +145,7 @@ export default async function ToolPage({
           </h1>
 
           <p>
-            {category.description} Browse {listing.length} tools and
-            search by name, description, or format.
+            {category.description} Explore {listing.length} BROBEX {category.label.toLowerCase()} utilities, compare available features, and search by name, description, or format.
           </p>
         </div>
 
@@ -156,12 +175,19 @@ export default async function ToolPage({
     notFound();
   }
 
-  const related = tools
-    .filter(
-      (item) =>
-        item.category === tool.category &&
-        item.slug !== tool.slug
-    )
+  const relatedPriority: Record<string, string[]> = {
+    "compress-image-size": ["resize-image-dimensions", "webp-to-jpg", "jpg-to-webp"],
+    "resize-image-dimensions": ["bulk-image-resizer", "compress-image-size", "crop-image"],
+    "bulk-image-resizer": ["resize-image-dimensions", "compress-image-size", "image-splitter"],
+    "passport-photo-maker": ["signature-image-resizer", "resize-image-dimensions", "compress-image-size"],
+    "image-to-text": ["tiff-to-text", "translate-image", "view-metadata"],
+    "add-text-to-image": ["collage-maker", "overlay-images", "add-border-to-image"],
+  };
+  const preferredRelated = (relatedPriority[tool.slug] ?? [])
+    .map((slug) => tools.find((item) => item.slug === slug))
+    .filter((item): item is (typeof tools)[number] => Boolean(item));
+  const related = (preferredRelated.length ? preferredRelated : tools.filter((item) => item.category === tool.category && item.slug !== tool.slug))
+    .filter((item) => item.slug !== tool.slug)
     .slice(0, 3);
 
   // Preserve the existing real workspace for each supported tool.
@@ -264,10 +290,11 @@ export default async function ToolPage({
     );
 
   const isWritingTool = tool.category === "write";
+  const toolUrl = `https://brobeximagetolls.vercel.app/tools/${encodeURIComponent(tool.slug)}`;
   const softwareSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: tool.name,
+    name: `BROBEX ${tool.name}`,
     description: tool.description,
     applicationCategory:
       tool.category === "image"
@@ -275,27 +302,53 @@ export default async function ToolPage({
         : tool.category === "pdf"
           ? "UtilitiesApplication"
           : "BusinessApplication",
-    operatingSystem: "Web browser",
+    operatingSystem: "Any operating system with a supported modern web browser",
+    browser: "Requires JavaScript and the browser APIs listed for this tool",
     isAccessibleForFree: true,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    url: toolUrl,
+    author: {
+      "@type": "Person",
+      name: "BROBEX",
+      url: "https://brobexportfolio.vercel.app/",
+      email: "brobex.ffx@gmail.com",
     },
-    url: `https://brobeximagetolls.vercel.app/tools/${encodeURIComponent(tool.slug)}`,
     publisher: {
       "@type": "Organization",
       name: "BROBEX",
-      url: "https://brobeximagetolls.vercel.app",
+      url: "https://brobexportfolio.vercel.app/",
     },
   };
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://brobeximagetolls.vercel.app/" },
+      { "@type": "ListItem", position: 2, name: `${cat.label} Tools`, item: `https://brobeximagetolls.vercel.app${cat.href}` },
+      { "@type": "ListItem", position: 3, name: tool.name, item: toolUrl },
+    ],
+  };
+  const howToSchema = guide?.steps?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: `How to use ${tool.name}`,
+        description: guide.about,
+        step: guide.steps.map((step, index) => ({
+          "@type": "HowToStep",
+          position: index + 1,
+          name: `Step ${index + 1}`,
+          text: step,
+        })),
+      }
+    : null;
 
   return (
     <div className="container tool-page-shell">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(softwareSchema).replace(/</g, "\\u003c"),
+          __html: JSON.stringify([...(tool.status === "browser" ? [softwareSchema] : []), breadcrumbSchema, ...(howToSchema && tool.status === "browser" ? [howToSchema] : [])]).replace(/</g, "\\u003c"),
         }}
       />
       <nav className="breadcrumb tool-breadcrumb" aria-label="Breadcrumb">

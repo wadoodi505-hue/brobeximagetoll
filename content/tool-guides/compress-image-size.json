@@ -20,7 +20,7 @@
   "faqs": [
     {
       "question": "What does Compress Image Size do?",
-      "answer": "Automatically compress images into optimized WebP files with one upload. No settings required."
+      "answer": "Compress an image toward a maximum file-size target, compare the original and optimized previews, and download the result. The available workspace controls determine the format and quality options."
     },
     {
       "question": "Which files can I use?",

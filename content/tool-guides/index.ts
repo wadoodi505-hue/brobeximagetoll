@@ -1,3 +1,11 @@
+import a4SizeGuide from "@/content/tool-guides/a4-size.json";
+import blemishesRemoverGuide from "@/content/tool-guides/blemishes-remover.json";
+import cropRoundCornersGuide from "@/content/tool-guides/crop-round-corners.json";
+import editMetadataGuide from "@/content/tool-guides/edit-metadata.json";
+import imageColorPickerGuide from "@/content/tool-guides/image-color-picker.json";
+import overlayImagesGuide from "@/content/tool-guides/overlay-images.json";
+import removeMetadataGuide from "@/content/tool-guides/remove-metadata.json";
+import signatureImageResizerGuide from "@/content/tool-guides/signature-image-resizer.json";
 import type { ToolGuideData } from "@/components/tool-guide";
 import signatureGeneratorGuide from "@/content/tool-guides/signature-generator.json";
 import guide107 from "@/content/tool-guides/blur-image.json";
@@ -110,14 +118,24 @@ import guide105 from "@/content/tool-guides/compress-image-to-1mb.json";
 import guide106 from "@/content/tool-guides/compress-image-to-2mb.json";
 
 import increaseImageFileSizeGuide from "@/content/tool-guides/increase-image-file-size.json";
+import bulkImageResizerGuide from "@/content/tool-guides/bulk-image-resizer.json";
 import rotateFlipImageGuide from "@/content/tool-guides/flip-image.json";
 import convertMbToKbGuide from "@/content/tool-guides/convert-mb-to-kb.json";
 import convertKbToMbGuide from "@/content/tool-guides/convert-kb-to-mb.json";
 
 export const toolGuides: Record<string, ToolGuideData> = {
+  "a4-size": a4SizeGuide,
+  "blemishes-remover": blemishesRemoverGuide,
+  "crop-round-corners": cropRoundCornersGuide,
+  "edit-metadata": editMetadataGuide,
+  "image-color-picker": imageColorPickerGuide,
+  "overlay-images": overlayImagesGuide,
+  "remove-metadata": removeMetadataGuide,
+  "signature-image-resizer": signatureImageResizerGuide,
   "blur-image": guide107,
   "signature-generator": signatureGeneratorGuide,
   "increase-image-file-size": increaseImageFileSizeGuide,
+  "bulk-image-resizer": bulkImageResizerGuide,
   "convert-mb-to-kb": convertMbToKbGuide,
   "convert-kb-to-mb": convertKbToMbGuide,
   "flip-image": rotateFlipImageGuide,

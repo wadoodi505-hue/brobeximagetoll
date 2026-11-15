@@ -14537,3 +14537,50 @@ span {
   cursor: pointer;
   pointer-events: auto;
 }
+
+/* BROBEX Image Studio: compact outlined export controls and radius presets */
+.advanced-export-button,
+.advanced-action-row button[aria-pressed] {
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: var(--at-bg, #fff);
+  color: var(--at-text, #111);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.advanced-export-button:hover,
+.advanced-action-row button[aria-pressed]:hover {
+  background: color-mix(in srgb, var(--at-text, #111) 6%, var(--at-bg, #fff));
+  border-color: #9ca3af;
+}
+.advanced-export-button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.advanced-action-row button[aria-pressed="true"] {
+  border-color: var(--at-text, #111);
+  box-shadow: inset 0 0 0 1px var(--at-text, #111);
+}
+
+
+.crop-live-output {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border-box, #e5e5e5);
+  border-radius: 12px;
+  background: var(--bg-box, #fff);
+}
+.crop-live-output canvas {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 360px;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  background-color: transparent;
+}
