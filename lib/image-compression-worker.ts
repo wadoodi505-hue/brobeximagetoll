@@ -25,6 +25,11 @@ let requestId = 0;
 
 export function startImageCompression(options: Options) {
   const id = ++requestId;
+  if (!Number.isFinite(options.targetBytes) || options.targetBytes < 1) {
+    throw new Error("Enter a valid target file size.");
+  }
+  const safeIterations = Math.max(1, Math.min(16, Math.floor(options.maxIterations ?? 12)));
+  const safeMaxPixels = Math.max(1, Math.min(80_000_000, Math.floor(options.maxPixels ?? 40_000_000)));
   const worker = new Worker(new URL("../workers/image-compression.worker.ts", import.meta.url), { type: "module", name: "brobex-image-compression" });
 
   let settled = false;
@@ -54,6 +59,12 @@ export function startImageCompression(options: Options) {
         worker.terminate();
       }
     };
+    worker.onmessageerror = () => {
+      if (settled) return;
+      settled = true;
+      reject(new Error("The image processor returned an unreadable response. Please try again."));
+      worker.terminate();
+    };
     worker.onerror = () => {
       if (settled) return;
       settled = true;
@@ -67,8 +78,8 @@ export function startImageCompression(options: Options) {
       format: options.format,
       qualityLimit: options.qualityLimit,
       allowResize: options.allowResize,
-      maxPixels: options.maxPixels ?? 40_000_000,
-      maxIterations: options.maxIterations ?? 12,
+      maxPixels: safeMaxPixels,
+      maxIterations: safeIterations,
     });
   });
 

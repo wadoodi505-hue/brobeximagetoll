@@ -319,6 +319,23 @@ export default async function ToolPage({
       url: "https://brobexportfolio.vercel.app/",
     },
   };
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${tool.name} | BROBEX Image Tools`,
+    description: tool.description,
+    url: toolUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "BROBEX Image Tools",
+      url: "https://brobeximagetolls.vercel.app/",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "BROBEX",
+      url: "https://brobexportfolio.vercel.app/",
+    },
+  };
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -348,7 +365,7 @@ export default async function ToolPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([...(tool.status === "browser" ? [softwareSchema] : []), breadcrumbSchema, ...(howToSchema && tool.status === "browser" ? [howToSchema] : [])]).replace(/</g, "\\u003c"),
+          __html: JSON.stringify([webPageSchema, ...(tool.status === "browser" ? [softwareSchema] : []), breadcrumbSchema, ...(howToSchema && tool.status === "browser" ? [howToSchema] : [])]).replace(/</g, "\\u003c"),
         }}
       />
       <nav className="breadcrumb tool-breadcrumb" aria-label="Breadcrumb">
@@ -366,7 +383,7 @@ export default async function ToolPage({
         status={tool.status === "browser" ? "browser" : "integration"}
       >
         <div className="page-content tool-detail-content">
-          <div className="tool-workspace-shell">
+          <div className="tool-workspace-shell" key={tool.slug}>
             {workspace}
           </div>
 

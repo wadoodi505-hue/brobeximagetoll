@@ -32,6 +32,7 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const resultUrlRef = useRef<string | null>(null);
   const workerRef = useRef<(() => void) | null>(null);
+  const operationIdRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
@@ -41,11 +42,13 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
   const [progressMessage, setProgressMessage] = useState("Preparing image…");
 
   useEffect(() => () => {
+    operationIdRef.current += 1;
     workerRef.current?.();
     if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
   }, []);
 
   function reset() {
+    operationIdRef.current += 1;
     workerRef.current?.();
     workerRef.current = null;
     setProgress(0);
@@ -62,6 +65,7 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
 
   async function compress(selected: File) {
     reset();
+    const operationId = ++operationIdRef.current;
     if (!selected.type.startsWith("image/")) {
       setError("Choose a supported image file (JPG, PNG, WebP, GIF or AVIF).");
       return;
@@ -85,12 +89,14 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
         maxPixels: 40_000_000,
         maxIterations: 12,
         onProgress: (value, message) => {
+          if (operationId !== operationIdRef.current) return;
           setProgress(value);
           setProgressMessage(message);
         },
       });
       workerRef.current = task.cancel;
       const compressed = await task.promise;
+      if (operationId !== operationIdRef.current) return;
       setProgress(100);
       setResult({
         blob: compressed.blob,
@@ -102,11 +108,15 @@ export function ExactTargetCompressionWorkspace({ targetKb, title }: Props) {
       });
       resultUrlRef.current = URL.createObjectURL(compressed.blob);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Compression failed. Please try another image.");
-      setFile(null);
+      if (operationId === operationIdRef.current) {
+        setError(cause instanceof Error ? cause.message : "Compression failed. Please try another image.");
+        setFile(null);
+      }
     } finally {
-      workerRef.current = null;
-      setBusy(false);
+      if (operationId === operationIdRef.current) {
+        workerRef.current = null;
+        setBusy(false);
+      }
     }
   }
 

@@ -84,6 +84,21 @@ scope.onmessage = async (event: MessageEvent<RequestMessage>) => {
   let canvas: OffscreenCanvas | null = null;
 
   try {
+    if (!request.file || request.file.size <= 0 || request.file.size > 25 * 1024 * 1024) {
+      throw new Error("Choose a non-empty image up to 25 MB.");
+    }
+    if (!Number.isFinite(request.targetBytes) || request.targetBytes < 1) {
+      throw new Error("The target file size is invalid.");
+    }
+    request.maxPixels = Number.isFinite(request.maxPixels)
+      ? Math.max(1, Math.min(80_000_000, Math.floor(request.maxPixels)))
+      : 40_000_000;
+    request.maxIterations = Number.isFinite(request.maxIterations)
+      ? Math.max(1, Math.min(16, Math.floor(request.maxIterations)))
+      : 12;
+    request.qualityLimit = Number.isFinite(request.qualityLimit)
+      ? Math.max(0.06, Math.min(1, request.qualityLimit))
+      : 0.92;
     await validateImageSignature(request.file);
     // createImageBitmap uses the image's encoded orientation by default, so EXIF-oriented
     // phone photos are drawn upright before canvas export (EXIF metadata itself is stripped).
