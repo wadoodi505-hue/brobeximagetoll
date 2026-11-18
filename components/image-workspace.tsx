@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -45,12 +44,6 @@ function getUhdDimensions(sourceWidth: number, sourceHeight: number) {
   };
 }
 
-type Metadata = {
-  width: number;
-  height: number;
-  type: string;
-  size: number;
-};
 
 type PreviewMode = "compare" | "original" | "enhanced";
 export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
@@ -200,9 +193,9 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
     const lockedRatio =
       cropMode === "square-crop" ||
-      cropMode === "circle" ||
-      cropMode === "triangle-crop" ||
-      cropMode === "shape-crop"
+        cropMode === "circle" ||
+        cropMode === "triangle-crop" ||
+        cropMode === "shape-crop"
         ? 1
         : cropMode === "aspect-ratio-crop"
           ? cropAspectRatio
@@ -320,8 +313,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
   // Professional before/after comparison.
   const [comparison, setComparison] = useState(50);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("compare");
-
-  const [metadata, setMetadata] = useState<Metadata | null>(null);
 
   const operationId = useRef(0);
   const autoCompressFileRef = useRef<File | null>(null);
@@ -525,7 +516,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     setResultBlob(null);
     setError("");
     setMessage("");
-    setMetadata(null);
     setPreviewMode("compare");
   }
 
@@ -642,7 +632,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
     setBusy(true);
     setError("");
     setMessage("");
-    setMetadata(null);
 
     try {
       if (op === "combine") {
@@ -666,25 +655,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
         return;
       }
 
-      if (op === "metadata") {
-        const image = new Image();
-        image.src = preview;
-        await image.decode();
-
-        if (currentOperation !== operationId.current) return;
-
-        setMetadata({
-          width: image.naturalWidth,
-          height: image.naturalHeight,
-          type: file.type || "Unknown",
-          size: file.size,
-        });
-
-        setMessage("Image properties read successfully.");
-        return;
-      }
-
-            // Dedicated image-size compressor. It preserves the
+      // Dedicated image-size compressor. It preserves the
       // original image dimensions and never crops or resizes.
       if (tool.slug === "compress-image-size") {
         const image = new Image();
@@ -760,7 +731,7 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
         return;
       }
-// Browser AI segmentation powers transparent cutouts and background blur.
+      // Browser AI segmentation powers transparent cutouts and background blur.
       if (["remove-background-from-image", "make-background-transparent", "blur-background"].includes(tool.slug)) {
         const cutout = await removeImageBackground(file);
         if (currentOperation !== operationId.current) return;
@@ -1189,77 +1160,77 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
             {op === "unblur" ? (
               <>
                 <div className="preview-sticky-region unblur-sticky-region">
-                <div className="unblur-preview-header">
-                  <div>
-                    <span className="eyebrow">IMAGE RESTORATION STUDIO</span>
-                    <h3>Clarity preview</h3>
-                    <p>
-                      Review the original and enhanced image before downloading.
-                    </p>
+                  <div className="unblur-preview-header">
+                    <div>
+                      <span className="eyebrow">IMAGE RESTORATION STUDIO</span>
+                      <h3>Clarity preview</h3>
+                      <p>
+                        Review the original and enhanced image before downloading.
+                      </p>
+                    </div>
+
+                    <span className="unblur-status">
+                      <span className="unblur-status-dot" />
+                      {busy ? "Enhancing" : result ? "Enhanced" : "Ready"}
+                    </span>
                   </div>
 
-                  <span className="unblur-status">
-                    <span className="unblur-status-dot" />
-                    {busy ? "Enhancing" : result ? "Enhanced" : "Ready"}
-                  </span>
-                </div>
-
-                <div
-                  className="unblur-mode-switch"
-                  role="group"
-                  aria-label="Image preview mode"
-                >
-                  {(
-                    [
-                      ["compare", "Compare"],
-                      ["original", "Original"],
-                      ["enhanced", "Enhanced"],
-                    ] as [PreviewMode, string][]
-                  ).map(([mode, label]) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      className={previewMode === mode ? "active" : ""}
-                      aria-pressed={previewMode === mode}
-                      disabled={mode === "enhanced" && !result}
-                      onClick={() => setPreviewMode(mode)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="unblur-comparison">
-                  {previewMode === "original" || !result ? (
-                    <img src={preview} alt="Original image preview" />
-                  ) : previewMode === "enhanced" ? (
-                    <img src={result} alt="Enhanced image preview" />
-                  ) : (
-                    <>
-                      <img src={preview} alt="Original image comparison" />
-
-                      <div
-                        className="unblur-comparison-result"
-                        style={{
-                          clipPath: `inset(0 0 0 ${comparison}%)`,
-                        }}
+                  <div
+                    className="unblur-mode-switch"
+                    role="group"
+                    aria-label="Image preview mode"
+                  >
+                    {(
+                      [
+                        ["compare", "Compare"],
+                        ["original", "Original"],
+                        ["enhanced", "Enhanced"],
+                      ] as [PreviewMode, string][]
+                    ).map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        className={previewMode === mode ? "active" : ""}
+                        aria-pressed={previewMode === mode}
+                        disabled={mode === "enhanced" && !result}
+                        onClick={() => setPreviewMode(mode)}
                       >
-                        <img src={result} alt="Enhanced image comparison" />
-                      </div>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
 
-                      <div
-                        className="unblur-comparison-divider"
-                        style={{ left: `${comparison}%` }}
-                        aria-hidden="true"
-                      >
-                        <span>↔</span>
-                      </div>
-                    </>
-                  )}
+                  <div className="unblur-comparison">
+                    {previewMode === "original" || !result ? (
+                      <img src={preview} alt="Original image preview" />
+                    ) : previewMode === "enhanced" ? (
+                      <img src={result} alt="Enhanced image preview" />
+                    ) : (
+                      <>
+                        <img src={preview} alt="Original image comparison" />
+
+                        <div
+                          className="unblur-comparison-result"
+                          style={{
+                            clipPath: `inset(0 0 0 ${comparison}%)`,
+                          }}
+                        >
+                          <img src={result} alt="Enhanced image comparison" />
+                        </div>
+
+                        <div
+                          className="unblur-comparison-divider"
+                          style={{ left: `${comparison}%` }}
+                          aria-hidden="true"
+                        >
+                          <span>↔</span>
+                        </div>
+                      </>
+                    )}
 
                   </div>
 
-                {previewMode === "compare" && result && (
+                  {previewMode === "compare" && result && (
                     <>
                       <span className="unblur-image-label original-label">
                         ORIGINAL
@@ -1354,12 +1325,12 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                           >
                             <svg viewBox="0 0 32 32" aria-hidden="true">
                               {preset.icon === "circle" ? <circle cx="16" cy="16" r="11" /> :
-                               preset.icon === "triangle" ? <polygon points="16,4 28,27 4,27" /> :
-                               preset.icon === "hexagon" ? <polygon points="9,4 23,4 30,16 23,28 9,28 2,16" /> :
-                               preset.icon === "square" ? <rect x="5" y="5" width="22" height="22" rx="2" /> :
-                               preset.icon === "tall" ? <rect x="8" y="3" width="16" height="26" rx="2" /> :
-                               preset.icon === "wide" ? <rect x="3" y="8" width="26" height="16" rx="2" /> :
-                               <rect x="3" y="3" width="26" height="26" rx="2" />}
+                                preset.icon === "triangle" ? <polygon points="16,4 28,27 4,27" /> :
+                                  preset.icon === "hexagon" ? <polygon points="9,4 23,4 30,16 23,28 9,28 2,16" /> :
+                                    preset.icon === "square" ? <rect x="5" y="5" width="22" height="22" rx="2" /> :
+                                      preset.icon === "tall" ? <rect x="8" y="3" width="16" height="26" rx="2" /> :
+                                        preset.icon === "wide" ? <rect x="3" y="8" width="26" height="16" rx="2" /> :
+                                          <rect x="3" y="3" width="26" height="26" rx="2" />}
                             </svg>
                             <span>{preset.label}</span>
                           </button>
@@ -1445,25 +1416,25 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                   ) : (
                     <div className="preview-canvas">
                       {op === "text" && preview ? (
-                          <canvas
-                            ref={textCanvasRef}
-                            className="text-editor-canvas"
-                            aria-label="Live text editor preview. Click or drag to position text."
-                            onPointerDown={beginTextDrag}
-                            onPointerMove={updateTextDrag}
-                            onPointerUp={endTextDrag}
-                            onPointerCancel={endTextDrag}
-                            onLostPointerCapture={endTextDrag}
-                          />
-                        ) : op === "flip" && preview && (rotation !== 0 || flipX || flipY) ? (
-                          <canvas
-                            ref={rotationCanvasRef}
-                            className="flip-rotation-canvas"
-                            aria-label="Edited rotated and flipped image preview"
-                          />
-                        ) : (
-                          <img src={preview} alt="Original selected image" />
-                        )}
+                        <canvas
+                          ref={textCanvasRef}
+                          className="text-editor-canvas"
+                          aria-label="Live text editor preview. Click or drag to position text."
+                          onPointerDown={beginTextDrag}
+                          onPointerMove={updateTextDrag}
+                          onPointerUp={endTextDrag}
+                          onPointerCancel={endTextDrag}
+                          onLostPointerCapture={endTextDrag}
+                        />
+                      ) : op === "flip" && preview && (rotation !== 0 || flipX || flipY) ? (
+                        <canvas
+                          ref={rotationCanvasRef}
+                          className="flip-rotation-canvas"
+                          aria-label="Edited rotated and flipped image preview"
+                        />
+                      ) : (
+                        <img src={preview} alt="Original selected image" />
+                      )}
                     </div>
                   )}
                   {!(["crop", "square-crop", "triangle-crop", "shape-crop", "aspect-ratio-crop", "circle"].includes(op || "")) && (
@@ -1478,67 +1449,67 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 
                 </div>
 
-                  {op === "flip" && (
-                    <section className="flip-rotation-controls">
-                      <div className="flip-rotation-heading">
-                        <div>
-                          <span className="eyebrow">TRANSFORM CONTROLS</span>
-                          <strong>Rotate image</strong>
-                          <small>Adjust the angle and preview your changes instantly.</small>
-                        </div>
-                        <output>{rotation}°</output>
+                {op === "flip" && (
+                  <section className="flip-rotation-controls">
+                    <div className="flip-rotation-heading">
+                      <div>
+                        <span className="eyebrow">TRANSFORM CONTROLS</span>
+                        <strong>Rotate image</strong>
+                        <small>Adjust the angle and preview your changes instantly.</small>
                       </div>
+                      <output>{rotation}°</output>
+                    </div>
 
-                      <input
-                        className="flip-rotation-slider"
-                        type="range"
-                        min="0"
-                        max="360"
-                        step="1"
-                        value={rotation}
-                        disabled={busy}
-                        onChange={(event) => setRotation(Number(event.target.value))}
-                        aria-label="Image rotation angle"
-                      />
+                    <input
+                      className="flip-rotation-slider"
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="1"
+                      value={rotation}
+                      disabled={busy}
+                      onChange={(event) => setRotation(Number(event.target.value))}
+                      aria-label="Image rotation angle"
+                    />
 
-                      <div className="flip-rotation-scale">
-                        <span>0°</span>
-                        <span>90°</span>
-                        <span>180°</span>
-                        <span>270°</span>
-                        <span>360°</span>
-                      </div>
+                    <div className="flip-rotation-scale">
+                      <span>0°</span>
+                      <span>90°</span>
+                      <span>180°</span>
+                      <span>270°</span>
+                      <span>360°</span>
+                    </div>
 
-                      <div className="flip-rotation-presets">
-                        {[0, 90, 180, 270, 360].map((angle) => (
-                          <button
-                            key={angle}
-                            type="button"
-                            className={rotation === angle ? "active" : ""}
-                            aria-pressed={rotation === angle}
-                            disabled={busy}
-                            onClick={() => setRotation(angle)}
-                          >
-                            {angle}°
-                          </button>
-                        ))}
-
+                    <div className="flip-rotation-presets">
+                      {[0, 90, 180, 270, 360].map((angle) => (
                         <button
+                          key={angle}
                           type="button"
-                          className="flip-rotation-reset"
+                          className={rotation === angle ? "active" : ""}
+                          aria-pressed={rotation === angle}
                           disabled={busy}
-                          onClick={() => {
-                            setRotation(0);
-                            setFlipX(false);
-                            setFlipY(false);
-                          }}
+                          onClick={() => setRotation(angle)}
                         >
-                          <RotateCcw size={14} />
-                          Reset
+                          {angle}°
                         </button>
-                      </div>
-                    </section>
-                  )}
+                      ))}
+
+                      <button
+                        type="button"
+                        className="flip-rotation-reset"
+                        disabled={busy}
+                        onClick={() => {
+                          setRotation(0);
+                          setFlipX(false);
+                          setFlipY(false);
+                        }}
+                      >
+                        <RotateCcw size={14} />
+                        Reset
+                      </button>
+                    </div>
+                  </section>
+                )}
 
 
 
@@ -1997,13 +1968,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               </label>
             )}
 
-            {op === "metadata" && (
-              <p className="hint">
-                Reads image dimensions, MIME type and file size. Full EXIF
-                metadata is not available through every browser.
-              </p>
-            )}
-
             {!op && (
               <p className="hint">
                 This tool does not have a browser operation configured.
@@ -2024,8 +1988,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
               >
                 {busy ? (
                   "Processing…"
-                ) : op === "metadata" ? (
-                  "Read metadata"
                 ) : op === "combine" ? (
                   "Combine images"
                 ) : op === "unblur" ? (
@@ -2081,17 +2043,6 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                 {error}
               </p>
             )}
-
-            {metadata && (
-              <div className="metadata-card">
-                <h4>Image properties</h4>
-                <p>
-                  Dimensions: {metadata.width} × {metadata.height}px
-                </p>
-                <p>MIME type: {metadata.type}</p>
-                <p>File size: {formatBytes(metadata.size)}</p>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -2121,9 +2072,3 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
 function WandIcon() {
   return <span aria-hidden="true">✳</span>;
 }
-
-
-
-
-
-
