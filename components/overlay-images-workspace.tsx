@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Download, ImagePlus, UploadCloud } from "lucide-react";
 
 type ImageInfo = { file: File; bitmap: ImageBitmap };
@@ -52,6 +52,12 @@ export function OverlayImagesWorkspace() {
     ctx.globalAlpha=opacity/100;ctx.drawImage(overlay.bitmap,left,top,w,h);ctx.globalAlpha=1;
   }, [base, overlay, opacity, scale, x, y, background]);
   useEffect(()=>{render();},[render]);
+  function updateOverlayFromPointer(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.buttons !== 1 || !base || !overlay) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setX(Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100)));
+    setY(Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100)));
+  }
   async function exportImage(){
     if(!base||!overlay||!canvasRef.current)return;
     setBusy(true);setError("");setNotice("");
@@ -68,7 +74,7 @@ export function OverlayImagesWorkspace() {
       <label className="advanced-upload"><UploadCloud/><span>{base?base.file.name:"Choose base image"}</span><small>Background / bottom layer<input type="file" accept="image/*" onChange={e=>void load(e.target.files?.[0],"base")}/></small></label>
       <label className="advanced-upload"><UploadCloud/><span>{overlay?overlay.file.name:"Choose overlay image"}</span><small>Foreground / top layer<input type="file" accept="image/*" onChange={e=>void load(e.target.files?.[0],"overlay")}/></small></label>
     </div>
-    {base&&overlay&&<><div className="advanced-preview"><canvas ref={canvasRef} style={{maxWidth:"100%",height:"auto"}}/><span>Live composition preview</span></div>
+    {base&&overlay&&<><div className="advanced-preview-sticky"><div className="advanced-preview" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);updateOverlayFromPointer(e);}} onPointerMove={updateOverlayFromPointer} style={{touchAction:"none",cursor:"move"}}><canvas ref={canvasRef} style={{maxWidth:"100%",height:"auto",pointerEvents:"none"}}/><span>Drag on the preview to position the overlay</span></div></div>
       <div className="advanced-controls">
         <label>Overlay opacity <input type="range" min="0" max="100" value={opacity} onChange={e=>setOpacity(+e.target.value)}/><b>{opacity}%</b></label>
         <label>Overlay width <input type="range" min="5" max="150" value={scale} onChange={e=>setScale(+e.target.value)}/><b>{scale}%</b></label>

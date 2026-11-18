@@ -194,7 +194,7 @@ export default async function ToolPage({
   const exactTargetTool = getExactTargetTool(tool.slug);
 
   const advancedToolSlugs = new Set([
-    "crop-round-corners", "image-color-picker", "edit-metadata", "remove-metadata", "view-metadata", "add-border-to-image",
+    "crop-round-corners", "image-color-picker", "view-metadata", "add-border-to-image",
     "blemishes-remover", "a4-size", "profile-photo-maker", "aspect-ratio-crop",
     "vsd-to-docx", "vsd-to-pptx", "vsd-to-jpg",
     "vsdx-to-docx", "vsdx-to-pptx", "vsdx-to-jpg",
@@ -232,7 +232,7 @@ export default async function ToolPage({
       <FontAwesomeToPngWorkspace />
     ) : tool.slug === "image-splitter" ? (
       <ImageSplitterWorkspace />
-    ) : tool.slug === "combine-images" || tool.slug === "add-images-to-image" ? (
+    ) : tool.slug === "combine-images" ? (
       <CollageMakerWorkspace />
     ) : tool.slug === "overlay-images" ? (
       <OverlayImagesWorkspace />

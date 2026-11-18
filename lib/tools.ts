@@ -189,17 +189,6 @@ export const tools: ToolDefinition[] = [
     "operation": "crop"
   },
   {
-    "slug": "square-crop",
-    "name": "Square Crop",
-    "description": "Create a centered square crop with transparent-free image output.",
-    "category": "image",
-    "icon": "Image",
-    "acceptedTypes": ["image/*"],
-    "method": "Canvas API",
-    "status": "browser",
-    "operation": "square-crop"
-  },
-  {
     "slug": "triangle-crop",
     "name": "Triangle Crop",
     "description": "Crop an image into a triangle with transparent corners.",
@@ -306,19 +295,6 @@ export const tools: ToolDefinition[] = [
       "image/*"
     ],
     "method": "Browser Canvas API (local rendering and export)",
-    "status": "browser",
-    "operation": "combine"
-  },
-  {
-    "slug": "add-images-to-image",
-    "name": "Add Images to Image",
-    "description": "Arrange multiple images into horizontal, vertical, grid or featured compositions with adjustable spacing, margins and export format.",
-    "category": "image",
-    "icon": "Image",
-    "acceptedTypes": [
-      "image/*"
-    ],
-    "method": "Browser Canvas collage workspace (local rendering and export)",
     "status": "browser",
     "operation": "combine"
   },
@@ -1454,26 +1430,6 @@ export const tools: ToolDefinition[] = [
     icon: "Image",
     acceptedTypes: ["image/*"],
     method: "Local Canvas pixel sampling",
-    status: "browser"
-  },
-  {
-    slug: "edit-metadata",
-    name: "Edit Metadata",
-    description: "Edit JPEG EXIF description, artist and copyright fields; export a JSON sidecar for other image formats.",
-    category: "image",
-    icon: "Image",
-    acceptedTypes: ["image/*"],
-    method: "Browser JPEG EXIF APP1 writer + JSON sidecar fallback",
-    status: "browser"
-  },
-  {
-    slug: "remove-metadata",
-    name: "Remove Metadata",
-    description: "Re-encode an image to a clean PNG to remove source metadata where browser decoding supports it.",
-    category: "image",
-    icon: "Image",
-    acceptedTypes: ["image/*"],
-    method: "Browser Canvas re-encoding",
     status: "browser"
   },
   {

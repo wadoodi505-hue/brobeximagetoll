@@ -14584,3 +14584,42 @@ span {
   object-fit: contain;
   background-color: transparent;
 }
+
+
+/* BROBEX creator promotion — replaces legacy advertising placements. */
+.brobex-creator-promo{position:relative;overflow:hidden;border:1px solid rgba(212,175,55,.32);border-radius:18px;background:radial-gradient(circle at 100% 0%,rgba(16,185,129,.18),transparent 42%),linear-gradient(145deg,#111 0%,#191b1a 100%);color:#f8fafc;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.12)}
+.brobex-creator-promo:after{content:"";position:absolute;inset:auto -35px -65px auto;width:150px;height:150px;border:1px solid rgba(212,175,55,.18);border-radius:50%;box-shadow:0 0 0 18px rgba(212,175,55,.035),0 0 0 38px rgba(16,185,129,.025);pointer-events:none}
+.brobex-creator-promo__top{display:flex;justify-content:space-between;align-items:center;color:#d6b65d;font-size:10px;font-weight:850;letter-spacing:.16em}
+.brobex-creator-promo__top span{display:flex;align-items:center;gap:7px}
+.brobex-creator-promo__body{position:relative;z-index:1;margin-top:20px}
+.brobex-creator-promo__eyebrow{font-size:9px;letter-spacing:.18em;color:#34d399;font-weight:800}
+.brobex-creator-promo h3{margin:7px 0;font-size:19px;line-height:1.2;color:#fff}
+.brobex-creator-promo p{margin:0 0 16px;color:#c4c9c6;font-size:12px;line-height:1.6}
+.brobex-creator-promo__body>a{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;padding:11px 12px;border-radius:10px;background:linear-gradient(100deg,#047857,#059669);color:#fff;text-decoration:none;font-size:11px;font-weight:800;box-shadow:0 5px 18px rgba(5,150,105,.2);transition:transform .2s,filter .2s}
+.brobex-creator-promo__body>a:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.brobex-creator-promo__body>a span{color:#f4d477}
+.isw-heading h2{color:#111!important}
+
+.advanced-preview-sticky{min-width:0}
+.advanced-radius-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
+.advanced-radius-presets button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:11px 7px;border:1px solid var(--border,#d4d4d8);border-radius:12px;background:var(--card,#fff);color:inherit;cursor:pointer}
+.advanced-radius-presets button.active{border-color:#059669;background:rgba(16,185,129,.08);box-shadow:0 0 0 1px rgba(5,150,105,.15)}
+.advanced-radius-presets strong{font-size:11px}.advanced-radius-presets small{font-size:10px;color:var(--muted,#71717a)}
+.advanced-radius-sample{width:52px;height:38px;border:2px solid #059669;background:linear-gradient(135deg,#d1fae5,#a7f3d0)}.advanced-radius-sample.radius-1{border-radius:10px}.advanced-radius-sample.radius-2{border-radius:19px}.advanced-radius-sample.radius-3{border-radius:999px}
+.advanced-fix-screen{margin-left:auto;flex:none;border:1px solid #059669;border-radius:10px;padding:10px 14px;background:#064e3b;color:white;font-size:12px;font-weight:800;cursor:pointer}.advanced-fix-screen.is-active{background:#d97706;border-color:#d97706}
+@media(max-width:900px){.advanced-preview-sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--brobex-header-height,68px));z-index:35;background:var(--surface,#fff);padding:8px 0;border-bottom:1px solid rgba(127,127,127,.2)}.advanced-preview-sticky .advanced-preview-stage{width:100%}.advanced-preview-sticky canvas{max-height:42svh;object-fit:contain}.advanced-tools-head{flex-wrap:wrap}.advanced-fix-screen{margin-left:auto}}
+
+@media(max-width:900px){
+  .brobex-collage-preview-sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--brobex-header-height,68px));z-index:36;width:100%;padding:9px 0 8px;background:var(--surface,#fff);border-bottom:1px solid rgba(127,127,127,.22);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+  .brobex-collage-stage{width:100%;max-height:clamp(190px,42svh,390px)}
+  .brobex-collage-stage canvas{max-height:clamp(190px,42svh,390px);object-fit:contain}
+}
+
+@media(max-width:900px){
+  .advanced-tools-workspace>.advanced-preview{display:contents}
+  .advanced-tools-workspace>.advanced-preview>span{display:block;color:var(--at-muted);font-size:11px}
+  .brobex-collage-main,.brobex-collage-drop{display:contents}
+  .brobex-collage-grid{gap:14px}
+  .brobex-collage-toolbar{padding:10px 0}
+  .brobex-collage-photo-list{padding:10px;border:1px solid var(--border,#ddd);border-radius:12px;background:var(--card,#fff)}
+}

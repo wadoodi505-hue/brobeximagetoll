@@ -1455,11 +1455,11 @@ export function ImageWorkspace({ tool }: { tool: ToolDefinition }) {
                             onPointerCancel={endTextDrag}
                             onLostPointerCapture={endTextDrag}
                           />
-                        ) : op === "flip" && preview ? (
+                        ) : op === "flip" && preview && (rotation !== 0 || flipX || flipY) ? (
                           <canvas
                             ref={rotationCanvasRef}
                             className="flip-rotation-canvas"
-                            aria-label="Live rotated and flipped image preview"
+                            aria-label="Edited rotated and flipped image preview"
                           />
                         ) : (
                           <img src={preview} alt="Original selected image" />

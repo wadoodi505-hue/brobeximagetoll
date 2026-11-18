@@ -37,6 +37,7 @@ export function IncreaseImageFileSizeWorkspace() {
   const [sourceInfo, setSourceInfo] = useState<ImageInfo | null>(null);
   const [resultInfo, setResultInfo] = useState<ImageInfo | null>(null);
   const [targetKb, setTargetKb] = useState(2048);
+  const [targetInput, setTargetInput] = useState("2 MB");
   const [targetUnit, setTargetUnit] = useState<"KB" | "MB">("KB");
   const [resultUrl, setResultUrl] = useState("");
   const [outputFormat, setOutputFormat] = useState<"original" | "image/jpeg" | "image/png" | "image/webp">("original");
@@ -151,6 +152,9 @@ export function IncreaseImageFileSizeWorkspace() {
 
   function reset() {
     setFile(null);
+    setTargetKb(2048);
+    setTargetUnit("KB");
+    setTargetInput("2 MB");
     setSourceInfo(null);
     setResultInfo(null);
     setResultBlob(null);
@@ -165,6 +169,11 @@ export function IncreaseImageFileSizeWorkspace() {
     sourceInfo && resultInfo
       ? ((resultInfo.size - sourceInfo.size) / sourceInfo.size) * 100
       : 0;
+  const parsedTarget = targetInput.trim().match(/^(\d+(?:\.\d+)?)\s*(kb|mb)?$/i);
+  const parsedTargetKb = parsedTarget
+    ? Number(parsedTarget[1]) * ((parsedTarget[2] || targetUnit).toUpperCase() === "MB" ? 1024 : 1)
+    : Number.NaN;
+  const targetValid = Number.isFinite(parsedTargetKb) && parsedTargetKb > 0 && parsedTargetKb <= 51200;
 
   return (
     <section className="increase-size-workspace">
@@ -173,7 +182,7 @@ export function IncreaseImageFileSizeWorkspace() {
           <span className="isw-kicker">
             <Sparkles size={14} /> BROBEX IMAGE ENGINE
           </span>
-          <h2>Increase Image File Size</h2>
+          <h2 style={{ color: "#111111" }}>Increase Image File Size</h2>
           <p>
             Increase an image&apos;s file size without resizing, re-encoding,
             or changing its original image data.
@@ -252,32 +261,28 @@ export function IncreaseImageFileSizeWorkspace() {
             </div>
 
             <label className="isw-label" htmlFor="isw-target">
-              Target minimum file size
+              Custom target file size
             </label>
 
             <div className="isw-target-row">
               <input
                 id="isw-target"
                 disabled={busy}
-                type="number"
-                min={targetUnit === "MB" ? "0.01" : "1"}
-                max={targetUnit === "MB" ? "50" : "51200"}
-                step={targetUnit === "MB" ? "0.01" : "1"}
-                value={
-                  targetUnit === "MB"
-                    ? Number((targetKb / 1024).toFixed(2))
-                    : targetKb
-                }
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="e.g. 500 KB or 1 MB"
+                value={targetInput}
                 onChange={(event) => {
-                  const value = Number(event.target.value);
-                  if (!Number.isFinite(value) || value <= 0) return;
-
-                  const converted = Math.round(
-                    value * (targetUnit === "MB" ? 1024 : 1)
-                  );
-
-                  setTargetKb(Math.max(1, Math.min(51200, converted)));
-                  invalidateResult();
+                  const raw = event.target.value;
+                  setTargetInput(raw);
+                  const match = raw.trim().match(/^(\d+(?:\.\d+)?)\s*(kb|mb)?$/i);
+                  if (!match) return;
+                  const amount = Number(match[1]);
+                  const unit = (match[2] || targetUnit).toUpperCase();
+                  const bytesKb = amount * (unit === "MB" ? 1024 : 1);
+                  if (!Number.isFinite(bytesKb) || bytesKb <= 0 || bytesKb > 51200) return;
+                  setTargetKb(Math.max(1 / 1024, Math.min(51200, bytesKb)));
                   invalidateResult();
                 }}
               />
@@ -300,7 +305,7 @@ export function IncreaseImageFileSizeWorkspace() {
                     disabled={busy}
                     onClick={() => {
                       setTargetUnit(unit);
-                      invalidateResult();
+                      setTargetInput(`${unit === "MB" ? (targetKb / 1024).toFixed(2) : targetKb} ${unit}`);
                       invalidateResult();
                     }}
                     style={{
@@ -329,19 +334,8 @@ export function IncreaseImageFileSizeWorkspace() {
               .
             </small>
 
-            <div className="isw-presets">
-              {[100, 200, 500, 1024, 2048].map((value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={targetKb === value ? "active" : ""}
-                  disabled={busy}
-                  onClick={() => { setTargetKb(value); invalidateResult(); }}
-                >
-                  {value >= 1024 ? `${value / 1024} MB` : `${value} KB`}
-                </button>
-              ))}
-            </div>
+            <label className="isw-label" htmlFor="isw-target-slider">Fine-tune target size</label>
+            <input id="isw-target-slider" type="range" min="0.001" max="51200" step="0.001" value={targetKb} disabled={busy} onChange={(event) => { const next = Number(event.target.value); setTargetKb(next); setTargetInput(`${targetUnit === "MB" ? (next / 1024).toFixed(2) : next} ${targetUnit}`); invalidateResult(); }} aria-label="Target file size in kilobytes" />
             <label className="isw-label" htmlFor="isw-output-format">
               Output format
             </label>
@@ -383,7 +377,7 @@ export function IncreaseImageFileSizeWorkspace() {
 <button
               type="button"
               className="isw-process-button"
-              disabled={busy || targetKb < 1}
+              disabled={busy || !targetValid}
               onClick={() => void process()}
             >
               {busy ? (

@@ -60,9 +60,7 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("MP4 to JPG"),
       item("Split Image into Grid", "image-splitter"),
       item("Image Color Picker", "image-color-picker"),
-      item("Edit Metadata", "edit-metadata"),
       item("View Image Properties & Metadata", "view-metadata"),
-      item("Remove Metadata", "remove-metadata"),
 
     ]
   },
@@ -74,7 +72,6 @@ const curatedToolCategories: DirectoryCategory[] = [
       item("Unblur Image"),
       item("Blur Image", "blur-image", "Apply adjustable blur to the full image while preserving the original file."),
       item("Make Background Transparent", "make-background-transparent", "Create a transparent subject cutout using local browser AI segmentation."),
-      item("Square Crop", "square-crop", "Crop any image to a precise 1:1 square with adjustable framing."),
       item("Triangle Crop", "triangle-crop", "Create a triangular image crop with transparent exterior pixels."),
       item("Shape Crop", "shape-crop", "Create a hexagon-shaped image crop with transparent exterior pixels."),
       item("Make Round Image", "make-round-image", "Create a circular image with transparent corners."),
@@ -270,6 +267,8 @@ function classifyDirectoryTool(tool: DirectoryTool): (typeof categoryNames)[numb
   if (/video|mp4|slideshow|collage|signature generator|font awesome|chart maker|icon.*png/.test(value)) {
     return "Creative & Media Tools";
   }
+
+  if (/^crop image\b|\bcrop-image\b/.test(value)) return "Image Editing";
 
   if (/background|remove object|remove logo|remove text|transparent/.test(value)) {
     return "Background & Object Tools";

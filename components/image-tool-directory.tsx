@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search, ArrowUpRight } from "lucide-react";
+import { AdSenseUnit } from "@/components/adsense-unit";
 import { imageToolCategories, getDirectoryToolState } from "@/lib/image-tool-directory";
 
 export function ImageToolDirectory() {
@@ -81,7 +82,7 @@ const quickLinks = [
 
 export function DirectorySidebar() {
   return (
-    <aside className="directory-sidebar" aria-label="Quick access and advertisements">
+    <aside className="directory-sidebar" aria-label="Quick access and BROBEX channel">
       <section className="sidebar-quick-access">
         <h2>Quick Access Tools</h2>
         <div className="sidebar-quick-grid">
@@ -90,10 +91,7 @@ export function DirectorySidebar() {
           ))}
         </div>
       </section>
-      <section className="sidebar-advertisement" aria-label="Advertisement space">
-        <span>ADVERTISEMENT</span>
-        <div className="sidebar-ad-placeholder">Advertisement space</div>
-      </section>
+      <AdSenseUnit />
       <section className="sidebar-note">
         <strong>More tools, one workspace.</strong>
         <p>Browse the complete BROBEX collection. Tools that need an external provider are still listed and clearly identified.</p>

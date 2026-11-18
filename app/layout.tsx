@@ -154,15 +154,6 @@ export default function RootLayout({
             ]).replace(/</g, "\\u003c"),
           }}
         />
-        <meta
-          name="google-adsense-account"
-          content="ca-pub-2771980465268081"
-        />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2771980465268081"
-          crossOrigin="anonymous"
-        />
         <script
           dangerouslySetInnerHTML={{
             __html: `try { var savedTheme = localStorage.getItem("brobex-theme"); var preferredTheme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); document.documentElement.dataset.theme = preferredTheme; } catch (e) { document.documentElement.dataset.theme = "light"; }`,

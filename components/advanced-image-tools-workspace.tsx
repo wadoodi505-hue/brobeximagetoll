@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { Copy, Download, FileArchive, FileText, UploadCloud, Wand2 } from "lucide-react";
 import {
   a4Dimensions, canvasBlob, colorValues, downloadBlob, imageCanvas, makeRoundedCanvas,
   type ExportFormat,
 } from "@/lib/image-tools/core";
-import { readImageMetadata, writeImageMetadata, stripImageMetadata } from "@/lib/image-tools/metadata";
 import { readVisioFile, type VisioPackage } from "@/lib/image-tools/visio";
+import { readImageMetadata } from "@/lib/image-tools/metadata";
 
 type ToolProps = { slug: string; title: string };
 const visioSlugs = ["vsd-to-docx","vsd-to-pptx","vsd-to-jpg","vsd-to-pdf","vsdx-to-docx","vsdx-to-pptx","vsdx-to-jpg","vsdx-to-pdf"];
 const labels: Record<string,string> = {
   "crop-round-corners":"Crop Round Corners","image-color-picker":"Image Color Picker",
-  "edit-metadata":"Edit Metadata","remove-metadata":"Remove Metadata",
   "blemishes-remover":"Blemishes Remover","a4-size":"A4 Size",
   "profile-photo-maker":"Circular Profile Photo Maker","aspect-ratio-crop":"Aspect Ratio Crop",
   "add-border-to-image":"Add Image Border",
@@ -48,28 +47,21 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const [canvasRevision,setCanvasRevision] = useState(0);
   const [borderWidth,setBorderWidth] = useState(24);
   const [borderColor,setBorderColor] = useState("#ffffff");
-  const [titleField,setTitleField] = useState("");
-  const [dateTime,setDateTime] = useState("");
   const [error,setError] = useState("");
   const [message,setMessage] = useState("");
   const [format,setFormat] = useState<ExportFormat>("image/png");
-  const [radius,setRadius] = useState(10);
+  const [radius,setRadius] = useState(50);
   const [bg,setBg] = useState("#ffffff");
   const [ratio,setRatio] = useState("1:1");
   const [dpi,setDpi] = useState(300);
   const [zoom,setZoom] = useState(1);
   const [frameX,setFrameX] = useState(50);
   const [frameY,setFrameY] = useState(50);
-  const [author,setAuthor] = useState("");
-  const [description,setDescription] = useState("");
-  const [copyright,setCopyright] = useState("");
-  const [keywords,setKeywords] = useState("");
-  const [comment,setComment] = useState("");
-  const [software,setSoftware] = useState("BROBEX Image Tools");
   const [quality,setQuality] = useState(92);
   const [sample,setSample] = useState<Record<string,string>|null>(null);
   const [palette,setPalette] = useState<string[]>([]);
   const [brushSize,setBrushSize] = useState(24);
+  const [fixScreen,setFixScreen] = useState(false);
   const [brushCursor,setBrushCursor] = useState<{x:number;y:number}|null>(null);
   const [metadata,setMetadata] = useState<Record<string,string>|null>(null);
   const [pkg,setPkg] = useState<VisioPackage|null>(null);
@@ -79,6 +71,13 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
 
   useEffect(() => () => { if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); }, []);
   useEffect(() => () => { if (originalUrl) URL.revokeObjectURL(originalUrl); }, [originalUrl]);
+  useEffect(() => {
+    if (slug !== "blemishes-remover") return;
+    const bodyOverflow = document.body.style.overflow;
+    const htmlOverflow = document.documentElement.style.overflow;
+    if (fixScreen) { document.body.style.overflow = "hidden"; document.documentElement.style.overflow = "hidden"; }
+    return () => { document.body.style.overflow = bodyOverflow; document.documentElement.style.overflow = htmlOverflow; };
+  }, [fixScreen, slug]);
 
   function setPreview(blob: Blob) {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
@@ -185,7 +184,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
       const original = URL.createObjectURL(originalBlob);
       setOriginalUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return original; });
       setPreviewMode("edited");
-      setRadius(90); setRatio("1:1"); setFrameX(50); setFrameY(50);
+      setRadius(50); setRatio("1:1"); setFrameX(50); setFrameY(50);
       setPreview(originalBlob);
       if (slug === "view-metadata") {
         const exif = await readImageMetadata(next);
@@ -211,17 +210,6 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
           "Software": exif.software || "Not present / not readable",
           "GPS coordinates": "Not extracted by this browser workspace",
         });
-      }
-      if (slug === "edit-metadata") {
-        const exif = await readImageMetadata(next);
-        setTitleField(exif.title || "");
-        setDateTime(exif.dateTime || "");
-        setDescription(exif.description || "");
-        setAuthor(exif.artist || "");
-        setCopyright(exif.copyright || "");
-        setKeywords(exif.keywords || "");
-        setComment(exif.comment || "");
-        setSoftware(exif.software || "BROBEX Image Tools");
       }
       setMessage("Image loaded and signature-checked. Original file remains unchanged.");
     } catch (e) { setFile(null); setError(e instanceof Error ? e.message : "Image could not be opened."); }
@@ -275,28 +263,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
     } catch(e) { setError(e instanceof Error?e.message:"Export failed."); }
   }
 
-  async function removeMetadata() {
-    if (!file) return;
-    try {
-      const result = await stripImageMetadata(file);
-      const ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/webp" ? "webp" : "png";
-      downloadBlob(result.blob, `${safeName(file.name)}-metadata-removed.${ext}`);
-      setMessage(`Metadata scrub complete. ${result.removed} metadata segment(s)/chunk(s) removed; supported EXIF, GPS, XMP, ICC and text metadata are stripped. Image pixels were not re-encoded.`);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Metadata removal failed.");
-    }
-  }
 
-  async function editMetadata() {
-    if (!file) return;
-    try {
-      const fields={title:titleField,dateTime,description,artist:author,copyright,keywords,comment,software};
-      const blob=await writeImageMetadata(file,fields);
-      const ext=blob.type==="image/jpeg"?"jpg":"png";
-      downloadBlob(blob,`${safeName(file.name)}-metadata-edited.${ext}`);
-      setMessage(`Success: metadata was embedded in the downloaded ${ext.toUpperCase()} image. The image pixels were not re-encoded.`);
-    } catch(e) { setError(e instanceof Error?e.message:"Metadata editing failed."); }
-  }
 
   function sampleColor(e: MouseEvent<HTMLCanvasElement>) {
     const c=canvasRef.current;if(!c)return;
@@ -330,11 +297,10 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
 
   function resetTool() {
     setError(""); setMessage(""); setPreviewMode("edited");
-    setRadius(10); setBorderWidth(24); setBorderColor("#ffffff");
+    setRadius(50); setBorderWidth(24); setBorderColor("#ffffff");
     setRatio("1:1"); setFrameX(50); setFrameY(50);
     setZoom(1); setDpi(300); setBg("#ffffff"); setFormat("image/png");
-    setBrushSize(24); setTitleField(""); setAuthor(""); setDescription("");
-    setCopyright(""); setDateTime(""); setKeywords(""); setComment(""); setSoftware("BROBEX Image Tools"); setQuality(92); setSample(null); setPalette([]);
+    setBrushSize(24); setQuality(92); setSample(null); setPalette([]);
     if (file) setCanvasRevision(value => value + 1);
   }
 
@@ -348,7 +314,7 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
   const clickHandler=slug==="image-color-picker"?sampleColor:slug==="blemishes-remover"?healSpot:undefined;
 
   return <section className="advanced-tools-workspace">
-    <div className="advanced-tools-head"><span className="advanced-tools-mark"><Wand2 size={19}/></span><div><h2>{titleText}</h2><p>Private, browser-based processing. Your selected files are processed locally.</p></div></div>
+    <div className="advanced-tools-head"><span className="advanced-tools-mark"><Wand2 size={19}/></span><div><h2>{titleText}</h2><p>Private, browser-based processing. Your selected files are processed locally.</p></div>{slug==="blemishes-remover"&&file&&<button type="button" className={`advanced-fix-screen ${fixScreen?"is-active":""}`} aria-pressed={fixScreen} onClick={()=>setFixScreen(value=>!value)}>{fixScreen?"Exit Fix Screen":"Fix Screen"}</button>}</div>
     <input ref={input} type="file" hidden accept={isVisio?".vsd,.vsdx,application/vnd.ms-visio.drawing,application/vnd.ms-visio.drawing.main+xml":"image/png,image/jpeg,image/webp,image/gif,image/avif"} onChange={e=>{void choose(e.target.files?.[0]);e.currentTarget.value="";}}/>
     <button className="advanced-upload" type="button" onClick={()=>input.current?.click()}><UploadCloud size={20}/><span>{file?file.name:"Choose a file or click to upload"}</span><small>{isVisio?"VSD / VSDX · inspection only":"JPEG · PNG · WebP · GIF · AVIF · max 30 MB"}</small></button>
     {file&&!isVisio&&url&&<div className="advanced-preview">
@@ -356,37 +322,30 @@ export function AdvancedImageToolsWorkspace({ slug, title }: ToolProps) {
         <button type="button" aria-pressed={previewMode==="original"} onClick={()=>setPreviewMode("original")}>Original Image</button>
         <button type="button" aria-pressed={previewMode==="edited"} onClick={()=>setPreviewMode("edited")}>Edited Image</button>
       </div>}
-      <div className="advanced-preview-stage" style={{position:"relative",display:"inline-block",maxWidth:"100%"}}
+      <div className="advanced-preview-sticky">
+      <div className="advanced-preview-stage" style={{position:"relative",display:"inline-block",maxWidth:"100%",touchAction:(isProfile||slug==="aspect-ratio-crop")?"none":"pan-y"}}
+        onPointerDown={e=>{if(!(isProfile||slug==="aspect-ratio-crop"))return;e.currentTarget.setPointerCapture(e.pointerId);const rect=e.currentTarget.getBoundingClientRect();setFrameX(Math.max(0,Math.min(100,((e.clientX-rect.left)/rect.width)*100)));setFrameY(Math.max(0,Math.min(100,((e.clientY-rect.top)/rect.height)*100)));}}
+        onPointerMove={e=>{if(slug==="blemishes-remover"){const r=e.currentTarget.getBoundingClientRect();setBrushCursor({x:e.clientX-r.left,y:e.clientY-r.top});return;}if((isProfile||slug==="aspect-ratio-crop")&&e.buttons===1){const r=e.currentTarget.getBoundingClientRect();setFrameX(Math.max(0,Math.min(100,((e.clientX-r.left)/r.width)*100)));setFrameY(Math.max(0,Math.min(100,((e.clientY-r.top)/r.height)*100)));}}}
         onMouseMove={e=>{if(slug!=="blemishes-remover")return;const r=e.currentTarget.getBoundingClientRect();setBrushCursor({x:e.clientX-r.left,y:e.clientY-r.top});}}
         onMouseLeave={()=>setBrushCursor(null)}>
-        <canvas ref={previewCanvasRef} aria-label={previewMode==="original"?"Original uploaded image":"Live edited image preview"} onClick={clickHandler} style={{display:"block",maxWidth:"100%",height:"auto",cursor:clickHandler?"crosshair":"default",touchAction:"manipulation"}}/>
+        <canvas ref={previewCanvasRef} aria-label={previewMode==="original"?"Original uploaded image":"Live edited image preview"} onClick={clickHandler} style={{display:"block",maxWidth:"100%",height:"auto",cursor:clickHandler?"crosshair":(isProfile||slug==="aspect-ratio-crop")?"grab":"default",touchAction:"none"}}/>
         {slug==="blemishes-remover"&&brushCursor&&<span aria-hidden="true" style={{position:"absolute",left:brushCursor.x,top:brushCursor.y,width:brushSize,height:brushSize,border:"1.5px solid currentColor",borderRadius:"50%",transform:"translate(-50%,-50%)",pointerEvents:"none",boxShadow:"0 0 0 1px rgba(255,255,255,.8)"}}/>}
       </div>
-      <span>{file.name} · {(file.size/1024).toFixed(1)} KB · {canvasRef.current?.width} × {canvasRef.current?.height}px</span></div>}
+      <span>{(isProfile||slug==="aspect-ratio-crop")?"Drag directly on the preview to adjust framing · ":""}{file.name} · {(file.size/1024).toFixed(1)} KB · {canvasRef.current?.width} × {canvasRef.current?.height}px</span></div>
+      </div>}
     {file&&!isVisio&&<div className="advanced-controls">
-      {slug==="crop-round-corners"&&<><label>Corner radius <input type="range" min="0" max="50" value={radius} onChange={e=>setRadius(+e.target.value)}/><b>{radius}%</b></label><div className="advanced-action-row" role="group" aria-label="Corner radius presets">{[0,10,20,30,40,50].map(value=><button key={value} type="button" aria-pressed={radius===value} onClick={()=>setRadius(value)}>{value}%</button>)}</div><label>JPEG background <input type="color" value={bg} onChange={e=>setBg(e.target.value)}/></label></>}
+      {slug==="crop-round-corners"&&<><div className="advanced-radius-presets" role="group" aria-label="Recommended corner presets">{[{value:50,title:"Soft corners",detail:"Balanced rounded edges"},{value:100,title:"Full rounding",detail:"Maximum corner curve"},{value:100,title:"Pill finish",detail:"Strong rounded profile"}].map((preset,index)=><button key={`${preset.value}-${index}`} type="button" className={radius===preset.value?"active":""} aria-pressed={radius===preset.value} onClick={()=>setRadius(preset.value)}><span className={`advanced-radius-sample radius-${index+1}`}/><strong>{preset.title}</strong><small>{preset.value}% radius</small></button>)}</div><label>Corner radius <input type="range" min="50" max="100" step="50" value={radius} onChange={e=>setRadius(+e.target.value)}/><b>{radius}%</b></label><label>JPEG background <input type="color" value={bg} onChange={e=>setBg(e.target.value)}/></label></>}
       {slug==="add-border-to-image"&&<><label>Border width <input type="range" min="0" max="200" value={borderWidth} onChange={e=>setBorderWidth(+e.target.value)}/><b>{borderWidth}px</b></label><label>Border color <input type="color" value={borderColor} onChange={e=>setBorderColor(e.target.value)}/></label></>}
       {slug==="aspect-ratio-crop"&&<><label>Aspect ratio <select value={ratio} onChange={e=>setRatio(e.target.value)}>{["1:1","4:3","3:2","16:9","9:16","3:4","2:3","5:4","4:5"].map(v=><option key={v}>{v}</option>)}</select></label><label>Horizontal crop position <input type="range" min="0" max="100" value={frameX} onChange={e=>setFrameX(+e.target.value)}/><b>{frameX}%</b></label><label>Vertical crop position <input type="range" min="0" max="100" value={frameY} onChange={e=>setFrameY(+e.target.value)}/><b>{frameY}%</b></label></>}
       {isProfile&&<><p>Output is always a true transparent circular PNG. Adjust zoom and framing before export.</p><label>Zoom <input type="range" min="1" max="3" step=".05" value={zoom} onChange={e=>setZoom(+e.target.value)}/><b>{zoom.toFixed(2)}×</b></label><label>Horizontal framing <input type="range" min="0" max="100" value={frameX} onChange={e=>setFrameX(+e.target.value)}/><b>{frameX}%</b></label><label>Vertical framing <input type="range" min="0" max="100" value={frameY} onChange={e=>setFrameY(+e.target.value)}/><b>{frameY}%</b></label></>}
       {slug==="a4-size"&&<><label>Print resolution <select value={dpi} onChange={e=>setDpi(+e.target.value)}><option value="150">150 DPI</option><option value="300">300 DPI</option></select></label><label>Page background <input type="color" value={bg} onChange={e=>setBg(e.target.value)}/></label><p>Output page: {a4Dimensions(dpi).width} × {a4Dimensions(dpi).height}px at {dpi} DPI (A4 portrait).</p></>}
-      {slug==="edit-metadata"&&<div className="metadata-editor" aria-label="Image metadata fields">
-        <p>Update descriptive fields embedded directly in the downloaded JPEG or PNG image. No JSON sidecar is created.</p>
-        <label>Title<input value={titleField} onChange={e=>setTitleField(e.target.value)} placeholder="Image title"/></label>
-        <label>Author<input value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Creator or author"/></label>
-        <label>Description<input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe this image"/></label>
-        <label>Copyright<input value={copyright} onChange={e=>setCopyright(e.target.value)} placeholder="Copyright notice"/></label>
-        <label>Date &amp; time<input type="text" value={dateTime} onChange={e=>setDateTime(e.target.value)} placeholder="YYYY:MM:DD HH:MM:SS"/></label>
-        <label>Keywords<input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder="Comma-separated keywords"/></label>
-        <label>Comment<input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Additional comment"/></label>
-        <label>Software<input value={software} onChange={e=>setSoftware(e.target.value)} placeholder="Software name"/></label>
-      </div>}
       {slug==="view-metadata"&&metadata&&<div className="sample-values"><div><b>Image properties and readable metadata</b>{Object.entries(metadata).map(([k,v])=><span key={k}>{k}: {v}</span>)}</div><button type="button" onClick={()=>void navigator.clipboard.writeText(Object.entries(metadata).map(([k,v])=>`${k}: ${v}`).join("\\n"))}><Copy size={15}/> Copy all metadata</button></div>}
       {slug==="image-color-picker"&&<><p>Tap/click any pixel in the preview to sample its exact source-image color.</p>{sample&&<div className="sample-values"><i style={{background:sample.hex}}/><div><b>{sample.hex}</b><span>{sample.rgb} · {sample.hsl} · {sample.hsv}</span></div><button type="button" onClick={()=>navigator.clipboard.writeText(sample.hex)}><Copy size={15}/> Copy HEX</button></div>}<div className="advanced-action-row">{(["css","json","txt"] as const).map(k=><button className="advanced-export-button" key={k} type="button" disabled={!palette.length} onClick={()=>exportPalette(k)}>Export {k.toUpperCase()}</button>)}</div>{palette.length>0&&<div className="palette-swatches">{palette.map(v=><button key={v} title={v} style={{background:v}} onClick={()=>navigator.clipboard.writeText(v)} aria-label={`Copy ${v}`}/>)}</div>}</>}
       {slug==="blemishes-remover"&&<><p>Click/tap a small mark in the preview to apply a local clone-stamp patch. Use small brush sizes for best control; this is not AI healing.</p><label>Brush size <input type="range" min="6" max="80" value={brushSize} onChange={e=>setBrushSize(+e.target.value)}/><b>{brushSize}px</b></label></>}
-      {slug!=="image-color-picker"&&slug!=="view-metadata"&&slug!=="edit-metadata"&&slug!=="remove-metadata"&&!isProfile&&<><label>Export format <select value={format} onChange={e=>setFormat(e.target.value as ExportFormat)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option></select></label>{format!=="image/png"&&<label>Quality <input type="range" min="40" max="100" value={quality} onChange={e=>setQuality(+e.target.value)}/><b>{quality}%</b></label>}</>}
+      {slug!=="image-color-picker"&&slug!=="view-metadata"&&!isProfile&&<><label>Export format <select value={format} onChange={e=>setFormat(e.target.value as ExportFormat)}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option></select></label>{format!=="image/png"&&<label>Quality <input type="range" min="40" max="100" value={quality} onChange={e=>setQuality(+e.target.value)}/><b>{quality}%</b></label>}</>}
       <div className="advanced-action-row">
         <button type="button" onClick={resetTool}><span>Reset</span></button>
-        {slug==="remove-metadata"?<button className="advanced-primary" type="button" onClick={()=>void removeMetadata()}><Download size={17}/> Download Clean Image</button>:slug==="edit-metadata"?<button className="advanced-primary" type="button" onClick={()=>void editMetadata()}><Download size={17}/> Download Image with Metadata</button>:slug==="image-color-picker"||slug==="view-metadata"?null:<button className="advanced-primary" type="button" onClick={()=>void exportImage()}><Download size={17}/> Download Image</button>}
+        {slug==="image-color-picker"||slug==="view-metadata"?null:<button className="advanced-primary" type="button" onClick={()=>void exportImage()}><Download size={17}/> Download Image</button>}
       </div>
     </div>}
     {isVisio&&pkg&&<div className="visio-results"><div className="visio-summary"><FileArchive/><b>{pkg.pages.length} page(s) inspected</b><span>{pkg.media.length} embedded media file(s)</span></div><div className="visio-pages">{pkg.pages.map((page,i)=><article key={page.name}><b>Page {i+1} · {page.name}</b><p>{page.text.slice(0,5).join(" · ")||"No text extracted"}</p></article>)}</div>{pkg.warnings.map(w=><p className="advanced-warning" key={w}>{w}</p>)}<p className="advanced-warning">No Visio rendering or conversion engine is configured. The page will not generate DOCX, PPTX, PDF or JPG files that falsely imply a faithful conversion. VSDX inspection only extracts text and embedded media; legacy VSD requires a dedicated converter or Microsoft Visio export.</p><button type="button" onClick={()=>{const text=pkg.pages.map((page,i)=>`PAGE ${i+1}: ${page.name}\n${page.text.join("\n")}`).join("\n\n");downloadBlob(new Blob([text],{type:"text/plain"}),`${safeName(file?.name||"visio")}-extracted-text.txt`);}}> <FileText size={16}/> Download extracted text only</button></div>}

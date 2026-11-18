@@ -1,10 +1,8 @@
 import a4SizeGuide from "@/content/tool-guides/a4-size.json";
 import blemishesRemoverGuide from "@/content/tool-guides/blemishes-remover.json";
 import cropRoundCornersGuide from "@/content/tool-guides/crop-round-corners.json";
-import editMetadataGuide from "@/content/tool-guides/edit-metadata.json";
 import imageColorPickerGuide from "@/content/tool-guides/image-color-picker.json";
 import overlayImagesGuide from "@/content/tool-guides/overlay-images.json";
-import removeMetadataGuide from "@/content/tool-guides/remove-metadata.json";
 import signatureImageResizerGuide from "@/content/tool-guides/signature-image-resizer.json";
 import type { ToolGuideData } from "@/components/tool-guide";
 import signatureGeneratorGuide from "@/content/tool-guides/signature-generator.json";
@@ -21,7 +19,6 @@ import guide8 from "@/content/tool-guides/tiff-to-text.json";
 import guide9 from "@/content/tool-guides/resize-image-dimensions.json";
 import guide10 from "@/content/tool-guides/compress-image-size.json";
 import guide11 from "@/content/tool-guides/crop-image.json";
-import guide12 from "@/content/tool-guides/square-crop.json";
 import guide13 from "@/content/tool-guides/triangle-crop.json";
 import guide14 from "@/content/tool-guides/shape-crop.json";
 import guide15 from "@/content/tool-guides/aspect-ratio-crop.json";
@@ -30,7 +27,6 @@ import guide17 from "@/content/tool-guides/pixelate-image.json";
 import guide18 from "@/content/tool-guides/add-text-to-image.json";
 import guide19 from "@/content/tool-guides/add-border-to-image.json";
 import guide20 from "@/content/tool-guides/combine-images.json";
-import guide21 from "@/content/tool-guides/add-images-to-image.json";
 import guide22 from "@/content/tool-guides/make-round-image.json";
 import guide23 from "@/content/tool-guides/profile-photo-maker.json";
 import guide24 from "@/content/tool-guides/image-splitter.json";
@@ -127,10 +123,8 @@ export const toolGuides: Record<string, ToolGuideData> = {
   "a4-size": a4SizeGuide,
   "blemishes-remover": blemishesRemoverGuide,
   "crop-round-corners": cropRoundCornersGuide,
-  "edit-metadata": editMetadataGuide,
   "image-color-picker": imageColorPickerGuide,
   "overlay-images": overlayImagesGuide,
-  "remove-metadata": removeMetadataGuide,
   "signature-image-resizer": signatureImageResizerGuide,
   "blur-image": guide107,
   "signature-generator": signatureGeneratorGuide,
@@ -151,7 +145,6 @@ export const toolGuides: Record<string, ToolGuideData> = {
   "resize-image-dimensions": guide9,
   "compress-image-size": guide10,
   "crop-image": guide11,
-  "square-crop": guide12,
   "triangle-crop": guide13,
   "shape-crop": guide14,
   "aspect-ratio-crop": guide15,
@@ -160,7 +153,6 @@ export const toolGuides: Record<string, ToolGuideData> = {
   "add-text-to-image": guide18,
   "add-border-to-image": guide19,
   "combine-images": guide20,
-  "add-images-to-image": guide21,
   "make-round-image": guide22,
   "profile-photo-maker": guide23,
   "image-splitter": guide24,
